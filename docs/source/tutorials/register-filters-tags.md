@@ -6,7 +6,7 @@ title: Register Filters/Tags
 
 ```typescript
 // Usage: {% upper name %}
-import { Value, TagToken, Context, Emitter, TopLevelToken } from 'liquidjs'
+import { Value, TagToken, Context, Emitter, TopLevelToken } from '@chr33s/liquid'
 
 engine.registerTag('upper', {
     parse: function(tagToken: TagToken, remainTokens: TopLevelToken[]) {
@@ -26,7 +26,7 @@ For complex tag implementation, you can also provide a tag class:
 
 ```typescript
 // Usage: {% upper name:"alice" %}
-import { Hash, Tag, TagToken, Context, Emitter, TopLevelToken, Liquid } from 'liquidjs'
+import { Hash, Tag, TagToken, Context, Emitter, TopLevelToken, Liquid } from '@chr33s/liquid'
 
 engine.registerTag('upper', class UpperTag extends Tag {
     private hash: Hash

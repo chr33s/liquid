@@ -1,4 +1,4 @@
-import { Liquid } from '../..'
+import { Liquid } from '@chr33s/liquid'
 import { mkdtempSync, writeFileSync, symlinkSync, rmSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'

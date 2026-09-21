@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "hello-liquid": "^1.0.0",
-    "liquidjs": "latest"
+    "@chr33s/liquid": "file:../.."
   }
 }

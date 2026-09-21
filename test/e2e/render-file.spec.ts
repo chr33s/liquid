@@ -1,4 +1,4 @@
-import { Liquid } from '../..'
+import { Liquid } from '@chr33s/liquid'
 import { resolve } from 'path'
 import pkg from '../../package.json'
 

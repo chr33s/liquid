@@ -10,7 +10,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "liquidjs": "latest",
+    "@chr33s/liquid": "file:../..",
     "typescript": "^7.0.2"
   },
   "devDependencies": {

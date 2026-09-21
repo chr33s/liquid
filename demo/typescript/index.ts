@@ -1,4 +1,4 @@
-import { Value, Liquid, TagToken, Context, Emitter, Tag, TopLevelToken } from 'liquidjs'
+import { Value, Liquid, TagToken, Context, Emitter, Tag, TopLevelToken } from '@chr33s/liquid'
 
 const engine = new Liquid({
   root: process.cwd(),

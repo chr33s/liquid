@@ -11,7 +11,7 @@ LiquidJS also provides a mechanism similar to [Shopify Drops][shopify-drops], al
 ## Basic Usage
 
 ```javascript
-import { Liquid, Drop } from 'liquidjs'
+import { Liquid, Drop } from '@chr33s/liquid'
 
 class SettingsDrop extends Drop {
   constructor() {
@@ -43,7 +43,7 @@ LiquidJS is fully async-friendly. You can safely return a Promise in your Drop m
 For cases when there isn't a fixed set of properties, you can leverage `liquidMethodMissing` to dynamically resolve the value of a variable name.
 
 ```javascript
-import { Liquid, Drop } from 'liquidjs'
+import { Liquid, Drop } from '@chr33s/liquid'
 
 class SettingsDrop extends Drop {
   liquidMethodMissing(key) {
@@ -60,7 +60,7 @@ engine.parseAndRender("{{settings.coo}}", { settings: new SettingsDrop() })
 `liquidMethodMissing` supports Promise, meaning you can make async calls within it. A more useful case can be fetching the value dynamically from the database. By using Drops, you can avoid hardcoding each property into the context. For example:
 
 ```javascript
-import { Liquid, Drop } from 'liquidjs'
+import { Liquid, Drop } from '@chr33s/liquid'
 
 class DBDrop extends Drop {
   async liquidMethodMissing(key) {
@@ -79,7 +79,7 @@ engine.parseAndRender("{{db.coo}}", context).then(html => console.log(html))
 Drops can implement a `valueOf()` method, the return value of which can be used to replace itself in the output. For example:
 
 ```javascript
-import { Liquid, Drop } from 'liquidjs'
+import { Liquid, Drop } from '@chr33s/liquid'
 
 class ColorDrop extends Drop {
   valueOf() {
@@ -98,7 +98,7 @@ engine.parseAndRender("{{color}}", context).then(html => console.log(html))
 `toLiquid()` is not a method of `Drop`, but it can be used to return a `Drop`. In cases where you have a fixed structure in the `context` that cannot change its values, you can implement `toLiquid()` to let LiquidJS use the returned value instead of the object itself when rendering templates.
 
 ```javascript
-import { Liquid, Drop } from 'liquidjs'
+import { Liquid, Drop } from '@chr33s/liquid'
 
 const context = {
   person: {
@@ -122,7 +122,7 @@ engine.parseAndRender("{{person.name}}", context).then(html => console.log(html)
 Of course, you can also return a `PersonDrop` instance in the `toLiquid()` method and implement this functionality within `PersonDrop`:
 
 ```javascript
-import { Liquid, Drop } from 'liquidjs'
+import { Liquid, Drop } from '@chr33s/liquid'
 
 class PersonDrop extends Drop {
   constructor(person) {

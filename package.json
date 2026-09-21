@@ -1,17 +1,48 @@
 {
-  "name": "liquidjs",
-  "version": "10.27.1",
-  "sideEffects": false,
+  "name": "@chr33s/liquid",
+  "version": "11.0.0",
+  "description": "A simple, expressive, extensible Liquid template engine for JavaScript — Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.",
+  "keywords": [
+    "express",
+    "jinja",
+    "liquid",
+    "shopify",
+    "template engine"
+  ],
+  "homepage": "https://github.com/chr33s/liquid#readme",
+  "bugs": {
+    "url": "https://github.com/chr33s/liquid/issues"
+  },
+  "license": "MIT",
+  "author": "Harttle",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chr33s/liquid.git"
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/liquidjs"
+  },
+  "bin": {
+    "liquid": "./dist/liquid.cli.mjs",
+    "liquidjs": "./dist/liquid.cli.mjs"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "type": "module",
-  "description": "A simple, expressive, extensible Liquid template engine for JavaScript \u2014 Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.",
+  "sideEffects": false,
   "exports": {
     "types": "./dist/index.d.ts",
     "browser": "./dist/liquid.browser.mjs",
     "import": "./dist/liquid.node.mjs",
     "require": "./dist/liquid.node.cjs"
   },
-  "engines": {
-    "node": ">=22.12"
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "lint": "oxlint && oxfmt --check src test bin rolldown.config.mjs vitest.config.mts",
@@ -42,36 +73,9 @@
     "build:bundles": "rolldown -c rolldown.config.mjs",
     "build:cli": "cross-env BUNDLES=cli rolldown -c rolldown.config.mjs"
   },
-  "bin": {
-    "liquidjs": "./dist/liquid.cli.mjs",
-    "liquid": "./dist/liquid.cli.mjs"
+  "dependencies": {
+    "commander": "^15.0.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/harttle/liquidjs.git"
-  },
-  "funding": {
-    "type": "opencollective",
-    "url": "https://opencollective.com/liquidjs"
-  },
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md"
-  ],
-  "keywords": [
-    "liquid",
-    "template engine",
-    "express",
-    "jinja",
-    "shopify"
-  ],
-  "author": "Harttle",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/harttle/liquidjs/issues"
-  },
-  "homepage": "https://github.com/harttle/liquidjs#readme",
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.3",
     "@semantic-release/changelog": "^7.0.0",
@@ -97,12 +101,8 @@
     "typescript": "^6.0.3",
     "vitest": "^5.0.1"
   },
-  "dependencies": {
-    "commander": "^15.0.0"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+  "engines": {
+    "node": ">=22.12"
   },
   "allowScripts": {
     "fsevents": true

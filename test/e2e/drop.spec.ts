@@ -1,4 +1,4 @@
-import { Context, Drop, Liquid } from '../..'
+import { Context, Drop, Liquid } from '@chr33s/liquid'
 
 describe('drop', function () {
   let engine: Liquid

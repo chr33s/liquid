@@ -1,4 +1,4 @@
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 
 const engine = new Liquid({
   extname: '.liquid',

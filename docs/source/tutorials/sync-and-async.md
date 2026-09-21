@@ -27,7 +27,7 @@ The synchronous version of methods contains a `Sync` suffix:
 LiquidJS uses a generator-based async implementation to support both async and sync in one piece of tag implementation. For example, below `UpperTag` can be used in both `engine.renderSync()` and `engine.render()`.
 
 ```typescript
-import { TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid } from 'liquidjs'
+import { TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid } from '@chr33s/liquid'
 
 // Usage: {% upper "alice" %}
 // Output: ALICE
@@ -73,7 +73,7 @@ Non <em>sync-compatible</em> tags are also valid tags, will work just fine for a
 You can convert a Generator to Promise by [toPromise][toPromise], for example:
 
 ```typescript
-import { TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid, toPromise } from 'liquidjs'
+import { TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid, toPromise } from '@chr33s/liquid'
 
 // Usage: {% upper "alice" %}
 // Output: ALICE
@@ -95,7 +95,7 @@ engine.registerTag('upper', class UpperTag extends Tag {
 If your tag is intended to be used only asynchronously, it can be declared as `async render()` so you can use `await` in its implementation directly:
 
 ```typescript
-import { toPromise, TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid } from 'liquidjs'
+import { toPromise, TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid } from '@chr33s/liquid'
 
 // Usage: {% upper "alice" %}
 // Output: ALICE

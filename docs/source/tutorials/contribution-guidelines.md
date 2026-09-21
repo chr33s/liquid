@@ -8,9 +8,9 @@ Starring LiquidJS is the most important and easiest way to support us: boost its
 
 ## Show Me Your Code
 
-Getting started and building is described in [CONTRIBUTING.md](https://github.com/harttle/liquidjs/blob/master/CONTRIBUTING.md).
+Getting started and building is described in [CONTRIBUTING.md](https://github.com/chr33s/liquid/blob/main/CONTRIBUTING.md).
 
-**Code Style**: LiquidJS applies [standard](https://github.com/standard/eslint-config-standard) and [@typescript-eslint/recommended](https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/src/configs/recommended.json) rules.
+**Code Style**: LiquidJS applies [oxlint](https://oxc.rs/docs/guide/usage/linter.html) and [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html). Run `npm run lint` to check and `npm run format` to fix.
 
 **Testing**: Make sure test cases pass with your patch merged by running `npm test`
 

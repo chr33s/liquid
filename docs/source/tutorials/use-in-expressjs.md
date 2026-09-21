@@ -5,7 +5,7 @@ title: Use in Express.js
 LiquidJS is compatible with [Express template engines](https://expressjs.com/en/resources/template-engines.html). You can set the LiquidJS instance as the [view engine][express-views] option:
 
 ```javascript
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 var engine = new Liquid();
 
 // register liquid engine
@@ -31,7 +31,7 @@ The [root][root] option will continue to work as templates root, as you can see 
 And you're setting template root for liquidjs to `views1` and expressjs to `views2`:
 
 ```javascript
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 var engine = new Liquid({
     root: './views1/'
 });
@@ -53,7 +53,7 @@ res.render('world')
 Simply setting the [cache option][cache] to true will enable template caching, as explained in [Caching][Caching]. It's recommended to enable cache in a production environment, which can be done by:
 
 ```javascript
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 var engine = new Liquid({
     cache: process.env.NODE_ENV === 'production'
 });

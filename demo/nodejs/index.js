@@ -1,4 +1,4 @@
-const { Liquid, Tag, Value } = require('liquidjs')
+const { Liquid, Tag, Value } = require('@chr33s/liquid')
 
 const engine = new Liquid({
   extname: '.liquid',

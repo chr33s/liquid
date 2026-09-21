@@ -9,7 +9,7 @@
     "start": "node index.ts"
   },
   "dependencies": {
-    "liquidjs": "latest"
+    "@chr33s/liquid": "file:../.."
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

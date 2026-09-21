@@ -1,4 +1,4 @@
-import { Liquid } from '../..'
+import { Liquid } from '@chr33s/liquid'
 
 describe('#evalValue()', function () {
   let engine: Liquid

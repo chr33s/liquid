@@ -9,11 +9,11 @@ In case you're not familiar with Liquid Template Language, see [Introduction to 
 Install via npm:
 
 ```bash
-npm install --save liquidjs
+npm install --save @chr33s/liquid
 ```
 
 ```javascript
-import { Liquid } from 'liquidjs';
+import { Liquid } from '@chr33s/liquid';
 const engine = new Liquid();
 
 engine
@@ -24,7 +24,7 @@ engine
 LiquidJS ships as ES Modules and requires Node.js >= 22.12. CommonJS projects can still load it with `require()`, which resolves to a thin adapter around the same ES Module:
 
 ```javascript
-const { Liquid } = require('liquidjs');
+const { Liquid } = require('@chr33s/liquid');
 ```
 
 Both entries share a single module instance, so classes like `Drop` and `Tag` compare equal (`instanceof`) no matter how each part of your program loads LiquidJS. See [Migrate to LiquidJS 11][migrate11] for details.
@@ -34,7 +34,7 @@ Both entries share a single module instance, so classes like `Drop` and `Tag` co
 Type definitions for LiquidJS are also exported and published, which makes it more enjoyable for TypeScript projects:
 
 ```typescript
-import { Liquid } from 'liquidjs';
+import { Liquid } from '@chr33s/liquid';
 const engine = new Liquid();
 
 engine
@@ -50,9 +50,9 @@ Pre-built UMD bundles are also available:
 
 ```html
 <!--for production-->
-<script src="https://cdn.jsdelivr.net/npm/liquidjs/dist/liquid.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@chr33s/liquid/dist/liquid.browser.min.js"></script>
 <!--for development-->
-<script src="https://cdn.jsdelivr.net/npm/liquidjs/dist/liquid.browser.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@chr33s/liquid/dist/liquid.browser.umd.js"></script>
 ```
 
 {% note info Working Demo %} Here's a live demo on jsFiddle: <a href="https://jsfiddle.net/pd4jhzLs/1/" target="_blank">jsfiddle.net/pd4jhzLs/1/</a>, and the source code is also available in <a href="https://github.com/harttle/liquidjs/blob/master/demo/browser/" target="_blank">liquidjs/demo/browser/</a>.{% endnote %}

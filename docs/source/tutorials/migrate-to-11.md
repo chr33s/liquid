@@ -13,11 +13,11 @@ The minimum supported Node.js version is now 22.12. This is the version where `r
 There is no change to how you load LiquidJS:
 
 ```javascript
-import { Liquid } from 'liquidjs';
+import { Liquid } from '@chr33s/liquid';
 ```
 
 ```javascript
-const { Liquid } = require('liquidjs');
+const { Liquid } = require('@chr33s/liquid');
 ```
 
 The `require()` entry is a small adapter that re-exports the ES Module, so both forms resolve to the same code.
@@ -54,7 +54,7 @@ Bundlers that understand `exports` (webpack 5, Vite, Rollup, esbuild, Parcel 2) 
 The UMD and minified builds keep their names and their global:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/liquidjs/dist/liquid.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@chr33s/liquid/dist/liquid.browser.min.js"></script>
 <script>
   var engine = new window.liquidjs.Liquid();
 </script>

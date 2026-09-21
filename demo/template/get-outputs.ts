@@ -1,5 +1,5 @@
-import { Output, Tag } from 'liquidjs'
-import type { Template } from 'liquidjs'
+import { Output, Tag } from '@chr33s/liquid'
+import type { Template } from '@chr33s/liquid'
 import { isLayoutTag, isIfTag, isUnlessTag, isLiquidTag, isCaseTag, isCaptureTag, isTablerowTag, isForTag } from './type-guards.ts'
 
 /**

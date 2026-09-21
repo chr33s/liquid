@@ -2,7 +2,7 @@ import request from 'supertest'
 import express from 'express'
 import type { Application } from 'express'
 import { resolve } from 'path'
-import { Liquid } from '../..'
+import { Liquid } from '@chr33s/liquid'
 
 describe('express()', function () {
   const root = resolve(__dirname, '../stub/root')

@@ -6,7 +6,7 @@ module.exports = {
   mode: 'development',
   target: 'node',
   plugins: [
-    new ContextReplacementPlugin(/liquidjs/)
+    new ContextReplacementPlugin(/@chr33s\/liquid/)
   ],
   output: {
     filename: 'index.js',

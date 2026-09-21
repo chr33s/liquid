@@ -1,4 +1,4 @@
-import { LayoutTag, ForTag, LiquidTag, CaptureTag, CaseTag, UnlessTag, TablerowTag, Tag, IfTag } from 'liquidjs'
+import { LayoutTag, ForTag, LiquidTag, CaptureTag, CaseTag, UnlessTag, TablerowTag, Tag, IfTag } from '@chr33s/liquid'
 
 export function isIfTag (tag: Tag): tag is IfTag {
   return tag.name === 'if'

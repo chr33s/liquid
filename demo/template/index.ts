@@ -1,4 +1,4 @@
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 import { getOutputs } from './get-outputs.ts'
 
 const engine = new Liquid({

@@ -8,6 +8,6 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "liquidjs": "latest"
+    "@chr33s/liquid": "file:../.."
   }
 }

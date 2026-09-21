@@ -15,7 +15,7 @@ import {
   Variable,
   StaticAnalysisOptions,
   StaticAnalysis
-} from '../..'
+} from '@chr33s/liquid'
 
 class MockTag extends Tag {
   private args: Hash

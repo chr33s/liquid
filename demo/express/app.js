@@ -1,5 +1,5 @@
 const express = require('express')
-const { Liquid } = require('liquidjs')
+const { Liquid } = require('@chr33s/liquid')
 
 const app = express()
 const engine = new Liquid({

@@ -1,17 +1,16 @@
 # npm run build before running this check
+set -e
 set -x
 export CI=true
 
 if [ ! -d dist ]; then
-  echo >2 'build and link liquidjs before run test.sh'
+  echo >&2 'build liquidjs before run test.sh'
   exit 1
 fi
 
-npm link
-
 for demo in $(ls demo); do
   cd demo/$demo
-  npm link liquidjs
+  npm install
 
   if npm test; then
     echo "[success] demo/$demo"

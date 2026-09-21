@@ -12,6 +12,6 @@
   "license": "MIT",
   "dependencies": {
     "express": "^5.2.1",
-    "liquidjs": "latest"
+    "@chr33s/liquid": "file:../.."
   }
 }

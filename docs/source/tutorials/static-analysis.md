@@ -17,7 +17,7 @@ There are synchronous and asynchronous versions of each of the methods demonstra
 Retrieve the names of variables used in a template with `Liquid.variables(template)`. It returns an array of strings, one string for each distinct variable, without its properties.
 
 ```javascript
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 
 const engine = new Liquid()
 
@@ -131,7 +131,7 @@ engine.globalVariableSegments(template).then(console.log)
 By default, LiquidJS will try to load and analyze any included and rendered templates too.
 
 ```javascript
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 
 const footer = `
 <footer>
@@ -245,7 +245,7 @@ Whether a tag is an inline tag or a block tag, if it accepts arguments it should
 This example demonstrates these methods for a block tag. See LiquidJS's [built-in tags][built-in] for more examples.
 
 ```javascript
-import { Liquid, Tag, Hash } from 'liquidjs'
+import { Liquid, Tag, Hash } from '@chr33s/liquid'
 
 class ExampleTag extends Tag {
   args

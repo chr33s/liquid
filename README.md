@@ -2,11 +2,11 @@
 
 A simple, expressive, extensible Liquid template engine for JavaScript — Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.
 
-[![npm version](https://img.shields.io/npm/v/liquidjs.svg?logo=npm&style=flat-square)](https://www.npmjs.org/package/liquidjs)
-[![npm downloads](https://img.shields.io/npm/dm/liquidjs.svg?style=flat-square)](https://www.npmjs.org/package/liquidjs)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/harttle/liquidjs/ci-build.yml?branch=master&style=flat-square)](https://github.com/harttle/liquidjs/actions/workflows/ci-build.yml?query=branch%3Amaster)
-[![Coverage](https://img.shields.io/coveralls/harttle/liquidjs.svg?style=flat-square)](https://coveralls.io/github/harttle/liquidjs?branch=master)
-[![License: MIT](https://img.shields.io/github/license/harttle/liquidjs?style=flat-square)](https://github.com/harttle/liquidjs/blob/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@chr33s/liquid.svg?logo=npm&style=flat-square)](https://www.npmjs.org/package/@chr33s/liquid)
+[![npm downloads](https://img.shields.io/npm/dm/@chr33s/liquid.svg?style=flat-square)](https://www.npmjs.org/package/@chr33s/liquid)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/chr33s/liquid/ci-build.yml?branch=main&style=flat-square)](https://github.com/chr33s/liquid/actions/workflows/ci-build.yml?query=branch%3Amain)
+[![Coverage](https://img.shields.io/coveralls/chr33s/liquid.svg?style=flat-square)](https://coveralls.io/github/chr33s/liquid?branch=main)
+[![License: MIT](https://img.shields.io/github/license/chr33s/liquid?style=flat-square)](https://github.com/chr33s/liquid/blob/main/LICENSE)
 
 [Documentation][doc] · [Playground](https://liquidjs.com/playground.html) · [Setup guide][setup] · [Contributing][contribution]
 
@@ -19,7 +19,7 @@ A simple, expressive, extensible Liquid template engine for JavaScript — Shopi
 ## Quick start
 
 ```js
-import { Liquid } from 'liquidjs'
+import { Liquid } from '@chr33s/liquid'
 
 const engine = new Liquid()
 const html = await engine.parseAndRender(
@@ -34,13 +34,13 @@ const html = await engine.parseAndRender(
 **Node.js** (>= 22.12, ES Modules; `require()` is also supported)
 
 ```bash
-npm install liquidjs
+npm install @chr33s/liquid
 ```
 
 **Browser** (jsDelivr UMD bundle)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/liquidjs/dist/liquid.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@chr33s/liquid/dist/liquid.browser.min.js"></script>
 ```
 
 **CLI**

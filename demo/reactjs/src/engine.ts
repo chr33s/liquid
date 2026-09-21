@@ -1,4 +1,4 @@
-import { Liquid } from 'liquidjs';
+import { Liquid } from '@chr33s/liquid';
 
 export const engine = new Liquid({
     root: 'views/',
