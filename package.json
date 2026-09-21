@@ -54,6 +54,7 @@
     "perf:diff": "node bin/perf-diff.mts",
     "perf:engines": "cd benchmark && npm run engines",
     "version": "npm run build && npm test",
+    "prepare": "npm run build",
     "build": "run-s build:types build:bundles",
     "build:min": "cross-env BUNDLES=min rolldown -c rolldown.config.mjs",
     "build:umd": "cross-env BUNDLES=umd rolldown -c rolldown.config.mjs",
