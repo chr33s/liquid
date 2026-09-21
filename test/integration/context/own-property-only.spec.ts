@@ -3,7 +3,7 @@ import { Liquid } from '../../../src/liquid'
 describe('ownPropertyOnly / inherited array indices', function () {
   const engine = new Liquid({ ownPropertyOnly: true })
 
-  function pollutedArrays () {
+  function pollutedArrays() {
     // eslint-disable-next-line no-extend-native
     Array.prototype[0] = 'ARRAY_PROTO_POLLUTED'
     ;(Object.prototype as any).secret = 'OBJECT_PROTO_POLLUTED'
@@ -13,7 +13,7 @@ describe('ownPropertyOnly / inherited array indices', function () {
     return {
       a,
       o,
-      cleanup () {
+      cleanup() {
         delete (Array.prototype as any)[0]
         delete (Object.prototype as any).secret
       }

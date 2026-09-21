@@ -8,7 +8,7 @@ import { FilterImpl } from '../template'
 import { stringify } from '../util'
 import { base64Encode, base64Decode } from './base64-impl'
 
-export function base64_encode (this: FilterImpl, value: string | Buffer): string {
+export function base64_encode(this: FilterImpl, value: string | Buffer): string {
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
     return value.toString('base64')
   }
@@ -16,7 +16,7 @@ export function base64_encode (this: FilterImpl, value: string | Buffer): string
   return base64Encode(str)
 }
 
-export function base64_decode (this: FilterImpl, value: string): string {
+export function base64_decode(this: FilterImpl, value: string): string {
   const str = stringify(value)
   return base64Decode(str)
 }

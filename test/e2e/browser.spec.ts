@@ -10,11 +10,7 @@ describe('browser', function () {
   it('should throw tokenization error for invalid filter syntax', async () => {
     const engine = new LiquidUMD()
     const message = 'expected filter name, line:1, col:10'
-    const stack = [
-      '>> 1| {{ foo | ^ }}',
-      '               ^',
-      `TokenizationError: ${message}`
-    ].join('\n')
+    const stack = ['>> 1| {{ foo | ^ }}', '               ^', `TokenizationError: ${message}`].join('\n')
     await expect(engine.parseAndRender('{{ foo | ^ }}')).rejects.toMatchObject({
       message,
       stack: expect.stringContaining(stack),

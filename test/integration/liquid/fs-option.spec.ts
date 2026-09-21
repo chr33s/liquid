@@ -38,8 +38,7 @@ describe('LiquidOptions#fs', function () {
       root: '/root/',
       fs: { ...fs, fallback: undefined }
     } as any)
-    return expect(engine.renderFile('not-exist/foo'))
-      .rejects.toThrow('Failed to lookup')
+    return expect(engine.renderFile('not-exist/foo')).rejects.toThrow('Failed to lookup')
   })
 
   it('should disable relativeReference if `sep` and `dirname` not specified', function () {

@@ -1,5 +1,6 @@
-import { Output, Template, Tag } from 'liquidjs'
-import { isLayoutTag, isIfTag, isUnlessTag, isLiquidTag, isCaseTag, isCaptureTag, isTablerowTag, isForTag } from './type-guards'
+import { Output, Tag } from 'liquidjs'
+import type { Template } from 'liquidjs'
+import { isLayoutTag, isIfTag, isUnlessTag, isLiquidTag, isCaseTag, isCaptureTag, isTablerowTag, isForTag } from './type-guards.ts'
 
 /**
  * iterate over all `{{ output }}`
@@ -11,10 +12,10 @@ export function * getOutputs (templates: Template[]): Generator<Output, void> {
         for (const branch of template.branches) {
           yield * getOutputs(branch.templates)
         }
-        yield * getOutputs(template.elseTemplates)
+        yield * getOutputs(template.elseTemplates ?? [])
       } else if (isForTag(template)) {
         yield * getOutputs(template.templates)
-        yield * getOutputs(template.elseTemplates)
+        yield * getOutputs(template.elseTemplates ?? [])
       } else if (isLiquidTag(template) || isCaptureTag(template) || isTablerowTag(template) || isLayoutTag(template)) {
         yield * getOutputs(template.templates)
       }

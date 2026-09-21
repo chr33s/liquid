@@ -4,8 +4,7 @@ describe('tags/comment', function () {
   const liquid = new Liquid()
   it('should support empty content', function () {
     const src = '{% comment %}{% raw%}'
-    return expect(liquid.parseAndRender(src))
-      .rejects.toThrow(/{% comment %} not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow(/{% comment %} not closed/)
   })
   it('should ignore plain string', async function () {
     const src = 'My name is {% comment %}super{% endcomment %} Shopify.'

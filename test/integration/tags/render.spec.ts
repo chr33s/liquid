@@ -155,7 +155,7 @@ describe('tags/render', function () {
   })
   it('should support for <iterable> as', async function () {
     class MockIterable {
-      * [Symbol.iterator] () {
+      *[Symbol.iterator]() {
         yield 'red'
         yield 'green'
       }
@@ -201,7 +201,7 @@ describe('tags/render', function () {
   })
   it('should support render: with as Drop', async function () {
     class ColorDrop extends Drop {
-      public valueOf (): string {
+      public valueOf(): string {
         return 'red!'
       }
     }
@@ -214,7 +214,7 @@ describe('tags/render', function () {
   })
   it('should support render: with passed as Drop', async function () {
     class ColorDrop extends Drop {
-      public valueOf (): string {
+      public valueOf(): string {
         return 'red!'
       }
     }
@@ -230,7 +230,8 @@ describe('tags/render', function () {
   it('should support nested renders', async function () {
     mock({
       '/personInfo.html': 'This is a person {% render "card.html", person: person%}',
-      '/card.html': '<p>{{person.firstName}} {{person.lastName}}<br/>{% render "address", address: person.address %}</p>',
+      '/card.html':
+        '<p>{{person.firstName}} {{person.lastName}}<br/>{% render "address", address: person.address %}</p>',
       '/address.html': 'City: {{address.city}}'
     })
     const ctx = {
@@ -279,7 +280,7 @@ describe('tags/render', function () {
       const engine = new Liquid({ ownPropertyOnly: false, root: '/' })
       class User {
         name: string
-        constructor (n: string) {
+        constructor(n: string) {
           this.name = n
         }
       }

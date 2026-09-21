@@ -9,7 +9,12 @@ import { LiquidError, LiquidErrors } from '../util/error'
 import type { Liquid } from '../liquid'
 
 export class Parser {
-  public parseFile: (file: string, sync?: boolean, type?: LookupType, currentFile?: string) => Generator<unknown, Template[], Template[] | string>
+  public parseFile: (
+    file: string,
+    sync?: boolean,
+    type?: LookupType,
+    currentFile?: string
+  ) => Generator<unknown, Template[], Template[] | string>
 
   private liquid: Liquid
   private fs: FS
@@ -18,7 +23,7 @@ export class Parser {
   private parseLimit: Limiter
   private readFile: LiquidAsync<FS['readFileSync']>
 
-  public constructor (liquid: Liquid) {
+  public constructor(liquid: Liquid) {
     this.liquid = liquid
     this.cache = this.liquid.options.cache
     this.fs = this.liquid.options.fs
@@ -26,18 +31,21 @@ export class Parser {
     this.loader = new Loader(this.liquid.options)
     this.parseLimit = new Limiter('parse length', liquid.options.parseLimit)
     this.readFile = toLiquidAsync(
-      this.fs.readFile?.bind(this.fs) || (async () => { throw new Error('readFile not implemented') }),
+      this.fs.readFile?.bind(this.fs) ||
+        (async () => {
+          throw new Error('readFile not implemented')
+        }),
       this.fs.readFileSync?.bind(this.fs)
     )
   }
-  public parse (html: string, filepath?: string): Template[] {
+  public parse(html: string, filepath?: string): Template[] {
     html = String(html)
     this.parseLimit.use(html.length)
     const tokenizer = new Tokenizer(html, this.liquid.options.operators, filepath)
     const tokens = tokenizer.readTopLevelTokens(this.liquid.options)
     return this.parseTokens(tokens)
   }
-  public parseTokens (tokens: TopLevelToken[]) {
+  public parseTokens(tokens: TopLevelToken[]) {
     let token
     const templates: Template[] = []
     const errors: LiquidError[] = []
@@ -52,7 +60,7 @@ export class Parser {
     if (errors.length) throw new LiquidErrors(errors)
     return templates
   }
-  public parseToken (token: TopLevelToken, remainTokens: TopLevelToken[]) {
+  public parseToken(token: TopLevelToken, remainTokens: TopLevelToken[]) {
     try {
       if (isTagToken(token)) {
         const TagClass = this.liquid.tags[token.name]
@@ -68,10 +76,15 @@ export class Parser {
       throw new ParseError(e as Error, token)
     }
   }
-  public parseStream (tokens: TopLevelToken[]) {
+  public parseStream(tokens: TopLevelToken[]) {
     return new ParseStream(tokens, (token, tokens) => this.parseToken(token, tokens))
   }
-  private * _parseFileCached (file: string, sync?: boolean, type: LookupType = LookupType.Root, currentFile?: string): Generator<unknown, Template[], Template[]> {
+  private *_parseFileCached(
+    file: string,
+    sync?: boolean,
+    type: LookupType = LookupType.Root,
+    currentFile?: string
+  ): Generator<unknown, Template[], Template[]> {
     const cache = this.cache!
     const key = this.loader.shouldLoadRelative(file) ? currentFile + ',' + file : type + ':' + file
     const tpls = yield cache.read(key)
@@ -83,9 +96,19 @@ export class Parser {
     const taskOrTpl = sync ? yield task : toPromise(task)
     cache.write(key, taskOrTpl as any)
     // note: concurrent tasks will be reused, cache for failed task is removed until its end
-    try { return yield taskOrTpl } catch (err) { cache.remove(key); throw err }
+    try {
+      return yield taskOrTpl
+    } catch (err) {
+      cache.remove(key)
+      throw err
+    }
   }
-  private * _parseFile (file: string, sync?: boolean, type: LookupType = LookupType.Root, currentFile?: string): Generator<unknown, Template[], string> {
+  private *_parseFile(
+    file: string,
+    sync?: boolean,
+    type: LookupType = LookupType.Root,
+    currentFile?: string
+  ): Generator<unknown, Template[], string> {
     const filepath = yield this.loader.lookup(file, type, sync, currentFile)
     return this.parse(yield this.readFile(!!sync, filepath), filepath)
   }

@@ -70,9 +70,11 @@ describe('LiquidOptions#cache', function () {
         root: '/root/',
         extname: '.html',
         cache: {
-          remove: () => void (0),
+          remove: () => void 0,
           read: (): Template[] | undefined => last,
-          write: (key: string, value: Template[]) => { last = value }
+          write: (key: string, value: Template[]) => {
+            last = value
+          }
         }
       })
       mock({ '/root/files/foo.html': 'foo' })
@@ -88,9 +90,14 @@ describe('LiquidOptions#cache', function () {
         root: '/root/',
         extname: '.html',
         cache: {
-          remove: (key: string) => { delete cached[key] },
+          remove: (key: string) => {
+            delete cached[key]
+          },
           read: (key: string) => Promise.resolve(cached[key]),
-          write: (key: string, value: Template[]) => { cached[key] = value; Promise.resolve() }
+          write: (key: string, value: Template[]) => {
+            cached[key] = value
+            return Promise.resolve()
+          }
         }
       })
       mock({ '/root/files/foo.html': 'foo' })
@@ -169,7 +176,9 @@ describe('LiquidOptions#cache', function () {
         extname: '.html',
         cache: true
       })
-      try { engine.renderFileSync('foo') } catch (err) {}
+      try {
+        engine.renderFileSync('foo')
+      } catch (err) {}
 
       mock({ '/root/foo.html': 'foo' })
       const y = await engine.renderFile('foo')

@@ -1,8 +1,8 @@
 import { Liquid } from 'liquidjs'
-import { getOutputs } from './get-outputs'
+import { getOutputs } from './get-outputs.ts'
 
 const engine = new Liquid({
-  root: __dirname,
+  root: import.meta.dirname,
   extname: '.liquid'
 })
 

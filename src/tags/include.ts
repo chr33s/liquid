@@ -1,4 +1,16 @@
-import { Template, ValueToken, TopLevelToken, Liquid, Tag, assert, evalToken, Hash, Emitter, TagToken, Context } from '..'
+import {
+  Template,
+  ValueToken,
+  TopLevelToken,
+  Liquid,
+  Tag,
+  assert,
+  evalToken,
+  Hash,
+  Emitter,
+  TagToken,
+  Context
+} from '..'
 import { BlockMode, Scope } from '../context'
 import { Parser } from '../parser'
 import { Argument, Arguments, PartialScope } from '../template'
@@ -10,7 +22,7 @@ export default class extends Tag {
   private currentFile?: string
   private withVar?: ValueToken
   private hash: Hash
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(token, remainTokens, liquid)
     const { tokenizer } = token
     this.file = parseFilePath(tokenizer, this.liquid, parser)
@@ -27,7 +39,7 @@ export default class extends Tag {
 
     this.hash = new Hash(tokenizer, liquid.options.jekyllInclude || liquid.options.keyValueSeparator)
   }
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     ctx.depthLimit.use(1)
     const { liquid, hash, withVar } = this
     const { renderer } = liquid
@@ -47,14 +59,14 @@ export default class extends Tag {
     ctx.depthLimit.release(1)
   }
 
-  public * children (partials: boolean, sync: boolean): Generator<unknown, Template[]> {
+  public *children(partials: boolean, sync: boolean): Generator<unknown, Template[]> {
     if (partials && isString(this.file)) {
       return (yield this.liquid._parsePartialFile(this.file, sync, this.currentFile)) as Template[]
     }
     return []
   }
 
-  public partialScope (): PartialScope | undefined {
+  public partialScope(): PartialScope | undefined {
     if (isString(this.file)) {
       let names: Array<string | [string, Argument]>
 
@@ -71,8 +83,8 @@ export default class extends Tag {
     }
   }
 
-  public * arguments (): Arguments {
-    yield * Object.values(this.hash.hash).filter(isValueToken)
+  public *arguments(): Arguments {
+    yield* Object.values(this.hash.hash).filter(isValueToken)
 
     if (isValueToken(this.file)) {
       yield this.file

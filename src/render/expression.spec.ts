@@ -9,13 +9,8 @@ describe('Expression', function () {
   const ctx = new Context({})
   const create = (str: string) => new Tokenizer(str).readExpression()
 
-  it('should throw when context not defined', done => {
-    toPromise(create('foo').evaluate(undefined!, false))
-      .then(() => done(new Error('should not resolved')))
-      .catch(err => {
-        expect(err.message).toMatch(/context not defined/)
-        done()
-      })
+  it('should throw when context not defined', async () => {
+    await expect(toPromise(create('foo').evaluate(undefined!, false))).rejects.toThrow(/context not defined/)
   })
 
   describe('single value', function () {
@@ -47,7 +42,9 @@ describe('Expression', function () {
     })
     it('should support drops in property access', async function () {
       class TemplateDrop extends Drop {
-        valueOf () { return 'bar' }
+        valueOf() {
+          return 'bar'
+        }
       }
       const ctx = new Context({
         foo: { bar: 'BAR' },
@@ -147,21 +144,27 @@ describe('Expression', function () {
     })
     it('should support Drops for "x contains "x""', async () => {
       class TemplateDrop extends Drop {
-        valueOf () { return 'X' }
+        valueOf() {
+          return 'X'
+        }
       }
       const ctx = new Context({ x: 'XXX', X: new TemplateDrop() })
       expect(await toPromise(create('x contains X').evaluate(ctx, false))).toBe(true)
     })
     it('should support Drops for "x contains "x"" when x is an array', async () => {
       class TemplateDrop extends Drop {
-        valueOf () { return 'X' }
+        valueOf() {
+          return 'X'
+        }
       }
       const ctx = new Context({ x: [new TemplateDrop()], X: 'X' })
       expect(await toPromise(create('x contains X').evaluate(ctx, false))).toBe(true)
     })
     it('should support Drops for "x contains "x"" when x is an array on both operands', async () => {
       class TemplateDrop extends Drop {
-        valueOf () { return 'X' }
+        valueOf() {
+          return 'X'
+        }
       }
       const ctx = new Context({ x: [new TemplateDrop()], X: new TemplateDrop() })
       expect(await toPromise(create('x contains X').evaluate(ctx, false))).toBe(true)
@@ -197,15 +200,15 @@ describe('Expression', function () {
       expect(await toPromise(create('not 1 < 2 and not 1 > 2').evaluate(ctx))).toBe(false)
     })
     it('should allow variable as squared sub property key', async function () {
-      const ctx = new Context({ 'foo': { bar: 'BAR' }, 'key': 'bar' })
+      const ctx = new Context({ foo: { bar: 'BAR' }, key: 'bar' })
       expect(await toPromise(create('foo[key]').evaluate(ctx))).toBe('BAR')
     })
     it('should allow propertyAccessToken  as squared sub property key', async function () {
-      const ctx = new Context({ 'foo': { bar: 'BAR', key: 'bar' } })
+      const ctx = new Context({ foo: { bar: 'BAR', key: 'bar' } })
       expect(await toPromise(create('foo[foo.key]').evaluate(ctx))).toBe('BAR')
     })
     it('should allow nested squared property read', async function () {
-      const ctx = new Context({ 'foo': { bar: 'BAR', key: 'bar' } })
+      const ctx = new Context({ foo: { bar: 'BAR', key: 'bar' } })
       expect(await toPromise(create('foo[foo["key"]]').evaluate(ctx))).toBe('BAR')
     })
     it('should allow string as property read variable', async function () {

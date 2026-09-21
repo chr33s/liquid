@@ -3,11 +3,11 @@ import { sep, resolve as nodeResolve, extname, dirname as nodeDirname } from 'pa
 import { stat, statSync, readFile as nodeReadFile, readFileSync as nodeReadFileSync, realpath, realpathSync } from 'fs'
 import { requireResolve } from './node-require'
 
-type NodeReadFile = (file: string, encoding: string, cb: ((err: Error | null, result: string) => void)) => void
+type NodeReadFile = (file: string, encoding: string, cb: (err: Error | null, result: string) => void) => void
 const statAsync = promisify(stat)
 const readFileAsync = promisify<string, string, string>(nodeReadFile as NodeReadFile)
 
-export async function exists (filepath: string) {
+export async function exists(filepath: string) {
   try {
     await statAsync(filepath)
     return true
@@ -15,10 +15,10 @@ export async function exists (filepath: string) {
     return false
   }
 }
-export function readFile (filepath: string) {
+export function readFile(filepath: string) {
   return readFileAsync(filepath, 'utf8')
 }
-export function existsSync (filepath: string) {
+export function existsSync(filepath: string) {
   try {
     statSync(filepath)
     return true
@@ -26,24 +26,24 @@ export function existsSync (filepath: string) {
     return false
   }
 }
-export function readFileSync (filepath: string) {
+export function readFileSync(filepath: string) {
   return nodeReadFileSync(filepath, 'utf8')
 }
-export function resolve (root: string, file: string, ext: string) {
+export function resolve(root: string, file: string, ext: string) {
   if (!extname(file)) file += ext
   return nodeResolve(root, file)
 }
-export function fallback (file: string) {
+export function fallback(file: string) {
   try {
     return requireResolve(file)
   } catch (e) {}
 }
-export function dirname (filepath: string) {
+export function dirname(filepath: string) {
   return nodeDirname(filepath)
 }
 const realpathAsync = promisify(realpath)
 
-export async function contains (root: string, file: string) {
+export async function contains(root: string, file: string) {
   try {
     const realRoot = await realpathAsync(root)
     const realFile = await realpathAsync(file)
@@ -53,7 +53,7 @@ export async function contains (root: string, file: string) {
     return false
   }
 }
-export function containsSync (root: string, file: string) {
+export function containsSync(root: string, file: string) {
   try {
     const realRoot = realpathSync(root)
     const realFile = realpathSync(file)

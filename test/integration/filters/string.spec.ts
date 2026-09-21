@@ -4,8 +4,7 @@ import { Liquid } from '../../../src/liquid'
 describe('filters/string', function () {
   const liquid = new Liquid()
   describe('append', function () {
-    it('should return "-3abc" for -3, "abc"',
-      () => test('{{ -3 | append: "abc" }}', '-3abc'))
+    it('should return "-3abc" for -3, "abc"', () => test('{{ -3 | append: "abc" }}', '-3abc'))
     it('should return "abar" for "a", foo', () => test('{{ "a" | append: foo }}', { foo: 'bar' }, 'abar'))
     it('should throw if second argument not set', () => {
       return expect(test('{{ "abc" | append }}', 'abc')).rejects.toThrow(/2 arguments/)
@@ -13,8 +12,7 @@ describe('filters/string', function () {
     it('should return "abcfalse" for "abc", false', () => test('{{ "abc" | append: false }}', 'abcfalse'))
   })
   describe('prepend', function () {
-    it('should return "-3abc" for -3, "abc"',
-      () => test('{{ -3 | prepend: "abc" }}', 'abc-3'))
+    it('should return "-3abc" for -3, "abc"', () => test('{{ -3 | prepend: "abc" }}', 'abc-3'))
     it('should return "abar" for "a", foo', () => test('{{ "a" | prepend: foo }}', { foo: 'bar' }, 'bara'))
     it('should throw if second argument not set', () => {
       return expect(test('{{ "abc" | prepend }}', 'abc')).rejects.toThrow(/2 arguments/)
@@ -30,7 +28,9 @@ describe('filters/string', function () {
     it('should to lower case trailing words', async () => test('{{"foo BaR" | capitalize}}', 'Foo bar'))
   })
   describe('concat', function () {
-    it('should concat arrays', () => test(`
+    it('should concat arrays', () =>
+      test(
+        `
       {%- assign fruits = "apples, oranges, peaches" | split: ", " -%}
       {%- assign vegetables = "carrots, turnips, potatoes" | split: ", " -%}
 
@@ -38,14 +38,18 @@ describe('filters/string', function () {
 
       {%- for item in everything -%}
       - {{ item }}
-      {% endfor -%}`, `- apples
+      {% endfor -%}`,
+        `- apples
       - oranges
       - peaches
       - carrots
       - turnips
       - potatoes
-      `))
-    it('should support chained concat', () => test(`
+      `
+      ))
+    it('should support chained concat', () =>
+      test(
+        `
       {%- assign fruits = "apples, oranges, peaches" | split: ", " -%}
       {%- assign vegetables = "carrots, turnips, potatoes" | split: ", " -%}
       {%- assign furniture = "chairs, tables, shelves" | split: ", " -%}
@@ -53,7 +57,8 @@ describe('filters/string', function () {
 
       {%- for item in everything -%}
       - {{ item }}
-      {% endfor -%}`, `- apples
+      {% endfor -%}`,
+        `- apples
       - oranges
       - peaches
       - carrots
@@ -62,21 +67,17 @@ describe('filters/string', function () {
       - chairs
       - tables
       - shelves
-      `))
+      `
+      ))
   })
   describe('downcase', function () {
-    it('should return "parker moore" for "Parker Moore"', () =>
-      test('{{ "Parker Moore" | downcase }}', 'parker moore')
-    )
-    it('should return "apple" for "apple"', () =>
-      test('{{ "apple" | downcase }}', 'apple')
-    )
+    it('should return "parker moore" for "Parker Moore"', () => test('{{ "Parker Moore" | downcase }}', 'parker moore'))
+    it('should return "apple" for "apple"', () => test('{{ "apple" | downcase }}', 'apple'))
     it('should return empty for undefined', () => test('{{ foo | downcase }}', ''))
   })
   describe('split', function () {
     it('should support split/first', function () {
-      const src = '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}' +
-        '{{ my_array | first }}'
+      const src = '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}' + '{{ my_array | first }}'
       return test(src, 'apples')
     })
   })
@@ -90,85 +91,118 @@ describe('filters/string', function () {
     await test('{{ "foobarcoo" | lstrip: "fo" }}', 'barcoo')
   })
   it('should support prepend', function () {
-    return test('{% assign url = "liquidmarkup.com" %}' +
-            '{{ "/index.html" | prepend: url }}',
-    'liquidmarkup.com/index.html')
+    return test(
+      '{% assign url = "liquidmarkup.com" %}' + '{{ "/index.html" | prepend: url }}',
+      'liquidmarkup.com/index.html'
+    )
   })
   describe('remove', function () {
-    it('should support remove', () => test(
-      '{{ "I strained to see the train through the rain" | remove: "rain" }}',
-      'I sted to see the t through the '
-    ))
+    it('should support remove', () =>
+      test('{{ "I strained to see the train through the rain" | remove: "rain" }}', 'I sted to see the t through the '))
     it('should return empty for undefined', () => test('{{ foo | remove: "rain" }}', ''))
   })
   describe('remove_first', function () {
-    it('should support remove_first', () => test('{{ "I strained to see the train through the rain" | remove_first: "rain" }}', 'I sted to see the train through the rain'))
+    it('should support remove_first', () =>
+      test(
+        '{{ "I strained to see the train through the rain" | remove_first: "rain" }}',
+        'I sted to see the train through the rain'
+      ))
     it('should return empty for undefined', () => test('{{ foo | remove_first: "r" }}', ''))
   })
   it('should support replace', function () {
-    return test('{{ "Take my protein pills and put my helmet on" | replace: "my", "your" }}',
-      'Take your protein pills and put your helmet on')
+    return test(
+      '{{ "Take my protein pills and put my helmet on" | replace: "my", "your" }}',
+      'Take your protein pills and put your helmet on'
+    )
   })
   it('should support replace with undefined replacement', function () {
-    return test('{{ "Take my protein pills and put my helmet on" | replace: "my" }}',
-      'Take  protein pills and put  helmet on')
+    return test(
+      '{{ "Take my protein pills and put my helmet on" | replace: "my" }}',
+      'Take  protein pills and put  helmet on'
+    )
   })
   it('should support replace with undefined variable as replacement', function () {
-    return test('{{ "Take my protein pills and put my helmet on" | replace: "my", missing_variable }}',
-      'Take  protein pills and put  helmet on')
+    return test(
+      '{{ "Take my protein pills and put my helmet on" | replace: "my", missing_variable }}',
+      'Take  protein pills and put  helmet on'
+    )
   })
   it('should support replace_first', function () {
-    return test('{% assign my_string = "Take my protein pills and put my helmet on" %}\n' +
-            '{{ my_string | replace_first: "my", "your" }}',
-    '\nTake your protein pills and put my helmet on')
+    return test(
+      '{% assign my_string = "Take my protein pills and put my helmet on" %}\n' +
+        '{{ my_string | replace_first: "my", "your" }}',
+      '\nTake your protein pills and put my helmet on'
+    )
   })
   it('should support rstrip', async () => {
-    await test('{{ "          So much room for activities!          " | rstrip }}',
-      '          So much room for activities!')
+    await test(
+      '{{ "          So much room for activities!          " | rstrip }}',
+      '          So much room for activities!'
+    )
     await test('{{ "foobarcoo" | rstrip: "fco" }}', 'foobar')
   })
   it('should support split', function () {
-    return test('{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' +
-            '{% for member in beatles %}' +
-            '{{ member }} ' +
-            '{% endfor %}',
-    'John Paul George Ringo ')
+    return test(
+      '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' +
+        '{% for member in beatles %}' +
+        '{{ member }} ' +
+        '{% endfor %}',
+      'John Paul George Ringo '
+    )
   })
   it('should support strip', async () => {
-    await test('{{ "          So much room for activities!          " | strip }}',
-      'So much room for activities!')
-    await test('{{ "          So much room for activities!          " | strip: "So " }}',
-      'much room for activities!')
+    await test('{{ "          So much room for activities!          " | strip }}', 'So much room for activities!')
+    await test('{{ "          So much room for activities!          " | strip: "So " }}', 'much room for activities!')
     await test('{{ "&[]{}" | strip: "&[]{}" }}', '')
   })
   it('should support strip_newlines', function () {
-    return test('{% capture string_with_newlines %}\n' +
-            'Hello\nthere\n{% endcapture %}' +
-            '{{ string_with_newlines | strip_newlines }}',
-    'Hellothere')
+    return test(
+      '{% capture string_with_newlines %}\n' +
+        'Hello\nthere\n{% endcapture %}' +
+        '{{ string_with_newlines | strip_newlines }}',
+      'Hellothere'
+    )
   })
   it('should support strip_newlines on Windows newlines ', function () {
-    return test('{% capture string_with_newlines %}\n' +
-            'Hello\r\nthere\n{% endcapture %}' +
-            '{{ string_with_newlines | strip_newlines }}',
-    'Hellothere')
+    return test(
+      '{% capture string_with_newlines %}\n' +
+        'Hello\r\nthere\n{% endcapture %}' +
+        '{{ string_with_newlines | strip_newlines }}',
+      'Hellothere'
+    )
+  })
+  describe('squish', function () {
+    it('should collapse whitespace between words', function () {
+      return test('{{ "Hello   World!" | squish }}', 'Hello World!')
+    })
+    it('should strip leading and trailing whitespace', function () {
+      return test('{{ "  HelloWorld!  " | squish }}', 'HelloWorld!')
+    })
+    it('should treat newlines and tabs as whitespace', function () {
+      return test('{{ " \n\t\r\nHello  \n\t World!  \n" | squish }}', 'Hello World!')
+    })
+    it('should return empty string for whitespace only', function () {
+      return test('{{ " \n\t " | squish }}', '')
+    })
+    it('should stringify a number', function () {
+      return test('{{ 5 | squish }}', '5')
+    })
+    it('should return empty string for undefined', function () {
+      return test('{{ nosuchthing | squish }}', '')
+    })
   })
   describe('truncate', function () {
     it('should truncate when string too long', function () {
-      return test('{{ "Ground control to Major Tom." | truncate: 20 }}',
-        'Ground control to...')
+      return test('{{ "Ground control to Major Tom." | truncate: 20 }}', 'Ground control to...')
     })
     it('should not truncate when string not long enough', function () {
-      return test('{{ "Ground control to Major Tom." | truncate: 80 }}',
-        'Ground control to Major Tom.')
+      return test('{{ "Ground control to Major Tom." | truncate: 80 }}', 'Ground control to Major Tom.')
     })
     it('should truncate with custom ellipsis', function () {
-      return test('{{ "Ground control to Major Tom." | truncate: 25,", and so on" }}',
-        'Ground control, and so on')
+      return test('{{ "Ground control to Major Tom." | truncate: 25,", and so on" }}', 'Ground control, and so on')
     })
     it('should truncate with empty custom ellipsis', function () {
-      return test('{{ "Ground control to Major Tom." | truncate: 20, "" }}',
-        'Ground control to Ma')
+      return test('{{ "Ground control to Major Tom." | truncate: 20, "" }}', 'Ground control to Ma')
     })
     it('should not truncate when short enough', function () {
       return test('{{ "12345" | truncate: 5 }}', '12345')
@@ -180,29 +214,27 @@ describe('filters/string', function () {
       return test('{{ "12345" | truncate: 5 }}', '12345')
     })
     it('should default to 50', function () {
-      return test('{{ "1234567890123456789012345678901234567890123456789abc" | truncate }}', '12345678901234567890123456789012345678901234567...')
+      return test(
+        '{{ "1234567890123456789012345678901234567890123456789abc" | truncate }}',
+        '12345678901234567890123456789012345678901234567...'
+      )
     })
   })
   describe('truncatewords', function () {
     it('should truncate to 1 words if less than 1', function () {
-      return test('{{ "Ground control to Major Tom." | truncatewords: 0 }}',
-        'Ground...')
+      return test('{{ "Ground control to Major Tom." | truncatewords: 0 }}', 'Ground...')
     })
     it('should truncate when too many words', function () {
-      return test('{{ "Ground control to Major Tom." | truncatewords: 3 }}',
-        'Ground control to...')
+      return test('{{ "Ground control to Major Tom." | truncatewords: 3 }}', 'Ground control to...')
     })
     it('should not truncate when not enough words', function () {
-      return test('{{ "Ground control to Major Tom." | truncatewords: 8 }}',
-        'Ground control to Major Tom.')
+      return test('{{ "Ground control to Major Tom." | truncatewords: 8 }}', 'Ground control to Major Tom.')
     })
     it('should truncate with custom ellipsis', function () {
-      return test('{{ "Ground control to Major Tom." | truncatewords: 3, "--" }}',
-        'Ground control to--')
+      return test('{{ "Ground control to Major Tom." | truncatewords: 3, "--" }}', 'Ground control to--')
     })
     it('should truncate with empty custom ellipsis', function () {
-      return test('{{ "Ground control to Major Tom." | truncatewords: 3, "" }}',
-        'Ground control to')
+      return test('{{ "Ground control to Major Tom." | truncatewords: 3, "" }}', 'Ground control to')
     })
     it('should allow multiple space chars between', function () {
       return test('{{ "1 \t2  3 \n4" | truncatewords: 3 }}', '1 2 3...')
@@ -213,29 +245,45 @@ describe('filters/string', function () {
     it('should default len to 15', function () {
       return test('{{ "1 2 3 4 5 6 7 8 9 a b c d e f" | truncatewords }}', '1 2 3 4 5 6 7 8 9 a b c d e f...')
     })
+    it('should ignore leading whitespace when counting words', function () {
+      return test('{{ "  Ground control to Major Tom." | truncatewords: 3 }}', 'Ground control to...')
+    })
+    it('should keep trailing whitespace when not truncating', function () {
+      return test('{{ "1 2 3 " | truncatewords: 5 }}', '1 2 3 ')
+    })
   })
   describe('remove_last', function () {
     it('should remove the last occurrence of substring', function () {
-      return test('{{ "I strained to see the train through the rain" | remove_last: "rain" }}',
-        'I strained to see the train through the ')
+      return test(
+        '{{ "I strained to see the train through the rain" | remove_last: "rain" }}',
+        'I strained to see the train through the '
+      )
     })
     it('should remove the last occurrence of substring in the middle of a string', function () {
-      return test('{{ "I strained to see the train through the rain and fog" | remove_last: "rain" }}',
-        'I strained to see the train through the  and fog')
+      return test(
+        '{{ "I strained to see the train through the rain and fog" | remove_last: "rain" }}',
+        'I strained to see the train through the  and fog'
+      )
     })
     it('should handle substring not found', function () {
-      return test('{{ "I strained to see the train through the rain" | remove_last: "no such thing" }}',
-        'I strained to see the train through the rain')
+      return test(
+        '{{ "I strained to see the train through the rain" | remove_last: "no such thing" }}',
+        'I strained to see the train through the rain'
+      )
     })
   })
   describe('replace_last', function () {
     it('should replace the last occurrence of substring', function () {
-      return test('{{ "Take my protein pills and put my helmet on" | replace_last: "my", "your" }}',
-        'Take my protein pills and put your helmet on')
+      return test(
+        '{{ "Take my protein pills and put my helmet on" | replace_last: "my", "your" }}',
+        'Take my protein pills and put your helmet on'
+      )
     })
     it('should handle substring not found', function () {
-      return test('{{ "Take my protein pills and put my helmet on" | replace_last: "no such thing", "your" }}',
-        'Take my protein pills and put my helmet on')
+      return test(
+        '{{ "Take my protein pills and put my helmet on" | replace_last: "no such thing", "your" }}',
+        'Take my protein pills and put my helmet on'
+      )
     })
   })
   describe('normalize_whitespace', () => {
@@ -300,7 +348,9 @@ describe('filters/string', function () {
     })
 
     it('should count words with special characters', async () => {
-      const html = await liquid.parseAndRender('{{ "This is a test with special characters: !@#$%^&*()-_+=`~[]{};:\'\\"\\|<,>.?/" | number_of_words }}')
+      const html = await liquid.parseAndRender(
+        '{{ "This is a test with special characters: !@#$%^&*()-_+=`~[]{};:\'\\"\\|<,>.?/" | number_of_words }}'
+      )
       expect(html).toEqual('8')
     })
 
@@ -331,12 +381,16 @@ describe('filters/string', function () {
     })
 
     it('should handle an array with more than two elements', async () => {
-      const html = await liquid.parseAndRender('{{ arr | array_to_sentence_string }}', { arr: ['apple', 'banana', 'orange'] })
+      const html = await liquid.parseAndRender('{{ arr | array_to_sentence_string }}', {
+        arr: ['apple', 'banana', 'orange']
+      })
       expect(html).toEqual('apple, banana, and orange')
     })
 
     it('should handle an array with custom connector', async () => {
-      const html = await liquid.parseAndRender('{{ arr | array_to_sentence_string: "or" }}', { arr: ['apple', 'banana', 'orange'] })
+      const html = await liquid.parseAndRender('{{ arr | array_to_sentence_string: "or" }}', {
+        arr: ['apple', 'banana', 'orange']
+      })
       expect(html).toEqual('apple, banana, or orange')
     })
 

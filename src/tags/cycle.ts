@@ -4,7 +4,7 @@ import { Arguments } from '../template'
 export default class extends Tag {
   private candidates: ValueToken[] = []
   private group?: ValueToken
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
     super(token, remainTokens, liquid)
     const group = this.tokenizer.readValue()
     this.tokenizer.skipBlank()
@@ -24,7 +24,7 @@ export default class extends Tag {
     this.tokenizer.assert(this.candidates.length, () => `empty candidates: "${token.getText()}"`)
   }
 
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     const group = (yield evalToken(this.group, ctx)) as ValueToken
     const fingerprint = `cycle:${group}:` + this.candidates.join(',')
     const groups = ctx.getRegister('cycle', {} as Record<string, number>)
@@ -40,8 +40,8 @@ export default class extends Tag {
     return yield evalToken(candidate, ctx)
   }
 
-  public * arguments (): Arguments {
-    yield * this.candidates
+  public *arguments(): Arguments {
+    yield* this.candidates
 
     if (this.group) {
       yield this.group

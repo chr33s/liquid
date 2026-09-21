@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "quoteProps": "as-needed",
+  "trailingComma": "none",
+  "tabWidth": 2,
+  "printWidth": 120,
+  "arrowParens": "avoid",
+  "ignorePatterns": [
+    "**/*.html",
+    "**/*.liquid",
+    "**/*.md"
+  ]
+}

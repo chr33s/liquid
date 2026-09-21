@@ -4,7 +4,7 @@ import { IdentifierToken } from './identifier-token'
 import { TokenKind } from '../parser'
 
 export class HashToken extends Token {
-  constructor (
+  constructor(
     public input: string,
     public begin: number,
     public end: number,

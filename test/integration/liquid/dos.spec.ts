@@ -19,7 +19,8 @@ describe('DoS related', function () {
     it('should take included template into account', async () => {
       mock({
         '/small': 'Lorem ipsum',
-        '/large': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        '/large':
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
       })
       const liquid = new Liquid({ root: '/', parseLimit: 50 })
       await expect(liquid.parseAndRender('{% include "small" %}')).resolves.toBe('Lorem ipsum')
@@ -71,7 +72,9 @@ describe('DoS related', function () {
       const src = '{% for i in (1..1000) %}{{i}},{% endfor %}'
       const liquid = new Liquid({ outputLengthLimit: 10 })
       await expect(liquid.parseAndRender(src)).rejects.toThrow('output length limit exceeded')
-      await expect(liquid.parseAndRender(src, {}, { outputLengthLimit: 5000 })).resolves.toMatch(/^1,2,3,4,5,.*,999,1000,$/)
+      await expect(liquid.parseAndRender(src, {}, { outputLengthLimit: 5000 })).resolves.toMatch(
+        /^1,2,3,4,5,.*,999,1000,$/
+      )
     })
 
     it('should take partials into account', async () => {
@@ -86,23 +89,26 @@ describe('DoS related', function () {
 
     it('should enforce outputLengthLimit in sync render', () => {
       const liquid = new Liquid({ outputLengthLimit: 5 })
-      expect(() => liquid.parseAndRenderSync('{% for i in (1..100) %}{{i}}{% endfor %}'))
-        .toThrow('output length limit exceeded')
+      expect(() => liquid.parseAndRenderSync('{% for i in (1..100) %}{{i}}{% endfor %}')).toThrow(
+        'output length limit exceeded'
+      )
     })
 
     it('should enforce outputLengthLimit in stream render', async () => {
       const liquid = new Liquid({ outputLengthLimit: 5 })
       const tpl = liquid.parse('{% for i in (1..100) %}{{i}}{% endfor %}')
       const stream = liquid.renderToNodeStream(tpl)
-      await expect(new Promise((resolve, reject) => {
-        stream.on('error', reject)
-        stream.on('end', resolve)
-      })).rejects.toThrow('output length limit exceeded')
+      await expect(
+        new Promise((resolve, reject) => {
+          stream.on('error', reject)
+          stream.on('end', resolve)
+        })
+      ).rejects.toThrow('output length limit exceeded')
     })
   })
 
   describe('#maxDepth', () => {
-    function chain (depth: number, tag: string) {
+    function chain(depth: number, tag: string) {
       const templates: Record<string, string> = {}
       for (let i = 0; i < depth; i++) {
         templates[`t${i}`] = i === depth - 1 ? 'done' : `{% ${tag} "t${i + 1}" %}`

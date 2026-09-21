@@ -8,10 +8,10 @@ describe('filters/date', function () {
 
   describe('constructor', () => {
     it('should create a new Date when given "now"', function () {
-      return test('{{ "now" | date: "%Y"}}', (new Date()).getFullYear().toString())
+      return test('{{ "now" | date: "%Y"}}', new Date().getFullYear().toString())
     })
     it('should create a new Date when given "today"', function () {
-      return test('{{ "today" | date: "%Y"}}', (new Date()).getFullYear().toString())
+      return test('{{ "today" | date: "%Y"}}', new Date().getFullYear().toString())
     })
     it('should create from number', async function () {
       const time = new Date('2017-03-07T12:00:00').getTime() / 1000
@@ -29,7 +29,9 @@ describe('filters/date', function () {
       expect(liquid.parseAndRenderSync('{{ nil | date: "%Y-%m-%dT%H:%M:%S", "Asia/Shanghai" }}')).toEqual('')
     })
     it('should treat undefined as invalid', () => {
-      expect(liquid.parseAndRenderSync('{{ num | date: "%Y-%m-%dT%H:%M:%S", "Asia/Shanghai" }}', { num: undefined })).toEqual('')
+      expect(
+        liquid.parseAndRenderSync('{{ num | date: "%Y-%m-%dT%H:%M:%S", "Asia/Shanghai" }}', { num: undefined })
+      ).toEqual('')
     })
   })
 
@@ -90,17 +92,42 @@ describe('filters/date', function () {
       return test('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S"}}', '1990-12-31T23:00:00', undefined, opts)
     })
     it('should apply numeric timezone offset (0)', function () {
-      return test('{{ "1990-12-31T23:00:00+00:00" | date: "%Y-%m-%dT%H:%M:%S %z"}}', '1990-12-31T23:00:00 +0000', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00+00:00" | date: "%Y-%m-%dT%H:%M:%S %z"}}',
+        '1990-12-31T23:00:00 +0000',
+        undefined,
+        opts
+      )
     })
     it('should apply numeric timezone offset (-1)', function () {
-      return test('{{ "1990-12-31T23:00:00-01:00" | date: "%Y-%m-%dT%H:%M:%S %z"}}', '1990-12-31T23:00:00 -0100', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00-01:00" | date: "%Y-%m-%dT%H:%M:%S %z"}}',
+        '1990-12-31T23:00:00 -0100',
+        undefined,
+        opts
+      )
     })
     it('should apply numeric timezone offset (+2.30)', function () {
-      return test('{{ "1990-12-31T23:00:00+02:30" | date: "%Y-%m-%dT%H:%M:%S %z"}}', '1990-12-31T23:00:00 +0230', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00+02:30" | date: "%Y-%m-%dT%H:%M:%S %z"}}',
+        '1990-12-31T23:00:00 +0230',
+        undefined,
+        opts
+      )
     })
     it('should support timezone in more casual JavaScript Date', async () => {
-      await test('{{ "2025-01-02 03:04:05 -0100" | date: "%Y-%m-%dT%H:%M:%S %z" }}', '2025-01-02T03:04:05 -0100', undefined, opts)
-      await test('{{ "2025-01-02 03:04:05 -0100" | date }}', 'Thursday, January 2, 2025 at 3:04 am -0100', undefined, opts)
+      await test(
+        '{{ "2025-01-02 03:04:05 -0100" | date: "%Y-%m-%dT%H:%M:%S %z" }}',
+        '2025-01-02T03:04:05 -0100',
+        undefined,
+        opts
+      )
+      await test(
+        '{{ "2025-01-02 03:04:05 -0100" | date }}',
+        'Thursday, January 2, 2025 at 3:04 am -0100',
+        undefined,
+        opts
+      )
     })
     it('should automatically work when timezone not specified', function () {
       return test('{{ "1990-12-31T23:00:00" | date: "%Y-%m-%dT%H:%M:%S"}}', '1990-12-31T23:00:00', undefined, opts)
@@ -113,7 +140,8 @@ describe('filters/date', function () {
     return test('{{ obj | date: "%Y"}}', { obj: {} }, '[object Object]')
   })
   it('should support manipulation', async function () {
-    return test('{{ date | date: "%s" | minus : 604800  | date: "%Y-%m-%dT%H:%M:%S"}}',
+    return test(
+      '{{ date | date: "%s" | minus : 604800  | date: "%Y-%m-%dT%H:%M:%S"}}',
       { date: new Date('2017-03-07T12:00:00') },
       '2017-02-28T12:00:00'
     )
@@ -129,7 +157,10 @@ describe('filters/date', function () {
       return test('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S", 360}}', '1990-12-31T17:00:00')
     })
     it('should support timezone without format', function () {
-      return test('{{ "2022-12-08T03:22:18.000Z" | date: nil, "America/Cayman" }}', 'Wednesday, December 7, 2022 at 10:22 pm -0500')
+      return test(
+        '{{ "2022-12-08T03:22:18.000Z" | date: nil, "America/Cayman" }}',
+        'Wednesday, December 7, 2022 at 10:22 pm -0500'
+      )
     })
     it('should support timezone name argument', function () {
       return test('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S", "Asia/Colombo" }}', '1991-01-01T04:30:00')
@@ -141,10 +172,20 @@ describe('filters/date', function () {
       return test('{{ "2021-06-01T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S", "America/New_York" }}', '2021-06-01T19:00:00')
     })
     it('should offset date literal with timezone 00:00 specified', function () {
-      return test('{{ "1990-12-31T23:00:00+00:00" | date: "%Y-%m-%dT%H:%M:%S"}}', '1990-12-31T17:00:00', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00+00:00" | date: "%Y-%m-%dT%H:%M:%S"}}',
+        '1990-12-31T17:00:00',
+        undefined,
+        opts
+      )
     })
     it('should offset date literal with timezone -01:00 specified', function () {
-      return test('{{ "1990-12-31T23:00:00-01:00" | date: "%Y-%m-%dT%H:%M:%S"}}', '1990-12-31T18:00:00', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00-01:00" | date: "%Y-%m-%dT%H:%M:%S"}}',
+        '1990-12-31T18:00:00',
+        undefined,
+        opts
+      )
     })
     it('should offset date from scope (timezone offset)', function () {
       const scope = { date: new Date('1990-12-31T23:00:00Z') }
@@ -152,7 +193,9 @@ describe('filters/date', function () {
     })
     it('should offset date from scope (timezone name)', function () {
       const scope = { date: new Date('1990-12-31T23:00:00Z') }
-      return test('{{ date | date: "%Y-%m-%dT%H:%M:%S"}}', scope, '1990-12-31T17:00:00', { timezoneOffset: 'America/Merida' })
+      return test('{{ date | date: "%Y-%m-%dT%H:%M:%S"}}', scope, '1990-12-31T17:00:00', {
+        timezoneOffset: 'America/Merida'
+      })
     })
     it('should reflect timezoneOffset', function () {
       const scope = { date: new Date('1990-12-31T23:00:00Z') }
@@ -160,7 +203,12 @@ describe('filters/date', function () {
     })
     it('opts.timezoneOffset should work with `preserveTimezones`', function () {
       const opts: LiquidOptions = { timezoneOffset: 600, preserveTimezones: true }
-      return test('{{ "1990-12-31T23:00:00+02:30" | date: "%Y-%m-%dT%H:%M:%S"}}', '1990-12-31T23:00:00', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00+02:30" | date: "%Y-%m-%dT%H:%M:%S"}}',
+        '1990-12-31T23:00:00',
+        undefined,
+        opts
+      )
     })
     it('timezoneOffset should work with `preserveTimezones`', async () => {
       const liquid = new Liquid({ preserveTimezones: true })
@@ -174,34 +222,66 @@ describe('filters/date', function () {
     })
     it('should use in-place timezoneOffset as timezone name', async () => {
       const liquid = new Liquid({ preserveTimezones: true })
-      const html = liquid.parseAndRenderSync('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S %Z", "Asia/Colombo" }}')
+      const html = liquid.parseAndRenderSync(
+        '{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S %Z", "Asia/Colombo" }}'
+      )
       expect(html).toEqual('1991-01-01T04:30:00 Asia/Colombo')
     })
     it('should use options.timezoneOffset as default timezone name', function () {
       const opts: LiquidOptions = { timezoneOffset: 'Australia/Brisbane' }
-      return test('{{ "1990-12-31T23:00:00.000Z" | date: "%Y-%m-%dT%H:%M:%S %Z"}}', '1991-01-01T10:00:00 Australia/Brisbane', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00.000Z" | date: "%Y-%m-%dT%H:%M:%S %Z"}}',
+        '1991-01-01T10:00:00 Australia/Brisbane',
+        undefined,
+        opts
+      )
     })
     it('should use given timezone offset number as timezone name', function () {
       const opts: LiquidOptions = { preserveTimezones: true }
-      return test('{{ "1990-12-31T23:00:00+02:30" | date: "%Y-%m-%dT%H:%M:%S %:Z"}}', '1990-12-31T23:00:00 +02:30', undefined, opts)
+      return test(
+        '{{ "1990-12-31T23:00:00+02:30" | date: "%Y-%m-%dT%H:%M:%S %:Z"}}',
+        '1990-12-31T23:00:00 +02:30',
+        undefined,
+        opts
+      )
     })
   })
   describe('dateFormat', function () {
     const optsWithoutDateFormat: LiquidOptions = { timezoneOffset: 360 } // -06:00
     // date.DEFAULT_FMT: '%A, %B %-e, %Y at %-l:%M %P %z'
     it('should use default format for date filters without format argument', function () {
-      return test('{{ "2022-12-08T03:22:18.000Z" | date }}', 'Wednesday, December 7, 2022 at 9:22 pm -0600', undefined, optsWithoutDateFormat)
+      return test(
+        '{{ "2022-12-08T03:22:18.000Z" | date }}',
+        'Wednesday, December 7, 2022 at 9:22 pm -0600',
+        undefined,
+        optsWithoutDateFormat
+      )
     })
     it('should use given date filter format argument and NOT default format', function () {
-      return test('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S" }}', '1990-12-31T17:00:00', undefined, optsWithoutDateFormat)
+      return test(
+        '{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S" }}',
+        '1990-12-31T17:00:00',
+        undefined,
+        optsWithoutDateFormat
+      )
     })
 
     const optsWithDateFormat: LiquidOptions = { timezoneOffset: -330, dateFormat: '%d%q of %b %Y at %I:%M %P' } // -06:00, 31st of Dec 1990 at 11:00 pm
     it('should use configured `options.dateFormat` for date filters without format argument', function () {
-      return test('{{ "2022-12-08T13:30:18.000Z" | date }}', '08th of Dec 2022 at 07:00 pm', undefined, optsWithDateFormat)
+      return test(
+        '{{ "2022-12-08T13:30:18.000Z" | date }}',
+        '08th of Dec 2022 at 07:00 pm',
+        undefined,
+        optsWithDateFormat
+      )
     })
     it('should use given date filter format argument and NOT `options.dateFormat`', function () {
-      return test('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S" }}', '1991-01-01T04:30:00', undefined, optsWithDateFormat)
+      return test(
+        '{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S" }}',
+        '1991-01-01T04:30:00',
+        undefined,
+        optsWithDateFormat
+      )
     })
   })
   describe('strftime width', () => {
@@ -217,8 +297,9 @@ describe('filters/date', function () {
     })
     it('should throw when numeric strftime pad width is too large', () => {
       const liquid = new Liquid()
-      expect(() => liquid.parseAndRenderSync('{{ d | date: f }}', { d: 'now', f: '%5000000d' }))
-        .toThrow('strftime pad width limit exceeded')
+      expect(() => liquid.parseAndRenderSync('{{ d | date: f }}', { d: 'now', f: '%5000000d' })).toThrow(
+        'strftime pad width limit exceeded'
+      )
     })
   })
 })

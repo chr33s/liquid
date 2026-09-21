@@ -9,7 +9,7 @@ import { Expression } from '../render'
  * {% assign foo="bar" | append: "coo" %}
  */
 export class FilteredValueToken extends Token {
-  constructor (
+  constructor(
     public initial: Expression,
     public filters: FilterToken[],
     public input: string,

@@ -10,8 +10,7 @@ describe('tags/cycle', function () {
   })
 
   it('should throw when cycle candidates empty', function () {
-    return expect(liquid.parseAndRender('{%cycle%}'))
-      .rejects.toThrow('empty candidates: "{%cycle%}", line:1, col:8')
+    return expect(liquid.parseAndRender('{%cycle%}')).rejects.toThrow('empty candidates: "{%cycle%}", line:1, col:8')
   })
 
   it('should support cycle in for block', async function () {
@@ -24,17 +23,13 @@ describe('tags/cycle', function () {
   })
 
   it('should considered different groups for different arguments', async function () {
-    const src = "{% cycle '1', '2', '3'%}" +
-            "{% cycle '1', '2'%}" +
-            "{% cycle '1', '2', '3'%}"
+    const src = "{% cycle '1', '2', '3'%}" + "{% cycle '1', '2'%}" + "{% cycle '1', '2', '3'%}"
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('112')
   })
 
   it('should support cycle group', async function () {
-    const src = "{% cycle one: '1', '2', '3'%}" +
-            "{% cycle 1: '1', '2', '3'%}" +
-            "{% cycle 2: '1', '2', '3'%}"
+    const src = "{% cycle one: '1', '2', '3'%}" + "{% cycle 1: '1', '2', '3'%}" + "{% cycle 2: '1', '2', '3'%}"
     const ctx = { one: 1 }
     const html = await liquid.parseAndRender(src, ctx)
     return expect(html).toBe('121')

@@ -7,7 +7,7 @@ import { Parser } from '../parser'
 export default class extends Tag {
   block: string
   templates: Template[] = []
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(token, remainTokens, liquid)
     const match = /\w+/.exec(token.args)
     this.block = match ? match[0] : ''
@@ -20,7 +20,7 @@ export default class extends Tag {
     throw new Error(`tag ${token.getText()} not closed`)
   }
 
-  * render (ctx: Context, emitter: Emitter) {
+  *render(ctx: Context, emitter: Emitter) {
     const blockRender = this.getBlockRender(ctx)
     if (ctx.getRegister('blockMode') === BlockMode.STORE) {
       ctx.getRegister('blocks', {} as Record<string, any>)[this.block] = blockRender
@@ -29,11 +29,11 @@ export default class extends Tag {
     }
   }
 
-  private getBlockRender (ctx: Context) {
+  private getBlockRender(ctx: Context) {
     const self = this as Tag
     const { liquid, templates } = this
     const renderChild = ctx.getRegister('blocks', {} as Record<string, any>)[this.block]
-    const renderCurrent = function * (superBlock: BlockDrop, emitter: Emitter) {
+    const renderCurrent = function* (superBlock: BlockDrop, emitter: Emitter) {
       const stack: Tag[] = ctx.getRegister('blockStack', [])
       if (stack.includes(self)) throw new Error('block tag cannot be nested')
 
@@ -44,19 +44,16 @@ export default class extends Tag {
       stack.pop()
     }
     return renderChild
-      ? (superBlock: BlockDrop, emitter: Emitter) => renderChild(
-        new BlockDrop(
-          (emitter: Emitter) => renderCurrent(superBlock, emitter)
-        ),
-        emitter)
+      ? (superBlock: BlockDrop, emitter: Emitter) =>
+          renderChild(new BlockDrop((emitter: Emitter) => renderCurrent(superBlock, emitter)), emitter)
       : renderCurrent
   }
 
-  public * children (): Generator<unknown, Template[]> {
+  public *children(): Generator<unknown, Template[]> {
     return this.templates
   }
 
-  public blockScope (): Iterable<string> {
+  public blockScope(): Iterable<string> {
     return ['block']
   }
 }

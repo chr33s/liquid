@@ -32,14 +32,7 @@ describe('error', function () {
     })
     it('should contain template content in err.message', async function () {
       const html = ['1st', '2nd', 'X{% . a %} Y', '4th']
-      const message = [
-        '   1| 1st',
-        '   2| 2nd',
-        '>> 3| X{% . a %} Y',
-        '          ^',
-        '   4| 4th',
-        'TokenizationError'
-      ]
+      const message = ['   1| 1st', '   2| 2nd', '>> 3| X{% . a %} Y', '          ^', '   4| 4th', 'TokenizationError']
       await expect(engine.parseAndRender(html.join('\n'))).rejects.toMatchObject({
         message: 'illegal tag syntax, tag name expected, line:3, col:5',
         stack: expect.stringContaining(message.join('\n')),
@@ -139,15 +132,9 @@ describe('error', function () {
     })
     it('should contain original error info for {% layout %}', async function () {
       mock({
-        '/throwing-tag.html': [
-          '1st',
-          '2nd',
-          '3rd',
-          'X{%throwingTag%} Y',
-          '5th',
-          '{%block%}{%endblock%}',
-          '7th'
-        ].join('\n')
+        '/throwing-tag.html': ['1st', '2nd', '3rd', 'X{%throwingTag%} Y', '5th', '{%block%}{%endblock%}', '7th'].join(
+          '\n'
+        )
       })
       const html = '{%layout "throwing-tag.html"%}'
       const message = [
@@ -202,16 +189,20 @@ describe('error', function () {
       return expect(strictCatchingEngine.parseAndRender(template)).rejects.toMatchObject({
         name: 'LiquidErrors',
         message: '3 errors found, line:1, col:3',
-        errors: [{
-          name: 'UndefinedVariableError',
-          message: 'undefined variable: foo, line:1, col:3'
-        }, {
-          name: 'RenderError',
-          message: 'intended error, line:2, col:1'
-        }, {
-          name: 'RenderError',
-          message: 'intended error, line:3, col:1'
-        }]
+        errors: [
+          {
+            name: 'UndefinedVariableError',
+            message: 'undefined variable: foo, line:1, col:3'
+          },
+          {
+            name: 'RenderError',
+            message: 'intended error, line:2, col:1'
+          },
+          {
+            name: 'RenderError',
+            message: 'intended error, line:3, col:1'
+          }
+        ]
       })
     })
     it('should catch some parse errors', async function () {
@@ -219,10 +210,12 @@ describe('error', function () {
       return expect(strictCatchingEngine.parseAndRender(template)).rejects.toMatchObject({
         name: 'LiquidErrors',
         message: '1 error found, line:1, col:18',
-        errors: [{
-          name: 'TokenizationError',
-          message: 'expected ":" after filter name, line:1, col:18'
-        }]
+        errors: [
+          {
+            name: 'TokenizationError',
+            message: 'expected ":" after filter name, line:1, col:18'
+          }
+        ]
       })
     })
     it('should catch parse errors from filter/tag', async function () {
@@ -230,13 +223,16 @@ describe('error', function () {
       return expect(strictCatchingEngine.parseAndRender(template)).rejects.toMatchObject({
         name: 'LiquidErrors',
         message: '2 errors found, line:1, col:1',
-        errors: [{
-          name: 'ParseError',
-          message: 'undefined filter: nonExistFilter, line:1, col:1'
-        }, {
-          name: 'ParseError',
-          message: 'tag "nonExistTag" not found, line:1, col:29'
-        }]
+        errors: [
+          {
+            name: 'ParseError',
+            message: 'undefined filter: nonExistFilter, line:1, col:1'
+          },
+          {
+            name: 'ParseError',
+            message: 'tag "nonExistTag" not found, line:1, col:29'
+          }
+        ]
       })
     })
   })

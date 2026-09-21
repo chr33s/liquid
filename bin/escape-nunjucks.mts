@@ -4,7 +4,7 @@
 // will not go through nunjucks.
 // So we're escaping special chars outside code only.
 let backTick = 0
-process.stdin.on('data', (buffer) => {
+process.stdin.on('data', buffer => {
   for (const c of buffer.toString()) {
     if (c === '`') {
       backTick++

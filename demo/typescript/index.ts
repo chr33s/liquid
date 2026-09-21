@@ -11,7 +11,7 @@ engine.registerTag('header', class HeaderTag extends Tag {
     super(token, remainTokens, liquid)
     this.value = new Value(token.args, liquid)
   }
-  * render (ctx: Context, emitter: Emitter) {
+  * render (ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     const title = yield this.value.value(ctx)
     emitter.write(`<h1>${title}</h1>`)
   }

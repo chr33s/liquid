@@ -11,14 +11,14 @@ export default class extends Tag {
   templates: Template[]
   file?: ParsedFileName
   private currentFile?: string
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(token, remainTokens, liquid)
     this.file = parseFilePath(this.tokenizer, this.liquid, parser)
     this.currentFile = token.file
     this.args = new Hash(this.tokenizer, liquid.options.keyValueSeparator)
     this.templates = parser.parseTokens(remainTokens)
   }
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     const { liquid, args, file } = this
     const { renderer } = liquid
     if (file === undefined) {
@@ -47,17 +47,17 @@ export default class extends Tag {
     ctx.depthLimit.release(1)
   }
 
-  public * children (partials: boolean): Generator<unknown, Template[]> {
+  public *children(partials: boolean): Generator<unknown, Template[]> {
     const templates = this.templates.slice()
 
     if (partials && isString(this.file)) {
-      templates.push(...(yield this.liquid._parsePartialFile(this.file, true, this.currentFile)) as Template[])
+      templates.push(...((yield this.liquid._parsePartialFile(this.file, true, this.currentFile)) as Template[]))
     }
 
     return templates
   }
 
-  public * arguments (): Arguments {
+  public *arguments(): Arguments {
     for (const v of Object.values(this.args.hash)) {
       if (isValueToken(v)) {
         yield v
@@ -69,7 +69,7 @@ export default class extends Tag {
     }
   }
 
-  public partialScope (): PartialScope | undefined {
+  public partialScope(): PartialScope | undefined {
     if (isString(this.file)) {
       return { name: this.file, isolated: false, scope: Object.keys(this.args.hash) }
     }

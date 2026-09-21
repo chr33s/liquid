@@ -25,9 +25,13 @@ describe('LiquidOptions#operators', function () {
   })
 
   it('should evaluate a custom operator with the correct precedence', async function () {
-    const first = await engine.parseAndRender('{% if "foo" isFooBar "bar" or "foo" == "bar" %}True{% else %}False{% endif %}')
+    const first = await engine.parseAndRender(
+      '{% if "foo" isFooBar "bar" or "foo" == "bar" %}True{% else %}False{% endif %}'
+    )
     expect(first).toBe('True')
-    const second = await engine.parseAndRender('{% if "foo" isFooBar "foo" or "foo" == "bar" %}True{% else %}False{% endif %}')
+    const second = await engine.parseAndRender(
+      '{% if "foo" isFooBar "foo" or "foo" == "bar" %}True{% else %}False{% endif %}'
+    )
     expect(second).toBe('False')
   })
 })

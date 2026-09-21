@@ -2,7 +2,7 @@ import { Liquid, TopLevelToken, TagToken, Tag } from '..'
 import { isTagToken } from '../util'
 
 export default class extends Tag {
-  constructor (tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+  constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
     super(tagToken, remainTokens, liquid)
     while (remainTokens.length) {
       const token = remainTokens.shift()!
@@ -10,5 +10,5 @@ export default class extends Tag {
     }
     throw new Error(`tag ${tagToken.getText()} not closed`)
   }
-  render () {}
+  render() {}
 }

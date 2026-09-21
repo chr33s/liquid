@@ -31,7 +31,7 @@ const html = await engine.parseAndRender(
 
 ## Installation
 
-**Node.js**
+**Node.js** (>= 22.12, ES Modules; `require()` is also supported)
 
 ```bash
 npm install liquidjs

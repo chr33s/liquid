@@ -1,10 +1,10 @@
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
 
-const root = path.resolve(__dirname, '..')
+const root = path.resolve(import.meta.dirname, '..')
 const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8').replace(/\r\n/g, '\n')
 
-function extractSection (text, beginMarker, endMarker) {
+function extractSection(text: string, beginMarker: string, endMarker: string) {
   const lines = text.split('\n')
   let inside = false
   const result = []
@@ -16,7 +16,7 @@ function extractSection (text, beginMarker, endMarker) {
   return result.join('\n')
 }
 
-function transformContributors (html) {
+function transformContributors(html: string) {
   return html
     .replace(/<br \/>.*?<\/td>/g, '</a></td>')
     .replace(/width="[^"]*"/g, '')
@@ -24,15 +24,19 @@ function transformContributors (html) {
     .replace(/<\/tr>\s*<tr>/g, '')
 }
 
-function transformFinancial (html) {
+function transformFinancial(html: string) {
   return html
     .replace(/<br \/>.*?<\/td>/g, '</a></td>')
     .replace(/\n/g, '')
     .replace(/<\/tr>\s*<tr>/g, '')
 }
 
-const allContributors = transformContributors(extractSection(readme, 'ALL-CONTRIBUTORS-LIST:START', 'ALL-CONTRIBUTORS-LIST:END'))
-const financialContributors = transformFinancial(extractSection(readme, 'FINANCIAL-CONTRIBUTORS-BEGIN', 'FINANCIAL-CONTRIBUTORS-END'))
+const allContributors = transformContributors(
+  extractSection(readme, 'ALL-CONTRIBUTORS-LIST:START', 'ALL-CONTRIBUTORS-LIST:END')
+)
+const financialContributors = transformFinancial(
+  extractSection(readme, 'FINANCIAL-CONTRIBUTORS-BEGIN', 'FINANCIAL-CONTRIBUTORS-END')
+)
 const usedBy = transformFinancial(extractSection(readme, 'USED-BY-BEGIN', 'USED-BY-END'))
 
 const outDir = path.join(root, 'docs/themes/navy/layout/partial')

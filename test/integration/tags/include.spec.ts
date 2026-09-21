@@ -117,7 +117,7 @@ describe('tags/include', function () {
   })
   it('should support include: with as Drop', async function () {
     class ColorDrop extends Drop {
-      public valueOf (): string {
+      public valueOf(): string {
         return 'red!'
       }
     }
@@ -130,7 +130,7 @@ describe('tags/include', function () {
   })
   it('should support include: with passed as Drop', async function () {
     class ColorDrop extends Drop {
-      public valueOf (): string {
+      public valueOf(): string {
         return 'red!'
       }
     }

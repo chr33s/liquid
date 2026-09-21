@@ -2,7 +2,7 @@ import { toValue, stringify, isString, isNumber, LiquidDate, strftime, isNil } f
 import { FilterImpl } from '../template'
 import { NormalizedFullOptions } from '../liquid-options'
 
-export function date (this: FilterImpl, v: string | Date, format?: string, timezoneOffset?: number | string) {
+export function date(this: FilterImpl, v: string | Date, format?: string, timezoneOffset?: number | string) {
   const date = parseDate(v, this.context.opts, timezoneOffset)
   if (!date) return v
   format = toValue(format)
@@ -10,35 +10,37 @@ export function date (this: FilterImpl, v: string | Date, format?: string, timez
   return strftime(date, format)
 }
 
-export function date_to_xmlschema (this: FilterImpl, v: string | Date) {
+export function date_to_xmlschema(this: FilterImpl, v: string | Date) {
   return date.call(this, v, '%Y-%m-%dT%H:%M:%S%:z')
 }
 
-export function date_to_rfc822 (this: FilterImpl, v: string | Date) {
+export function date_to_rfc822(this: FilterImpl, v: string | Date) {
   return date.call(this, v, '%a, %d %b %Y %H:%M:%S %z')
 }
 
-export function date_to_string (this: FilterImpl, v: string | Date, type?: string, style?: string) {
+export function date_to_string(this: FilterImpl, v: string | Date, type?: string, style?: string) {
   return stringify_date.call(this, v, '%b', type, style)
 }
 
-export function date_to_long_string (this: FilterImpl, v: string | Date, type?: string, style?: string) {
+export function date_to_long_string(this: FilterImpl, v: string | Date, type?: string, style?: string) {
   return stringify_date.call(this, v, '%B', type, style)
 }
 
-function stringify_date (this: FilterImpl, v: string | Date, month_type: string, type?: string, style?: string) {
+function stringify_date(this: FilterImpl, v: string | Date, month_type: string, type?: string, style?: string) {
   const date = parseDate(v, this.context.opts)
   if (!date) return v
   if (type === 'ordinal') {
     const d = date.getDate()
-    return style === 'US'
-      ? strftime(date, `${month_type} ${d}%q, %Y`)
-      : strftime(date, `${d}%q ${month_type} %Y`)
+    return style === 'US' ? strftime(date, `${month_type} ${d}%q, %Y`) : strftime(date, `${d}%q ${month_type} %Y`)
   }
   return strftime(date, `%d ${month_type} %Y`)
 }
 
-function parseDate (v: string | Date, opts: NormalizedFullOptions, timezoneOffset?: number | string): LiquidDate | undefined {
+function parseDate(
+  v: string | Date,
+  opts: NormalizedFullOptions,
+  timezoneOffset?: number | string
+): LiquidDate | undefined {
   let date: LiquidDate | undefined
   const defaultTimezoneOffset = timezoneOffset ?? opts.timezoneOffset
   const locale = opts.locale

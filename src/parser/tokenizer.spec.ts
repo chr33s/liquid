@@ -1,4 +1,15 @@
-import { LiquidTagToken, HTMLToken, QuotedToken, OutputToken, TagToken, OperatorToken, RangeToken, PropertyAccessToken, NumberToken, IdentifierToken } from '../tokens'
+import {
+  LiquidTagToken,
+  HTMLToken,
+  QuotedToken,
+  OutputToken,
+  TagToken,
+  OperatorToken,
+  RangeToken,
+  PropertyAccessToken,
+  NumberToken,
+  IdentifierToken
+} from '../tokens'
 import { Tokenizer } from './tokenizer'
 import { defaultOperators } from '../render/operator'
 import { createTrie } from '../util/operator-trie'
@@ -208,14 +219,14 @@ describe('Tokenizer', function () {
     it('should throw if tag not closed', function () {
       const html = '{% assign foo = bar {{foo}}'
       const tokenizer = new Tokenizer(html)
-      expect(() => tokenizer.readTopLevelTokens()).toThrow('tag "{% assign foo = bar {{foo}}" not closed, line:1, col:1')
+      expect(() => tokenizer.readTopLevelTokens()).toThrow(
+        'tag "{% assign foo = bar {{foo}}" not closed, line:1, col:1'
+      )
     })
     it('should throw if output not closed', function () {
       const tokenizer = new Tokenizer('{{name}')
       expect(() => tokenizer.readTopLevelTokens()).toThrow(/output "{{name}" not closed/)
     })
-  })
-  describe('#readTagToken()', () => {
   })
   describe('#readOutputToken()', () => {
     it('should skip quoted delimiters', function () {
@@ -532,13 +543,13 @@ describe('Tokenizer', function () {
   })
   describe('#readLiquidTagTokens', () => {
     it('should read newline terminated tokens', () => {
-      const tokenizer = new Tokenizer('echo \'hello\'')
+      const tokenizer = new Tokenizer("echo 'hello'")
       const tokens = tokenizer.readLiquidTagTokens()
       expect(tokens.length).toBe(1)
       const tag = tokens[0]
       expect(tag).toBeInstanceOf(LiquidTagToken)
       expect(tag.name).toBe('echo')
-      expect(tag.args).toBe('\'hello\'')
+      expect(tag.args).toBe("'hello'")
     })
     it('should gracefully handle empty lines', () => {
       const tokenizer = new Tokenizer(`

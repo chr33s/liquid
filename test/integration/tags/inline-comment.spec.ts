@@ -43,24 +43,15 @@ describe('tags/inline-comment', function () {
     return expect(html).toBe('')
   })
   it('should support multiple lines', async function () {
-    const src = [
-      '{%-',
-      '  # spread inline comments',
-      '  # over multiple lines',
-      '-%}'
-    ].join('\n')
+    const src = ['{%-', '  # spread inline comments', '  # over multiple lines', '-%}'].join('\n')
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('')
   })
   it('should enforce leading hashes', async function () {
-    const src = [
-      '{%-',
-      '  # spread inline comments',
-      '  over multiple lines',
-      '-%}'
-    ].join('\n')
-    return expect(liquid.parseAndRender(src))
-      .rejects.toThrow(/every line of an inline comment must start with a '#' character/)
+    const src = ['{%-', '  # spread inline comments', '  over multiple lines', '-%}'].join('\n')
+    return expect(liquid.parseAndRender(src)).rejects.toThrow(
+      /every line of an inline comment must start with a '#' character/
+    )
   })
   describe('sync support', function () {
     it('should ignore plain string', function () {
@@ -77,10 +68,10 @@ describe('tags/inline-comment', function () {
         '  # second comment line',
         '',
         '  # another comment line',
-        '  echo \'Hello \'',
+        "  echo 'Hello '",
         '',
         '  # more comments',
-        '  echo \'goodbye\'',
+        "  echo 'goodbye'",
         '-%}'
       ].join('\n')
       const html = await liquid.parseAndRender(src)

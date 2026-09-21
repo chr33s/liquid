@@ -6,7 +6,7 @@ export abstract class DelimitedToken extends Token {
   public trimLeft = false
   public trimRight = false
   public contentRange: [number, number]
-  public constructor (
+  public constructor(
     kind: TokenKind,
     [contentBegin, contentEnd]: [number, number],
     input: string,
@@ -22,14 +22,14 @@ export abstract class DelimitedToken extends Token {
 
     let l = tl ? contentBegin + 1 : contentBegin
     let r = tr ? contentEnd - 1 : contentEnd
-    while (l < r && (TYPES[input.charCodeAt(l)] & BLANK)) l++
-    while (r > l && (TYPES[input.charCodeAt(r - 1)] & BLANK)) r--
+    while (l < r && TYPES[input.charCodeAt(l)] & BLANK) l++
+    while (r > l && TYPES[input.charCodeAt(r - 1)] & BLANK) r--
 
     this.contentRange = [l, r]
     this.trimLeft = tl || trimLeft
     this.trimRight = tr || trimRight
   }
-  get content () {
+  get content() {
     return this.input.slice(this.contentRange[0], this.contentRange[1])
   }
 }

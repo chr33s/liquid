@@ -11,7 +11,7 @@ describe('boolean Shopify', function () {
     } as unknown as Context
 
     class BooleanDrop extends Drop {
-      public valueOf () {
+      public valueOf() {
         return false
       }
     }

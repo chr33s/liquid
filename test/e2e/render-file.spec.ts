@@ -1,5 +1,6 @@
 import { Liquid } from '../..'
 import { resolve } from 'path'
+import pkg from '../../package.json'
 
 describe('#renderFile()', function () {
   const root = resolve(__dirname, '../stub/root')
@@ -16,7 +17,7 @@ describe('#renderFile()', function () {
     return expect(html).toBe('foo')
   })
   it('should find files without extname', async function () {
-    var engine = new Liquid({ root })
+    const engine = new Liquid({ root })
     const html = await engine.renderFile(resolve(root, 'bar'), {})
     return expect(html).toBe('bar')
   })
@@ -35,7 +36,7 @@ describe('#renderFile()', function () {
   it('should default root to cwd', async function () {
     engine = new Liquid()
     const html = await engine.renderFile('package.json')
-    return expect(html).toContain('"name": "liquidjs"')
+    return expect(html).toContain(`"name": "${pkg.name}"`)
   })
   it('should render file with context', async function () {
     engine = new Liquid({ root: views, extname: '.html' })
@@ -51,7 +52,9 @@ describe('#renderFile()', function () {
       root: ['/boo', '/root/'],
       extname: '.html'
     })
-    return expect(engine.renderFile('/not/exist.html')).rejects.toThrow(/Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/)
+    return expect(engine.renderFile('/not/exist.html')).rejects.toThrow(
+      /Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/
+    )
   })
   it('should handle "." as cwd', async () => {
     engine = new Liquid({

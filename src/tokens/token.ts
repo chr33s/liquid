@@ -1,17 +1,17 @@
 import { TokenKind } from '../parser'
 
 export abstract class Token {
-  public constructor (
+  public constructor(
     public kind: TokenKind,
     public input: string,
     public begin: number,
     public end: number,
     public file?: string
   ) {}
-  public getText () {
+  public getText() {
     return this.input.slice(this.begin, this.end)
   }
-  public getPosition () {
+  public getPosition() {
     let [row, col] = [1, 1]
     for (let i = 0; i < this.begin; i++) {
       if (this.input[i] === '\n') {
@@ -21,7 +21,7 @@ export abstract class Token {
     }
     return [row, col]
   }
-  public size () {
+  public size() {
     return this.end - this.begin
   }
 }

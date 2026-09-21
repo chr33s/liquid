@@ -1,6 +1,6 @@
 import { last } from '../util'
 
-function domResolve (root: string, path: string) {
+function domResolve(root: string, path: string) {
   const base = document.createElement('base')
   base.href = root
 
@@ -15,7 +15,7 @@ function domResolve (root: string, path: string) {
   return resolved
 }
 
-export function resolve (root: string, filepath: string, ext: string) {
+export function resolve(root: string, filepath: string, ext: string) {
   if (root.length && last(root) !== '/') root += '/'
   const url = domResolve(root, filepath)
   return url.replace(/^(\w+:\/\/[^/]+)(\/[^?]+)/, (str, origin, path) => {
@@ -25,7 +25,7 @@ export function resolve (root: string, filepath: string, ext: string) {
   })
 }
 
-export async function readFile (url: string): Promise<string> {
+export async function readFile(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.onload = () => {
@@ -43,7 +43,7 @@ export async function readFile (url: string): Promise<string> {
   })
 }
 
-export function readFileSync (url: string): string {
+export function readFileSync(url: string): string {
   const xhr = new XMLHttpRequest()
   xhr.open('GET', url, false)
   xhr.send()
@@ -53,15 +53,15 @@ export function readFileSync (url: string): string {
   return xhr.responseText as string
 }
 
-export async function exists (filepath: string) {
+export async function exists(filepath: string) {
   return true
 }
 
-export function existsSync (filepath: string) {
+export function existsSync(filepath: string) {
   return true
 }
 
-export function dirname (filepath: string) {
+export function dirname(filepath: string) {
   return domResolve(filepath, '.')
 }
 

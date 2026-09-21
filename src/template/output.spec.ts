@@ -7,7 +7,9 @@ describe('Output', function () {
   const emitter: any = { write: (html: string) => (emitter.html += html), html: '' }
   const liquid = { options: {} } as any
   const token = { content: 'obj', input: 'obj' } as OutputToken
-  beforeEach(() => { emitter.html = '' })
+  beforeEach(() => {
+    emitter.html = ''
+  })
 
   it('should stringify objects', async function () {
     const scope = new Context({

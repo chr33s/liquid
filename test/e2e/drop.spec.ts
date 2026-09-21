@@ -10,10 +10,10 @@ describe('drop', function () {
     it('should support liquidMethodMissing', async function () {
       class SettingsDrop extends Drop {
         public foo = 'FOO'
-        public bar () {
+        public bar() {
           return 'BAR'
         }
-        public liquidMethodMissing (key: string) {
+        public liquidMethodMissing(key: string) {
           return key.toUpperCase()
         }
       }
@@ -24,7 +24,7 @@ describe('drop', function () {
 
     it('should expose context', async function () {
       class SettingsDrop extends Drop {
-        public liquidMethodMissing (key: string, context: Context) {
+        public liquidMethodMissing(key: string, context: Context) {
           return key + ':' + context.getSync([key])
         }
       }
@@ -40,7 +40,7 @@ describe('drop', function () {
       {% unless settings.fpHeading == blank %}
           <h1>{{ settings.fpHeading }}</h1>
       {% endunless %}`
-      var ctx = { settings: { fpHeading: '' } }
+      const ctx = { settings: { fpHeading: '' } }
       const html = await engine.parseAndRender(src, ctx)
       return expect(html).toMatch(/^\s+$/)
     })

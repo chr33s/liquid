@@ -3,18 +3,21 @@ import { Parser } from '../parser'
 import { Arguments } from '../template'
 
 export default class extends Tag {
-  branches: { value: Value, test: (val: any, ctx: Context) => boolean, templates: Template[] }[] = []
+  branches: { value: Value; test: (val: any, ctx: Context) => boolean; templates: Template[] }[] = []
   elseTemplates: Template[] = []
-  constructor (tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
     let p: Template[] = []
     let elseCount = 0
-    parser.parseStream(remainTokens)
-      .on('start', () => this.branches.push({
-        value: new Value(tagToken.tokenizer.readFilteredValue(), this.liquid),
-        test: isFalsy,
-        templates: (p = [])
-      }))
+    parser
+      .parseStream(remainTokens)
+      .on('start', () =>
+        this.branches.push({
+          value: new Value(tagToken.tokenizer.readFilteredValue(), this.liquid),
+          test: isFalsy,
+          templates: (p = [])
+        })
+      )
       .on('tag:elsif', (token: TagToken) => {
         if (elseCount > 0) {
           p = []
@@ -30,17 +33,21 @@ export default class extends Tag {
         elseCount++
         p = this.elseTemplates
       })
-      .on('tag:endunless', function () { this.stop() })
+      .on('tag:endunless', function () {
+        this.stop()
+      })
       .on('template', (tpl: Template) => {
         if (p !== this.elseTemplates || elseCount === 1) {
           p.push(tpl)
         }
       })
-      .on('end', () => { throw new Error(`tag ${tagToken.getText()} not closed`) })
+      .on('end', () => {
+        throw new Error(`tag ${tagToken.getText()} not closed`)
+      })
       .start()
   }
 
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     const r = this.liquid.renderer
 
     for (const { value, test, templates } of this.branches) {
@@ -54,7 +61,7 @@ export default class extends Tag {
     yield r.renderTemplates(this.elseTemplates, ctx, emitter)
   }
 
-  public * children (): Generator<unknown, Template[]> {
+  public *children(): Generator<unknown, Template[]> {
     const children = this.branches.flatMap(b => b.templates)
     if (this.elseTemplates) {
       children.push(...this.elseTemplates)
@@ -62,7 +69,7 @@ export default class extends Tag {
     return children
   }
 
-  public arguments (): Arguments {
+  public arguments(): Arguments {
     return this.branches.map(b => b.value)
   }
 }

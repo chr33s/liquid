@@ -1,8 +1,10 @@
 import { Liquid } from '../..'
 
 describe('#evalValue()', function () {
-  var engine: Liquid
-  beforeEach(() => { engine = new Liquid({ globals: { foo: 'FOO' } }) })
+  let engine: Liquid
+  beforeEach(() => {
+    engine = new Liquid({ globals: { foo: 'FOO' } })
+  })
 
   it('should support boolean', async function () {
     const val = await engine.evalValue('true')

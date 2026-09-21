@@ -35,7 +35,7 @@ The template string/file is parsed only once and rendered multiple times using d
 The [cache option][cache] can be set to instruct liquidjs to use cached parsed templates each time you call [renderFile][renderFile] or [renderFileSync][renderFileSync].
 
 ```javascript
-var { Liquid } = require('liquidjs');
+import { Liquid } from 'liquidjs'
 var engine = new Liquid({
     cache: true
 });

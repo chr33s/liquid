@@ -4,26 +4,30 @@ export const toString = Object.prototype.toString
 export const hasOwnProperty = Object.prototype.hasOwnProperty
 const toLowerCase = String.prototype.toLowerCase
 
-export function isString (value: any): value is string {
+export function isString(value: any): value is string {
   return typeof value === 'string'
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export function isFunction (value: any): value is Function {
+export function isFunction(value: any): value is Function {
   return typeof value === 'function'
 }
 
-export function isPromise<T> (val: any): val is Promise<T> {
+export function isPromise<T>(val: any): val is Promise<T> {
   return val && isFunction(val.then)
 }
 
-export function isIterator (val: any): val is IterableIterator<any> {
+export function isIterator(val: any): val is IterableIterator<any> {
   return val && isFunction(val.next) && isFunction(val.throw) && isFunction(val.return)
 }
 
-export function promisify<T1, T2> (fn: (arg1: T1, cb: (err: Error | null, result: T2) => void) => void): (arg1: T1) => Promise<T2>;
-export function promisify<T1, T2, T3> (fn: (arg1: T1, arg2: T2, cb: (err: Error | null, result: T3) => void) => void): (arg1: T1, arg2: T2) => Promise<T3>;
-export function promisify (fn: any) {
+export function promisify<T1, T2>(
+  fn: (arg1: T1, cb: (err: Error | null, result: T2) => void) => void
+): (arg1: T1) => Promise<T2>
+export function promisify<T1, T2, T3>(
+  fn: (arg1: T1, arg2: T2, cb: (err: Error | null, result: T3) => void) => void
+): (arg1: T1, arg2: T2) => Promise<T3>
+export function promisify(fn: any) {
   return function (...args: any[]) {
     return new Promise((resolve, reject) => {
       fn(...args, (err: Error, result: any) => {
@@ -33,7 +37,7 @@ export function promisify (fn: any) {
   }
 }
 
-export function stringify (value: any): string {
+export function stringify(value: any): string {
   value = toValue(value)
   if (isString(value)) return value
   if (isNil(value)) return ''
@@ -41,62 +45,62 @@ export function stringify (value: any): string {
   return String(value)
 }
 
-export function readArrayElement (arr: any[], index: number, ownPropertyOnly: boolean) {
+export function readArrayElement(arr: any[], index: number, ownPropertyOnly: boolean) {
   if (index < 0) index = arr.length + index
   if (ownPropertyOnly && !hasOwnProperty.call(arr, index)) return undefined
   return arr[index]
 }
 
-export function toEnumerable<T = unknown> (val: any): T[] {
+export function toEnumerable<T = unknown>(val: any): T[] {
   val = toValue(val)
   if (isArray(val)) return val
   if (isString(val) && val.length > 0) return [val] as unknown as T[]
   if (isIterable(val)) return Array.from(val)
-  if (isObject(val)) return Object.keys(val).map((key) => [key, val[key]]) as unknown as T[]
+  if (isObject(val)) return Object.entries(val) as unknown as T[]
   return []
 }
 
-export function toArray (val: any) {
+export function toArray(val: any) {
   val = toValue(val)
   if (isNil(val)) return []
   if (isArray(val)) return val
-  return [ val ]
+  return [val]
 }
 
-export function toValue (value: any): any {
-  return (value instanceof Drop && isFunction(value.valueOf)) ? value.valueOf() : value
+export function toValue(value: any): any {
+  return value instanceof Drop && isFunction(value.valueOf) ? value.valueOf() : value
 }
 
-export function toNumber (value: any): number {
+export function toNumber(value: any): number {
   return +toValue(value) || 0
 }
 
-export function isNumber (value: any): value is number {
+export function isNumber(value: any): value is number {
   return typeof value === 'number'
 }
 
-export function toLiquid (value: any): any {
+export function toLiquid(value: any): any {
   if (value && isFunction(value.toLiquid)) return toLiquid(value.toLiquid())
   return value
 }
 
-export function isNil (value: any): boolean {
+export function isNil(value: any): boolean {
   return value == null
 }
 
-export function isUndefined (value: any): boolean {
+export function isUndefined(value: any): boolean {
   return value === undefined
 }
 
-export function isArray (value: any): value is any[] {
+export function isArray(value: any): value is any[] {
   return Array.isArray(value)
 }
 
-export function isArrayLike (value: any): value is any[] {
+export function isArrayLike(value: any): value is any[] {
   return value && isNumber(value.length)
 }
 
-export function isIterable (value: any): value is Iterable<any> {
+export function isIterable(value: any): value is Iterable<any> {
   return isObject(value) && Symbol.iterator in value
 }
 
@@ -108,9 +112,9 @@ export function isIterable (value: any): value is Iterable<any> {
  * @param {Function} iteratee The function invoked per iteration.
  * @return {Object} Returns object.
  */
-export function forOwn <T> (
+export function forOwn<T>(
   obj: Record<string, T> | undefined,
-  iteratee: ((val: T, key: string, obj: {[key: string]: T}) => boolean | void)
+  iteratee: (val: T, key: string, obj: { [key: string]: T }) => boolean | void
 ) {
   obj = obj || {}
   for (const k in obj) {
@@ -121,9 +125,9 @@ export function forOwn <T> (
   return obj
 }
 
-export function last <T>(arr: T[]): T;
-export function last (arr: string): string;
-export function last (arr: any[] | string): any | string {
+export function last<T>(arr: T[]): T
+export function last(arr: string): string
+export function last(arr: any[] | string): any | string {
   return arr[arr.length - 1]
 }
 
@@ -133,12 +137,12 @@ export function last (arr: any[] | string): any | string {
  * @param {any} value The value to check.
  * @return {Boolean} Returns true if value is an object, else false.
  */
-export function isObject (value: any): value is object {
+export function isObject(value: any): value is object {
   const type = typeof value
   return value !== null && (type === 'object' || type === 'function')
 }
 
-export function range (start: number, stop: number, step = 1) {
+export function range(start: number, stop: number, step = 1) {
   const arr: number[] = []
   for (let i = start; i < stop; i += step) {
     arr.push(i)
@@ -146,35 +150,35 @@ export function range (start: number, stop: number, step = 1) {
   return arr
 }
 
-export function padStart (str: any, length: number, ch = ' ') {
+export function padStart(str: any, length: number, ch = ' ') {
   return pad(str, length, ch, (str, ch) => ch + str)
 }
 
-export function padEnd (str: any, length: number, ch = ' ') {
+export function padEnd(str: any, length: number, ch = ' ') {
   return pad(str, length, ch, (str, ch) => str + ch)
 }
 
-export function pad (str: any, length: number, ch: string, add: (str: string, ch: string) => string) {
+export function pad(str: any, length: number, ch: string, add: (str: string, ch: string) => string) {
   str = String(str)
   const n = length - str.length
   if (n <= 0) return str
   return add(str, ch.repeat(n))
 }
 
-export function identify<T> (val: T): T {
+export function identify<T>(val: T): T {
   return val
 }
 
-export function changeCase (str: string): string {
+export function changeCase(str: string): string {
   const hasLowerCase = [...str].some(ch => ch >= 'a' && ch <= 'z')
   return hasLowerCase ? str.toUpperCase() : str.toLowerCase()
 }
 
-export function ellipsis (str: string, N: number): string {
+export function ellipsis(str: string, N: number): string {
   return str.length > N ? str.slice(0, N - 3) + '...' : str
 }
 
-export function orderedCompare (a: any, b: any) {
+export function orderedCompare(a: any, b: any) {
   if (isNil(a) && isNil(b)) return 0
   if (isNil(a)) return 1
   if (isNil(b)) return -1
@@ -184,7 +188,7 @@ export function orderedCompare (a: any, b: any) {
 }
 
 // compare string in case-insensitive way, undefined values to the tail
-export function caseInsensitiveCompare (a: any, b: any) {
+export function caseInsensitiveCompare(a: any, b: any) {
   if (isNil(a) && isNil(b)) return 0
   if (isNil(a)) return 1
   if (isNil(b)) return -1
@@ -195,20 +199,24 @@ export function caseInsensitiveCompare (a: any, b: any) {
   return 0
 }
 
-export function argumentsToValue<F extends (...args: any) => any, T> (fn: F) {
-  return function (this: T, ...args: Parameters<F>) { return fn.call(this, ...args.map(toValue)) }
+export function argumentsToValue<F extends (...args: any) => any, T>(fn: F) {
+  return function (this: T, ...args: Parameters<F>) {
+    return fn.call(this, ...args.map(toValue))
+  }
 }
 
-export function argumentsToNumber<F extends (...args: any) => any, T> (fn: F) {
-  return function (this: T, ...args: Parameters<F>) { return fn.call(this, ...args.map(toNumber)) }
+export function argumentsToNumber<F extends (...args: any) => any, T>(fn: F) {
+  return function (this: T, ...args: Parameters<F>) {
+    return fn.call(this, ...args.map(toNumber))
+  }
 }
 
-export function escapeRegExp (text: string) {
+export function escapeRegExp(text: string) {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
 /** Return an array containing unique elements from _array_. Works with nested arrays and objects. */
-export function * strictUniq<T> (array: Array<T>): Generator<T> {
+export function* strictUniq<T>(array: Array<T>): Generator<T> {
   const seen = new Set()
 
   for (const element of array) {

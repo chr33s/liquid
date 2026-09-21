@@ -4,13 +4,21 @@ import { Template } from '../template'
 import { Emitter, StreamedEmitter, SimpleEmitter } from '../emitters'
 
 export class Render {
-  public renderTemplatesToNodeStream (templates: Template[], ctx: Context): NodeJS.ReadableStream {
+  public renderTemplatesToNodeStream(templates: Template[], ctx: Context): NodeJS.ReadableStream {
     const emitter = new StreamedEmitter(ctx.outputLengthLimit)
-    Promise.resolve().then(() => toPromise(this.renderTemplates(templates, ctx, emitter)))
-      .then(() => emitter.end(), err => emitter.error(err))
+    Promise.resolve()
+      .then(() => toPromise(this.renderTemplates(templates, ctx, emitter)))
+      .then(
+        () => emitter.end(),
+        err => emitter.error(err)
+      )
     return emitter.stream
   }
-  public * renderTemplates (templates: Template[], ctx: Context, emitter: Emitter = new SimpleEmitter(ctx.outputLengthLimit)): IterableIterator<any> {
+  public *renderTemplates(
+    templates: Template[],
+    ctx: Context,
+    emitter: Emitter = new SimpleEmitter(ctx.outputLengthLimit)
+  ): IterableIterator<any> {
     const errors = []
     for (const tpl of templates) {
       ctx.templateLimit.use(1)

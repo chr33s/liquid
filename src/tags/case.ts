@@ -1,20 +1,34 @@
-import { ValueToken, Liquid, toValue, evalToken, Value, Emitter, TagToken, TopLevelToken, Context, Template, Tag, ParseStream } from '..'
+import {
+  ValueToken,
+  Liquid,
+  toValue,
+  evalToken,
+  Value,
+  Emitter,
+  TagToken,
+  TopLevelToken,
+  Context,
+  Template,
+  Tag,
+  ParseStream
+} from '..'
 import { Parser } from '../parser'
 import { equals } from '../render'
 import { Arguments } from '../template'
 
 export default class extends Tag {
   value: Value
-  branches: { values: ValueToken[], templates: Template[] }[] = []
+  branches: { values: ValueToken[]; templates: Template[] }[] = []
   elseTemplates: Template[] = []
-  constructor (tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
     this.value = new Value(this.tokenizer.readFilteredValue(), this.liquid)
     this.elseTemplates = []
 
     let p: Template[] = []
     let elseCount = 0
-    const stream: ParseStream = parser.parseStream(remainTokens)
+    const stream: ParseStream = parser
+      .parseStream(remainTokens)
       .on('tag:when', (token: TagToken) => {
         if (elseCount > 0) {
           return
@@ -54,7 +68,7 @@ export default class extends Tag {
     stream.start()
   }
 
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     const r = this.liquid.renderer
     const target = toValue(yield this.value.value(ctx, ctx.opts.lenientIf))
     let branchHit = false
@@ -73,12 +87,12 @@ export default class extends Tag {
     }
   }
 
-  public * arguments (): Arguments {
+  public *arguments(): Arguments {
     yield this.value
-    yield * this.branches.flatMap(b => b.values)
+    yield* this.branches.flatMap(b => b.values)
   }
 
-  public * children (): Generator<unknown, Template[]> {
+  public *children(): Generator<unknown, Template[]> {
     const templates = this.branches.flatMap(b => b.templates)
     if (this.elseTemplates) {
       templates.push(...this.elseTemplates)

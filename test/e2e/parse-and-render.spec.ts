@@ -4,7 +4,7 @@ import { join } from 'path'
 import { tmpdir } from 'os'
 
 describe('.parseAndRender()', function () {
-  var engine: Liquid, strictEngine: Liquid
+  let engine: Liquid, strictEngine: Liquid
   beforeEach(function () {
     engine = new Liquid()
     strictEngine = new Liquid({
@@ -12,7 +12,7 @@ describe('.parseAndRender()', function () {
     })
   })
   it('should stringify array ', async function () {
-    var ctx = { arr: [-2, 'a'] }
+    const ctx = { arr: [-2, 'a'] }
     const html = await engine.parseAndRender('{{arr}}', ctx)
     return expect(html).toBe('-2a')
   })
@@ -44,14 +44,13 @@ describe('.parseAndRender()', function () {
     expect(result2).toBe('12')
   })
   it('should support the "join" filter', async function () {
-    var ctx = { names: ['alice', 'bob'] }
-    var template = engine.parse('<p>{{names | join: ","}}</p>')
+    const ctx = { names: ['alice', 'bob'] }
+    const template = engine.parse('<p>{{names | join: ","}}</p>')
     const html = await engine.render(template, ctx)
     return expect(html).toBe('<p>alice,bob</p>')
   })
   it('should support the "first" filter', async function () {
-    var src = '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}' +
-      '{{ my_array | first }}'
+    const src = '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}' + '{{ my_array | first }}'
     const html = await engine.parseAndRender(src)
     return expect(html).toBe('apples')
   })
@@ -94,25 +93,22 @@ describe('.parseAndRender()', function () {
       writeFileSync(
         join(root, 'layout.html'),
         '<header>{% block a %}default-a{% endblock %}</header>' +
-        '<main>{% block b %}default-b{% endblock %}</main>' +
-        '<footer>{% block c %}default-c{% endblock %}</footer>'
+          '<main>{% block b %}default-b{% endblock %}</main>' +
+          '<footer>{% block c %}default-c{% endblock %}</footer>'
       )
       writeFileSync(
         join(root, 'template.html'),
         '{% layout "layout" %}' +
-        '{% block a %}outer-a {% block a %}inner-a{% endblock %}{% endblock %}' +
-        '{% block b %}content-b{% endblock %}' +
-        '{% block c %}content-c{% endblock %}'
+          '{% block a %}outer-a {% block a %}inner-a{% endblock %}{% endblock %}' +
+          '{% block b %}content-b{% endblock %}' +
+          '{% block c %}content-c{% endblock %}'
       )
       const liquid = new Liquid({ root, extname: '.html' })
       await expect(liquid.renderFile('template')).rejects.toThrow(/block tag cannot be nested/)
     })
     it('should reject nested anonymous {% block %} in child template (no hang / OOM)', async function () {
       writeFileSync(join(root, 'parent.html'), 'X{%block%}{%endblock%}Y')
-      writeFileSync(
-        join(root, 'template.html'),
-        '{% layout "parent" %}{%block%}A{%block%}B{%endblock%}{%endblock%}'
-      )
+      writeFileSync(join(root, 'template.html'), '{% layout "parent" %}{%block%}A{%block%}B{%endblock%}{%endblock%}')
       const liquid = new Liquid({ root, extname: '.html' })
       await expect(liquid.renderFile('template')).rejects.toThrow(/block tag cannot be nested/)
     })

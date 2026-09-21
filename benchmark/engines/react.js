@@ -5,13 +5,13 @@ const babel = require('@babel/core')
 const requireFromString = require('require-from-string')
 
 const babelConfig = {
-  presets: ['@babel/preset-react', '@babel/preset-env']
+  presets: ['@babel/preset-react', ['@babel/preset-env', { modules: 'commonjs' }]]
 }
 
 module.exports = {
   load: path => {
     const src = readFileSync(path + '.jsx', 'utf8')
-    const transformed = babel.transform(src, babelConfig)
+    const transformed = babel.transformSync(src, babelConfig)
     return requireFromString(transformed.code)
   },
   render: (Component, data) => {

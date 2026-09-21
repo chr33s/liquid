@@ -21,8 +21,8 @@ describe('Value', function () {
 
   describe('#value()', function () {
     it('should call chained filters correctly', async function () {
-      const date = jest.fn(() => 'y')
-      const time = jest.fn()
+      const date = vi.fn(() => 'y')
+      const time = vi.fn()
       liquid.registerFilter('date', date)
       liquid.registerFilter('time', time)
       const tpl = new Value('foo.bar | date: "b" | time:2', liquid)

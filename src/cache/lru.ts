@@ -1,7 +1,7 @@
 import { Cache } from './cache'
 
 class Node<T> {
-  constructor (
+  constructor(
     public key: string,
     public value: T,
     public next: Node<T>,
@@ -14,7 +14,7 @@ export class LRU<T> implements Cache<T> {
   private head: Node<T>
   private tail: Node<T>
 
-  constructor (
+  constructor(
     public limit: number,
     public size = 0
   ) {
@@ -24,7 +24,7 @@ export class LRU<T> implements Cache<T> {
     this.tail.prev = this.head
   }
 
-  write (key: string, value: T) {
+  write(key: string, value: T) {
     if (this.cache[key]) {
       this.cache[key].value = value
     } else {
@@ -38,7 +38,7 @@ export class LRU<T> implements Cache<T> {
     }
   }
 
-  read (key: string): T | undefined {
+  read(key: string): T | undefined {
     if (!this.cache[key]) return
     const { value } = this.cache[key]
     this.remove(key)
@@ -46,7 +46,7 @@ export class LRU<T> implements Cache<T> {
     return value
   }
 
-  remove (key: string) {
+  remove(key: string) {
     const node = this.cache[key]
     node.prev.next = node.next
     node.next.prev = node.prev
@@ -54,14 +54,14 @@ export class LRU<T> implements Cache<T> {
     this.size--
   }
 
-  clear () {
+  clear() {
     this.head.next = this.tail
     this.tail.prev = this.head
     this.size = 0
     this.cache = {}
   }
 
-  private ensureLimit () {
+  private ensureLimit() {
     if (this.size > this.limit) this.remove(this.tail.prev.key)
   }
 }

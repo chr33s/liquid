@@ -39,10 +39,12 @@ describe('Context', function () {
       expect(ctx.get([false as any])).toEqual(undefined)
     })
     it('should respect to toLiquid', async function () {
-      const scope = new Context({ foo: {
-        toLiquid: () => ({ bar: 'BAR' }),
-        bar: 'bar'
-      } })
+      const scope = new Context({
+        foo: {
+          toLiquid: () => ({ bar: 'BAR' }),
+          bar: 'bar'
+        }
+      })
       // eslint-disable-next-line deprecation/deprecation
       expect(scope.get(['foo', 'bar'])).toEqual('BAR')
     })
@@ -110,9 +112,9 @@ describe('Context', function () {
       return expect(() => ctx.getSync(['foo', 'BAR'])).toThrow(/undefined variable: foo.BAR/)
     })
     it('should find variable in parent scope', async function () {
-      ctx.push({ 'foo': 'foo' })
+      ctx.push({ foo: 'foo' })
       ctx.push({
-        'bar': 'bar'
+        bar: 'bar'
       })
       expect(ctx.getSync(['foo'])).toEqual('foo')
     })
@@ -138,7 +140,9 @@ describe('Context', function () {
       return expect(ctx.getSync(['foo', 'size'])).toEqual(99)
     })
     it('renderOptions.ownPropertyOnly should override options.ownPropertyOnly', function () {
-      ctx = new Context({ foo: Object.create({ bar: 'BAR' }) }, { ownPropertyOnly: false } as any, { ownPropertyOnly: true })
+      ctx = new Context({ foo: Object.create({ bar: 'BAR' }) }, { ownPropertyOnly: false } as any, {
+        ownPropertyOnly: true
+      })
       return expect(ctx.getSync(['foo', 'bar'])).toEqual(undefined)
     })
     it('should return undefined for Array.prototype.reduce', function () {
@@ -146,23 +150,29 @@ describe('Context', function () {
       return expect(ctx.getSync(['foo', 'reduce'])).toEqual(undefined)
     })
     it('should return undefined for function prototype property', function () {
-      function Foo () {}
+      function Foo() {}
       Foo.prototype.bar = 'BAR'
       ctx.push({ foo: new (Foo as any)() })
       return expect(ctx.getSync(['foo', 'bar'])).toEqual(undefined)
     })
     it('should allow function constructor properties', function () {
-      function Foo (this: any) { this.bar = 'BAR' }
+      function Foo(this: any) {
+        this.bar = 'BAR'
+      }
       ctx.push({ foo: new (Foo as any)() })
       return expect(ctx.getSync(['foo', 'bar'])).toEqual('BAR')
     })
     it('should return undefined for class method', function () {
-      class Foo { bar () {} }
+      class Foo {
+        bar() {}
+      }
       ctx.push({ foo: new Foo() })
       return expect(ctx.getSync(['foo', 'bar'])).toEqual(undefined)
     })
     it('should allow class property', function () {
-      class Foo { bar = 'BAR' }
+      class Foo {
+        bar = 'BAR'
+      }
       ctx.push({ foo: new Foo() })
       return expect(ctx.getSync(['foo', 'bar'])).toEqual('BAR')
     })
@@ -206,19 +216,24 @@ describe('Context', function () {
       }
     })
     it('should allow own blocked keys when ownPropertyOnly=false', function () {
-      ctx = new Context({
-        foo: {
-          ...JSON.parse('{"__proto__": {"bar": "BAR"}}'),
-          constructor: { name: 'Custom' },
-          prototype: { x: 1 }
-        }
-      }, { ownPropertyOnly: false } as any)
+      ctx = new Context(
+        {
+          foo: {
+            ...JSON.parse('{"__proto__": {"bar": "BAR"}}'),
+            constructor: { name: 'Custom' },
+            prototype: { x: 1 }
+          }
+        },
+        { ownPropertyOnly: false } as any
+      )
       expect(ctx.getSync(['foo', '__proto__', 'bar'])).toEqual('BAR')
       expect(ctx.getSync(['foo', 'constructor', 'name'])).toEqual('Custom')
       expect(ctx.getSync(['foo', 'prototype', 'x'])).toEqual(1)
     })
     it('should allow inherited properties when ownPropertyOnly=false', function () {
-      ctx = new Context({ foo: Object.create({ __proto__: { bar: 'BAR' }, constructor: { name: 'Evil' } }) }, { ownPropertyOnly: false } as any)
+      ctx = new Context({ foo: Object.create({ __proto__: { bar: 'BAR' }, constructor: { name: 'Evil' } }) }, {
+        ownPropertyOnly: false
+      } as any)
       expect(ctx.getSync(['foo', '__proto__', '__proto__', 'bar'])).toEqual('BAR')
       expect(ctx.getSync(['foo', 'constructor', 'name'])).toEqual('Evil')
     })
@@ -245,7 +260,7 @@ describe('Context', function () {
 
   describe('.push()', function () {
     it('should push scope', async function () {
-      ctx.push({ 'bar': 'bar' })
+      ctx.push({ bar: 'bar' })
       ctx.push({
         foo: 'foo'
       })

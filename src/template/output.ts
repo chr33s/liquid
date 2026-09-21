@@ -10,7 +10,7 @@ import { FilterToken } from '../tokens'
 
 export class Output extends TemplateImpl<OutputToken> implements Template {
   value: Value
-  public constructor (token: OutputToken, liquid: Liquid) {
+  public constructor(token: OutputToken, liquid: Liquid) {
     super(token)
     const tokenizer = new Tokenizer(token.input, liquid.options.operators, token.file, token.contentRange)
     this.value = new Value(tokenizer.readFilteredValue(), liquid)
@@ -21,12 +21,12 @@ export class Output extends TemplateImpl<OutputToken> implements Template {
       filters.push(new Filter(token, outputEscape, liquid))
     }
   }
-  public * render (ctx: Context, emitter: Emitter): IterableIterator<unknown> {
+  public *render(ctx: Context, emitter: Emitter): IterableIterator<unknown> {
     const val = yield this.value.value(ctx, false)
     emitter.write(val)
   }
 
-  public * arguments (): Arguments {
+  public *arguments(): Arguments {
     yield this.value
   }
 }

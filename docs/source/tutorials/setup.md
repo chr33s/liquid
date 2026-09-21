@@ -13,13 +13,21 @@ npm install --save liquidjs
 ```
 
 ```javascript
-var { Liquid } = require('liquidjs');
-var engine = new Liquid();
+import { Liquid } from 'liquidjs';
+const engine = new Liquid();
 
 engine
     .parseAndRender('{{name | capitalize}}', {name: 'alice'})
     .then(console.log);     // outputs 'Alice'
 ```
+
+LiquidJS ships as ES Modules and requires Node.js >= 22.12. CommonJS projects can still load it with `require()`, which resolves to a thin adapter around the same ES Module:
+
+```javascript
+const { Liquid } = require('liquidjs');
+```
+
+Both entries share a single module instance, so classes like `Drop` and `Tag` compare equal (`instanceof`) no matter how each part of your program loads LiquidJS. See [Migrate to LiquidJS 11][migrate11] for details.
 
 {% note info Working Demo %} Here's a working demo for LiquidJS usage in Node.js: <a href="https://github.com/harttle/liquidjs/blob/master/demo/nodejs/" target="_blank">liquidjs/demo/nodejs/</a>.{% endnote %}
 
@@ -96,3 +104,4 @@ A ReactJS demo is also added by [@stevenanthonyrevo](https://github.com/stevenan
 
 [intro]: ./intro-to-liquid.html
 [options]: ./options.html
+[migrate11]: ./migrate-to-11.html

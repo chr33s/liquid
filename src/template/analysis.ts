@@ -17,9 +17,9 @@ import {
  * Row, column and file name where a variable was found.
  */
 export interface VariableLocation {
-  row: number;
-  col: number;
-  file?: string;
+  row: number
+  col: number
+  file?: string
 }
 
 /**
@@ -31,18 +31,18 @@ export type SegmentArray = Array<string | number | SegmentArray>
  * A variable's segments and location, which can be coerced to a string.
  */
 export class Variable {
-  constructor (
+  constructor(
     readonly segments: Array<string | number | Variable>,
     readonly location: VariableLocation
   ) {}
 
-  public toString (): string {
+  public toString(): string {
     return segmentsString(this.segments, true)
   }
 
   /** Return this variable's segments as an array, possibly with nested arrays for nested paths. */
-  public toArray (): SegmentArray {
-    function * _visit (...segments: Array<string | number | Variable>): Generator<string | number | SegmentArray> {
+  public toArray(): SegmentArray {
+    function* _visit(...segments: Array<string | number | Variable>): Generator<string | number | SegmentArray> {
       for (const segment of segments) {
         if (segment instanceof Variable) {
           yield Array.from(_visit(...segment.segments))
@@ -58,12 +58,12 @@ export class Variable {
 /**
  * Property names and array indexes that make up a path to a variable.
  */
-export type VariableSegments = Array<string | number | Variable>;
+export type VariableSegments = Array<string | number | Variable>
 
 /**
  * A mapping of variable names to an array of locations at which the variable was found.
  */
-export type Variables = { [key: string]: Variable[] };
+export type Variables = { [key: string]: Variable[] }
 
 /**
  * Group variables by the string representation of their root segment.
@@ -71,11 +71,11 @@ export type Variables = { [key: string]: Variable[] };
 export class VariableMap {
   private map: Map<string, Variable[]>
 
-  constructor () {
+  constructor() {
     this.map = new Map()
   }
 
-  public get (key: Variable): Variable[] {
+  public get(key: Variable): Variable[] {
     const k = segmentsString([key.segments[0]])
     if (!this.map.has(k)) {
       this.map.set(k, [])
@@ -83,15 +83,15 @@ export class VariableMap {
     return this.map.get(k) as Variable[]
   }
 
-  public has (key: Variable): boolean {
+  public has(key: Variable): boolean {
     return this.map.has(segmentsString([key.segments[0]]))
   }
 
-  public push (variable: Variable): void {
+  public push(variable: Variable): void {
     this.get(variable).push(variable)
   }
 
-  public asObject (): Variables {
+  public asObject(): Variables {
     return Object.fromEntries(this.map)
   }
 }
@@ -104,7 +104,7 @@ export interface StaticAnalysis {
    * All variables, whether they are in scope or not. Including references to names
    * such as `forloop` from the `for` tag.
    */
-  variables: Variables;
+  variables: Variables
 
   /**
    * Variables that are not in scope. These could be a "global" variables that are
@@ -115,27 +115,27 @@ export interface StaticAnalysis {
    * that variable to be included in `globals`, `variables` and `locals`, each with
    * a different location.
    */
-  globals: Variables;
+  globals: Variables
 
   /**
    * Template variables that are added to the template local scope using tags like
    * `assign`, `capture` or `increment`.
    */
-  locals: Variables;
+  locals: Variables
 }
 
 export interface StaticAnalysisOptions {
   /**
    * When `true` (the default), try to load partial templates and analyze them too.
    */
-  partials?: boolean;
+  partials?: boolean
 }
 
 export const defaultStaticAnalysisOptions: StaticAnalysisOptions = {
   partials: true
 }
 
-function * _analyze (templates: Template[], partials: boolean, sync: boolean): Generator<unknown, StaticAnalysis> {
+function* _analyze(templates: Template[], partials: boolean, sync: boolean): Generator<unknown, StaticAnalysis> {
   const variables = new VariableMap()
   const globals = new VariableMap()
   const locals = new VariableMap()
@@ -145,7 +145,7 @@ function * _analyze (templates: Template[], partials: boolean, sync: boolean): G
   // Names of partial templates that we've already analyzed.
   const seen: Set<string | undefined> = new Set()
 
-  function updateVariables (variable: Variable, scope: DummyScope) {
+  function updateVariables(variable: Variable, scope: DummyScope) {
     variables.push(variable)
     const aliased = scope.alias(variable)
 
@@ -170,7 +170,7 @@ function * _analyze (templates: Template[], partials: boolean, sync: boolean): G
     }
   }
 
-  function * visit (template: Template, scope: DummyScope): Generator<unknown, void> {
+  function* visit(template: Template, scope: DummyScope): Generator<unknown, void> {
     if (template.arguments) {
       for (const arg of template.arguments()) {
         for (const variable of extractVariables(arg)) {
@@ -203,9 +203,7 @@ function * _analyze (templates: Template[], partials: boolean, sync: boolean): G
         if (seen.has(partial.name)) return
 
         const partialScopeNames: Set<string> = new Set()
-        const partialScope = partial.isolated
-          ? new DummyScope(partialScopeNames)
-          : scope.push(partialScopeNames)
+        const partialScope = partial.isolated ? new DummyScope(partialScopeNames) : scope.push(partialScopeNames)
 
         for (const name of partial.scope) {
           if (isString(name)) {
@@ -256,7 +254,7 @@ function * _analyze (templates: Template[], partials: boolean, sync: boolean): G
 /**
  * Statically analyze a template and report variable usage.
  */
-export function analyze (template: Template[], options: StaticAnalysisOptions = {}): Promise<StaticAnalysis> {
+export function analyze(template: Template[], options: StaticAnalysisOptions = {}): Promise<StaticAnalysis> {
   const opts = { ...defaultStaticAnalysisOptions, ...options } as Required<StaticAnalysisOptions>
   return toPromise(_analyze(template, opts.partials, false))
 }
@@ -264,14 +262,14 @@ export function analyze (template: Template[], options: StaticAnalysisOptions = 
 /**
  * Statically analyze a template and report variable usage.
  */
-export function analyzeSync (template: Template[], options: StaticAnalysisOptions = {}): StaticAnalysis {
+export function analyzeSync(template: Template[], options: StaticAnalysisOptions = {}): StaticAnalysis {
   const opts = { ...defaultStaticAnalysisOptions, ...options } as Required<StaticAnalysisOptions>
   return toValueSync(_analyze(template, opts.partials, true))
 }
 
 interface ScopeStackItem {
-  names: Set<string>;
-  aliases: Map<string, VariableSegments>;
+  names: Set<string>
+  aliases: Map<string, VariableSegments>
 }
 
 /**
@@ -280,12 +278,12 @@ interface ScopeStackItem {
 class DummyScope {
   private stack: Array<ScopeStackItem>
 
-  constructor (globals: Set<string>) {
+  constructor(globals: Set<string>) {
     this.stack = [{ names: globals, aliases: new Map() }]
   }
 
   /** Return true if `name` is in scope.  */
-  public has (name: string): boolean {
+  public has(name: string): boolean {
     for (const scope of this.stack) {
       if (scope.names.has(name)) {
         return true
@@ -294,22 +292,22 @@ class DummyScope {
     return false
   }
 
-  public push (scope: Set<string>): DummyScope {
+  public push(scope: Set<string>): DummyScope {
     this.stack.push({ names: scope, aliases: new Map() })
     return this
   }
 
-  public pop (): Set<string> | undefined {
+  public pop(): Set<string> | undefined {
     return this.stack.pop()?.names
   }
 
   // Add a name to the template scope.
-  public add (name: string): void {
+  public add(name: string): void {
     this.stack[0].names.add(name)
   }
 
   /** Return the variable that `variable` aliases, or `variable` if it doesn't alias anything. */
-  public alias (variable: Variable): Variable | undefined {
+  public alias(variable: Variable): Variable | undefined {
     const root = variable.segments[0]
     if (!isString(root)) return undefined
     const alias = this.getAlias(root)
@@ -318,15 +316,15 @@ class DummyScope {
   }
 
   // TODO: `from` could be a path with multiple segments, like `include.x`.
-  public setAlias (from: string, to: VariableSegments): void {
+  public setAlias(from: string, to: VariableSegments): void {
     this.stack[this.stack.length - 1].aliases.set(from, to)
   }
 
-  public deleteAlias (name: string): void {
+  public deleteAlias(name: string): void {
     this.stack[this.stack.length - 1].aliases.delete(name)
   }
 
-  private getAlias (name: string): VariableSegments | undefined {
+  private getAlias(name: string): VariableSegments | undefined {
     for (const scope of this.stack) {
       if (scope.aliases.has(name)) {
         return scope.aliases.get(name)
@@ -341,42 +339,42 @@ class DummyScope {
   }
 }
 
-function * extractVariables (value: Argument): Generator<Variable> {
+function* extractVariables(value: Argument): Generator<Variable> {
   if (isValueToken(value)) {
-    yield * extractValueTokenVariables(value)
+    yield* extractValueTokenVariables(value)
   } else if (value instanceof Value) {
-    yield * extractFilteredValueVariables(value)
+    yield* extractFilteredValueVariables(value)
   }
 }
 
-function * extractFilteredValueVariables (value: Value): Generator<Variable> {
+function* extractFilteredValueVariables(value: Value): Generator<Variable> {
   for (const token of value.initial.postfix) {
     if (isValueToken(token)) {
-      yield * extractValueTokenVariables(token)
+      yield* extractValueTokenVariables(token)
     }
   }
 
   for (const filter of value.filters) {
     for (const arg of filter.args) {
       if (isKeyValuePair(arg) && arg[1]) {
-        yield * extractValueTokenVariables(arg[1])
+        yield* extractValueTokenVariables(arg[1])
       } else if (isValueToken(arg)) {
-        yield * extractValueTokenVariables(arg)
+        yield* extractValueTokenVariables(arg)
       }
     }
   }
 }
 
-function * extractValueTokenVariables (token: ValueToken): Generator<Variable> {
+function* extractValueTokenVariables(token: ValueToken): Generator<Variable> {
   if (isRangeToken(token)) {
-    yield * extractValueTokenVariables(token.lhs)
-    yield * extractValueTokenVariables(token.rhs)
+    yield* extractValueTokenVariables(token.lhs)
+    yield* extractValueTokenVariables(token.rhs)
   } else if (isPropertyAccessToken(token)) {
     yield extractPropertyAccessVariable(token)
   }
 }
 
-function extractPropertyAccessVariable (token: PropertyAccessToken): Variable {
+function extractPropertyAccessVariable(token: PropertyAccessToken): Variable {
   const segments: VariableSegments = []
 
   // token is not guaranteed to have `file` set. We'll try to get it from a prop if not.
@@ -418,7 +416,7 @@ const RE_PROPERTY = /^[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*$/
  * @param segments - The property names and array indices that make up a path to a variable.
  * @param bracketedRoot - If false (the default), don't surround the root segment with square brackets.
  */
-function segmentsString (segments: VariableSegments, bracketedRoot = false): string {
+function segmentsString(segments: VariableSegments, bracketedRoot = false): string {
   const buf: string[] = []
 
   const root = segments[0]

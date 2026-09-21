@@ -9,7 +9,9 @@ A simple, expressive, extensible Liquid template engine for JavaScript — Shopi
 | `src/parser`, `src/render`, `src/tags`, `src/filters` | Template parse and render |
 | `src/context`, `src/template`, `src/tokens` | Scope, templates, token stream |
 | `src/util/async.ts` | `toPromise`, `toValueSync`, `toLiquidAsync` |
-| `test/` | Jest |
+| `src/cli.ts` | CLI source; bundled to `dist/liquid.cli.mjs` (the published `bin`) |
+| `bin/*.mts` | Repo tooling, run by Node type stripping (needs Node >= 22.18) |
+| `test/` | Vitest |
 | `docs/source/` | Doc markdown; sidebar in `docs/source/_data/sidebar.yml` |
 | `docs/themes/navy/` | Layout, CSS, JS |
 | `.local/` | Scratch, repro, PoC (gitignored) |
@@ -19,16 +21,18 @@ A simple, expressive, extensible Liquid template engine for JavaScript — Shopi
 ```
 npm run build          # after src/ changes, before npm test
 npm test
-npm run lint
-npm run check          # build + build:docs + test + lint + perf:diff (manual)
+npm run lint           # oxlint + oxfmt --check
+npm run format         # oxfmt
+npm run typecheck      # tsc --noEmit over src + test
+npm run check          # build + build:docs + test + lint + typecheck + perf:diff (manual)
 npm run build:docs
 cd docs && npm start   # http://localhost:4000
 npm run perf:diff
 ```
 
-PR CI (`pull_request`): build, lint, test, coverage, performance. Docs build runs on push to `master` only.
+PR CI (`pull_request`): build, lint, test, coverage, performance. Docs build runs on push to `main` only.
 
-PR titles: conventional format (`feat:`, `fix:`, `docs:`, …) — checked by CI. Releases on `master` use semantic-release from merged commits.
+PR titles: conventional format (`feat:`, `fix:`, `docs:`, …) — checked by CI. Releases on `main` use semantic-release from merged commits.
 
 Backward-compatible API changes expected unless doing an intentional major break.
 
@@ -85,7 +89,7 @@ Make minimal changes only. Avoid sweeping edits. Always check after you made cha
 
 ### Security fixes
 
-- Reproduce on current `master` first. Smallest fix that addresses the reported issue.
+- Reproduce on current `main` first. Smallest fix that addresses the reported issue.
 - If Shopify/Ruby Liquid behaves the same, document unsafe usage in filter/docs instead of changing behavior.
 
 ## Docs

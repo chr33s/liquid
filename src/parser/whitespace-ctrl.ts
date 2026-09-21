@@ -2,7 +2,7 @@ import { Token } from '../tokens'
 import { NormalizedFullOptions } from '../liquid-options'
 import { isTagToken, isHTMLToken, isDelimitedToken, TYPES, INLINE_BLANK, BLANK } from '../util'
 
-export function whiteSpaceCtrl (tokens: Token[], options: NormalizedFullOptions) {
+export function whiteSpaceCtrl(tokens: Token[], options: NormalizedFullOptions) {
   let inRaw = false
 
   for (let i = 0; i < tokens.length; i++) {
@@ -23,14 +23,14 @@ export function whiteSpaceCtrl (tokens: Token[], options: NormalizedFullOptions)
   }
 }
 
-function trimLeft (token: Token, greedy: boolean) {
+function trimLeft(token: Token, greedy: boolean) {
   if (!token || !isHTMLToken(token)) return
 
   const mask = greedy ? BLANK : INLINE_BLANK
   while (TYPES[token.input.charCodeAt(token.end - 1 - token.trimRight)] & mask) token.trimRight++
 }
 
-function trimRight (token: Token, greedy: boolean) {
+function trimRight(token: Token, greedy: boolean) {
   if (!token || !isHTMLToken(token)) return
 
   const mask = greedy ? BLANK : INLINE_BLANK

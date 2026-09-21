@@ -39,7 +39,7 @@ describe('util/underscore', function () {
   })
   describe('.forOwn()', function () {
     it('should iterate all properties', function () {
-      const spy = jest.fn()
+      const spy = vi.fn()
       const obj = {
         foo: 'bar'
       }
@@ -47,12 +47,12 @@ describe('util/underscore', function () {
       expect(spy).toHaveBeenCalledWith('bar', 'foo', obj)
     })
     it('should default to empty object', function () {
-      const spy = jest.fn()
+      const spy = vi.fn()
       _.forOwn(undefined, spy)
       expect(spy).not.toHaveBeenCalled()
     })
     it('should not iterate over properties on prototype', function () {
-      const spy = jest.fn()
+      const spy = vi.fn()
       const obj = Object.create({
         bar: 'foo'
       })
@@ -62,11 +62,14 @@ describe('util/underscore', function () {
       expect(spy).toHaveBeenCalledWith('bar', 'foo', obj)
     })
     it('should break when returned false', function () {
-      const spy = jest.fn(() => false)
-      _.forOwn({
-        'foo': 'foo',
-        'bar': 'foo'
-      }, spy)
+      const spy = vi.fn(() => false)
+      _.forOwn(
+        {
+          foo: 'foo',
+          bar: 'foo'
+        },
+        spy
+      )
       expect(spy).toHaveBeenCalledTimes(1)
     })
   })

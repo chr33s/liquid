@@ -6,7 +6,7 @@ import type { TagToken, TopLevelToken } from '../../../src/tokens'
 describe('liquid#registerTag()', function () {
   it('should support render to simple string', async () => {
     class SimpleStringTag extends Tag {
-      render () {
+      render() {
         return 'B'
       }
     }
@@ -17,7 +17,7 @@ describe('liquid#registerTag()', function () {
   })
   it('should support async tag render', async () => {
     class AsyncStringTag extends Tag {
-      async render () {
+      async render() {
         return 'B'
       }
     }
@@ -28,7 +28,7 @@ describe('liquid#registerTag()', function () {
   })
   it('should have access to ctx in render()', async () => {
     class DynamicStringTag extends Tag {
-      async render (ctx: Context) {
+      async render(ctx: Context) {
         return ctx.get(['c'])
       }
     }
@@ -42,11 +42,11 @@ describe('liquid#registerTag()', function () {
   it('should have access to tag arguments', async () => {
     class ArgumentReflectorTag extends Tag {
       variable: string
-      constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+      constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
         super(token, remainTokens, liquid)
         this.variable = token.args.split('=')[1]
       }
-      async render (ctx: Context) {
+      async render(ctx: Context) {
         return ctx.get([this.variable])
       }
     }

@@ -13,15 +13,15 @@ export abstract class Tag extends TemplateImpl<TagToken> implements Template {
   public liquid: Liquid
   protected tokenizer: Tokenizer
 
-  public constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+  public constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
     super(token)
     this.name = token.name
     this.liquid = liquid
     this.tokenizer = token.tokenizer
   }
-  public abstract render (ctx: Context, emitter: Emitter): TagRenderReturn;
+  public abstract render(ctx: Context, emitter: Emitter): TagRenderReturn
 }
 
 export interface TagClass {
-  new(token: TagToken, tokens: TopLevelToken[], liquid: Liquid, parser: Parser): Tag
+  new (token: TagToken, tokens: TopLevelToken[], liquid: Liquid, parser: Parser): Tag
 }

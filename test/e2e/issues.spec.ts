@@ -58,10 +58,9 @@ describe('Issues', function () {
     engine.registerFilter('render', function (this: any, template: string, name: string) {
       return this.liquid.parseAndRenderSync(decodeURIComponent(template), { name })
     })
-    const html = engine.parseAndRenderSync(
-      `{{ subtemplate | render: "foo" }}`,
-      { subtemplate: encodeURIComponent('hello {{ name }}') }
-    )
+    const html = engine.parseAndRenderSync(`{{ subtemplate | render: "foo" }}`, {
+      subtemplate: encodeURIComponent('hello {{ name }}')
+    })
     expect(html).toBe('hello foo')
   })
   it('Unexpected behavior when string literals contain }} #288', async () => {
@@ -71,10 +70,7 @@ describe('Issues', function () {
   })
   it('Support function calls #222', async () => {
     const engine = new Liquid()
-    const html = await engine.parseAndRender(
-      `{{ obj.property }}`,
-      { obj: { property: () => 'BAR' } }
-    )
+    const html = await engine.parseAndRender(`{{ obj.property }}`, { obj: { property: () => 'BAR' } })
     expect(html).toBe('BAR')
   })
   it('lenientIf not working as expected in umd #313', async () => {
@@ -88,16 +84,13 @@ describe('Issues', function () {
   it('comparison for empty/nil #321', async () => {
     const engine = new Liquid()
     const html = await engine.parseAndRender(
-      '{% if empty == nil %}true{%else%}false{%endif%}' +
-      '{% if nil == empty %}true{%else%}false{%endif%}'
+      '{% if empty == nil %}true{%else%}false{%endif%}' + '{% if nil == empty %}true{%else%}false{%endif%}'
     )
     expect(html).toBe('falsefalse')
   })
   it('newline_to_br filter should output <br /> instead of <br/> #320', async () => {
     const engine = new Liquid()
-    const html = await engine.parseAndRender(
-      `{{ 'a \n b \n c' | newline_to_br | split: '<br />' }}`
-    )
+    const html = await engine.parseAndRender(`{{ 'a \n b \n c' | newline_to_br | split: '<br />' }}`)
     expect(html).toBe('a \n b \n c')
   })
   it('New lines in logical operator #342', async () => {
@@ -118,9 +111,15 @@ describe('Issues', function () {
       relativeReference: false,
       fs: {
         readFileSync: (file: string) => file,
-        async readFile (file: string) { return 'foo' },
-        existsSync (file: string) { return true },
-        async exists (file: string) { return true },
+        async readFile(file: string) {
+          return 'foo'
+        },
+        existsSync(file: string) {
+          return true
+        },
+        async exists(file: string) {
+          return true
+        },
         resolve: (dir: string, file: string) => dir + '/' + file
       }
     })
@@ -129,8 +128,8 @@ describe('Issues', function () {
     expect(html).toBe('/tmp/foo.liquid')
   })
   it('Templates imported by {% render %} not cached for concurrent async render #416', async () => {
-    const readFile = jest.fn(() => Promise.resolve('HELLO'))
-    const exists = jest.fn(() => 'HELLO')
+    const readFile = vi.fn(() => Promise.resolve('HELLO'))
+    const exists = vi.fn(() => 'HELLO')
     const engine = new Liquid({
       cache: true,
       extname: '.liquid',
@@ -144,9 +143,11 @@ describe('Issues', function () {
       } as any
     })
 
-    await Promise.all(Array(5).fill(0).map(
-      x => engine.parseAndRender("{% render 'template' %}")
-    ))
+    await Promise.all(
+      Array(5)
+        .fill(0)
+        .map(x => engine.parseAndRender("{% render 'template' %}"))
+    )
     expect(exists).toHaveBeenCalledTimes(1)
     expect(readFile).toHaveBeenCalledTimes(1)
   })
@@ -156,7 +157,9 @@ describe('Issues', function () {
       preserveTimezones: true
     })
     const tpl = engine.parse('Welcome to {{ now | date: "%Y-%m-%d" }}')
-    return expect(engine.render(tpl, { now: new Date('2019-02-01T00:00:00.000Z') })).resolves.toBe('Welcome to 2019-02-01')
+    return expect(engine.render(tpl, { now: new Date('2019-02-01T00:00:00.000Z') })).resolves.toBe(
+      'Welcome to 2019-02-01'
+    )
   })
   it('Support Jekyll-like includes #433', async () => {
     const engine = new Liquid({
@@ -165,9 +168,15 @@ describe('Issues', function () {
       root: '/tmp',
       fs: {
         readFileSync: (file: string) => file,
-        async readFile (file: string) { return `CONTENT for ${file}` },
-        existsSync (file: string) { return true },
-        async exists (file: string) { return true },
+        async readFile(file: string) {
+          return `CONTENT for ${file}`
+        },
+        existsSync(file: string) {
+          return true
+        },
+        async exists(file: string) {
+          return true
+        },
         resolve: (dir: string, file: string) => dir + '/' + file
       }
     })
@@ -178,17 +187,13 @@ describe('Issues', function () {
   it('should prevent path traversal in dynamic include with restricted root, #851', () => {
     const projectRoot = resolvePath(__dirname, '../..')
     const poc = `
-      const { Liquid } = require('./dist/liquid.node.js');
+      const { Liquid } = require('./dist/liquid.node.cjs');
       const e = new Liquid({ root: ['/tmp'], partials: ['/tmp'], dynamicPartials: true });
       e.parseAndRender('{% include page %}', { page: '../../../etc/passwd' })
         .then(() => { console.log('OK'); })
         .catch(err => { console.error('ERR:' + err.message); process.exit(1); });
     `
-    const result = spawnSync(
-      process.execPath,
-      ['-e', poc],
-      { cwd: projectRoot, encoding: 'utf8' }
-    )
+    const result = spawnSync(process.execPath, ['-e', poc], { cwd: projectRoot, encoding: 'utf8' })
 
     expect(result.status).not.toBe(0)
     expect(result.stderr).toContain('Failed to lookup')
@@ -212,7 +217,10 @@ describe('Issues', function () {
   })
   it('leaking JS prototype getter functions in evaluation #454', async () => {
     const engine = new Liquid({ ownPropertyOnly: true })
-    const html = engine.parseAndRenderSync('{{foo | size}}-{{bar.coo}}', { foo: 'foo', bar: Object.create({ coo: 'COO' }) })
+    const html = engine.parseAndRenderSync('{{foo | size}}-{{bar.coo}}', {
+      foo: 'foo',
+      bar: Object.create({ coo: 'COO' })
+    })
     expect(html).toBe('3-')
   })
   it('Liquidjs divided_by not compatible with Ruby/Shopify Liquid #465', () => {
@@ -250,12 +258,16 @@ describe('Issues', function () {
   })
   it('Access array items from the right with negative indexes #486', async () => {
     const engine = new Liquid()
-    const html = await engine.parseAndRender(`{% assign a = "x,y,z" | split: ',' -%}{{ a[-1] }} {{ a[-3] }} {{ a[-8] }}`)
+    const html = await engine.parseAndRender(
+      `{% assign a = "x,y,z" | split: ',' -%}{{ a[-1] }} {{ a[-3] }} {{ a[-8] }}`
+    )
     expect(html).toBe('z x ')
   })
   it('contains operator does not support Drop #492', async () => {
     class TemplateDrop extends Drop {
-      valueOf () { return 'product' }
+      valueOf() {
+        return 'product'
+      }
     }
     const engine = new Liquid()
     const ctx = { template: new TemplateDrop() }
@@ -274,7 +286,9 @@ describe('Issues', function () {
   })
   it('should throw parse error for invalid assign expression #519', () => {
     const engine = new Liquid()
-    expect(() => engine.parse('{% assign headshot = https://testurl.com/not_enclosed_in_quotes.jpg %}')).toThrow(/expected "|" before filter, line:1, col:27/)
+    expect(() => engine.parse('{% assign headshot = https://testurl.com/not_enclosed_in_quotes.jpg %}')).toThrow(
+      /expected "|" before filter, line:1, col:27/
+    )
   })
   it('export Liquid Expression #527', () => {
     const tokenizer = new Tokenizer('a > b')
@@ -304,21 +318,25 @@ describe('Issues', function () {
     const context = {
       a: 1,
       b: Promise.resolve(1),
-      async c () { return 1 },
+      async c() {
+        return 1
+      },
       d: { d: 1 },
       e: { e: Promise.resolve(1) },
       f: {
-        async f () { return 1 }
+        async f() {
+          return 1
+        }
       },
       g: Promise.resolve({ g: 1 }),
-      async h () {
+      async h() {
         return { h: 1 }
       },
       i: Promise.resolve({
         i: Promise.resolve(1)
       }),
       j: Promise.resolve({
-        async j () {
+        async j() {
           return 1
         }
       })
@@ -408,10 +426,10 @@ describe('Issues', function () {
 
     const html = engine.parseAndRenderSync(
       '{{ "2023-04-05T12:00:00Z" | date: "%Y-%m-%dT%H:%M:%S%z", "Etc/GMT" }}' +
-      '{{ "2023-01-05T12:00:00Z" | date: "%Y-%m-%dT%H:%M:%S%z", 0 }}' +
-      '{{ "2023-01-05T12:00:00Z" | date: "%Y-%m-%dT%H:%M:%S%z", "Etc/GMT" }}' +
-      '{{ "2023-01-05T12:00:00Z" | date: "%Y-%m-%dT%H:%M:%S%z" }}' +
-      '{{ "2023-01-05T12:00:00+0000" | date: "%Y-%m-%dT%H:%M:%S%z", 0 }}'
+        '{{ "2023-01-05T12:00:00Z" | date: "%Y-%m-%dT%H:%M:%S%z", 0 }}' +
+        '{{ "2023-01-05T12:00:00Z" | date: "%Y-%m-%dT%H:%M:%S%z", "Etc/GMT" }}' +
+        '{{ "2023-01-05T12:00:00Z" | date: "%Y-%m-%dT%H:%M:%S%z" }}' +
+        '{{ "2023-01-05T12:00:00+0000" | date: "%Y-%m-%dT%H:%M:%S%z", 0 }}'
     )
     const expected =
       '2023-04-05T12:00:00+0000' +
@@ -466,17 +484,21 @@ describe('Issues', function () {
   })
   it('Should not render anything after an else branch #670', () => {
     const engine = new Liquid()
-    expect(() => engine.parseAndRenderSync('{% assign value = "this" %}{% if false %}{% else %}{% else %}{% endif %}')).toThrow('duplicated else')
+    expect(() =>
+      engine.parseAndRenderSync('{% assign value = "this" %}{% if false %}{% else %}{% else %}{% endif %}')
+    ).toThrow('duplicated else')
   })
   it('Should not render an elseif after an else branch #672', () => {
     const engine = new Liquid()
-    expect(() => engine.parseAndRenderSync('{% if false %}{% else %}{% elsif true %}{% endif %}')).toThrow('unexpected elsif after else')
+    expect(() => engine.parseAndRenderSync('{% if false %}{% else %}{% elsif true %}{% endif %}')).toThrow(
+      'unexpected elsif after else'
+    )
   })
   it('10.10.1 Operator: contains regression #675', () => {
     const engine = new Liquid()
     class StrictStringForLiquid {
-      constructor (private value: string) {}
-      indexOf (other: unknown) {
+      constructor(private value: string) {}
+      indexOf(other: unknown) {
         return this.value.indexOf(String(other))
       }
     }
@@ -490,20 +512,22 @@ describe('Issues', function () {
     const liquid = new Liquid()
     expect(() => liquid.parse({} as any)).not.toThrow()
   })
-  it('Unexpected "RenderError: memory alloc limit exceeded" #737', () => {
+  it('Unexpected "RenderError: memory alloc limit exceeded" #737', async () => {
     const liquid = new Liquid()
     const context = { x: ['a', 'b'] }
     const template = '{{ x | join: 5 }}'
-    expect(liquid.parseAndRender(template, context)).resolves.toEqual('a5b')
+    await expect(liquid.parseAndRender(template, context)).resolves.toEqual('a5b')
   })
-  it('{{ 123 | uniq }} throws #737', () => {
+  it('{{ 123 | uniq }} throws #737', async () => {
     const liquid = new Liquid()
-    expect(liquid.parseAndRender('{{ 113 | uniq }}')).resolves.toEqual('113')
-    expect(liquid.parseAndRender("{{ '113' | uniq }}")).resolves.toEqual('113')
+    await expect(liquid.parseAndRender('{{ 113 | uniq }}')).resolves.toEqual('113')
+    await expect(liquid.parseAndRender("{{ '113' | uniq }}")).resolves.toEqual('113')
   })
   it('Exposing originalError in LiquidError #742', () => {
     const engine = new Liquid()
-    engine.registerFilter('error', () => { throw new Error('intended') })
+    engine.registerFilter('error', () => {
+      throw new Error('intended')
+    })
     try {
       engine.parseAndRenderSync(`{{ "foo" | error }}`)
     } catch (err: unknown) {
@@ -522,10 +546,10 @@ describe('Issues', function () {
   it('group_by_exp fails with object as input #785', () => {
     const site = {
       tags: {
-        CPP: [ 'page0' ],
-        PHP: [ 'page0', 'page2' ],
-        JavaScript: [ 'page1', 'page2', 'page3' ],
-        CSharp: [ 'page2', 'page4' ]
+        CPP: ['page0'],
+        PHP: ['page0', 'page2'],
+        JavaScript: ['page1', 'page2', 'page3'],
+        CSharp: ['page2', 'page4']
       }
     }
     const tpl = `

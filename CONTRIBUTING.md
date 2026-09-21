@@ -1,5 +1,10 @@
 # Contributing
 
+Development requires Node.js >= 22.18: the repo scripts under `bin/` are
+TypeScript run directly by Node type stripping, which is only enabled by
+default from that version. The published package itself still supports
+Node.js >= 22.12.
+
 1. Build everything and run tests to learn how to do both:
   - `npm run build`
   - `npm run test`
@@ -13,17 +18,11 @@
   - Run tests as per the above to validate your changes
 
 3. Create a pull request
-  - Ensure the build runs because the Husky pre-commit hook checks it
-    - `npm run check` checks runs the build, tests, lint and perf tests
-    - `commitlint` checks the commit message format
-
-    If there is a problem you will see it in the pre-commit hook output.
-    In VS Code, this output will be shown in a new file in a new tab if the
-    pre-commit hook fails.
-    If you want to check the commit message without using the VS Code Source
-    Control UI, you can run `echo "feat: my commit message" > npx commitlint`
-    directly.
-
+  - Run `npm run check` before pushing; it runs the build, docs build, tests,
+    lint, typecheck and perf tests. CI runs the same checks on your PR.
+  - Use the [conventional commits](https://www.conventionalcommits.org/) format
+    for your pull request title, e.g. `feat: add my change`. The release is cut
+    from merged PR titles, and CI fails the PR if the title does not parse.
   - `git switch -c your_branch_name` (do this in your fork not the main repo)
   - `git add .`
   - `git commit -m "feat: Adding my change"`

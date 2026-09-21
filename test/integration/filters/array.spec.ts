@@ -5,32 +5,27 @@ describe('filters/array', function () {
   const engine = new Liquid()
   describe('index', function () {
     it('should support index', function () {
-      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' +
-        '{{ beatles[1] }}'
+      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' + '{{ beatles[1] }}'
       return test(src, 'Paul')
     })
   })
   describe('join', function () {
     it('should support join', function () {
-      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' +
-        '{{ beatles | join: " and " }}'
+      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' + '{{ beatles | join: " and " }}'
       return test(src, 'John and Paul and George and Ringo')
     })
     it('should default separator to space', function () {
-      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' +
-        '{{ beatles | join }}'
+      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' + '{{ beatles | join }}'
       return test(src, 'John Paul George Ringo')
     })
     it('should throw when comma missing', async () => {
-      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' +
-        '{{ beatles | join " and " }}'
+      const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' + '{{ beatles | join " and " }}'
       return expect(render(src)).rejects.toThrow('expected ":" after filter name, line:1, col:83')
     })
   })
   describe('split', () => {
     it('should support split', function () {
-      const src = '{% assign my_array = "zebra, octopus, giraffe, tiger" | split: ", " %}' +
-        '{{ my_array|last }}'
+      const src = '{% assign my_array = "zebra, octopus, giraffe, tiger" | split: ", " %}' + '{{ my_array|last }}'
       return test(src, 'tiger')
     })
     it('should remove trailing empty strings', async () => {
@@ -202,10 +197,8 @@ describe('filters/array', function () {
   })
 
   describe('reverse', function () {
-    it('should support reverse', () => test(
-      '{{ "Ground control to Major Tom." | split: "" | reverse | join: "" }}',
-      '.moT rojaM ot lortnoc dnuorG'
-    ))
+    it('should support reverse', () =>
+      test('{{ "Ground control to Major Tom." | split: "" | reverse | join: "" }}', '.moT rojaM ot lortnoc dnuorG'))
     it('should be pure', async () => {
       const scope = { arr: ['a', 'b', 'c'] }
       await render('{{ arr | reverse | join: "" }}', scope)
@@ -219,62 +212,34 @@ describe('filters/array', function () {
       const result = await engine.parseAndRender(template)
       expect(result).toMatch(/hello|world/)
     })
-    it('should return full array sample even if excess count', () => test(
-      '{{ "hello,world" | split: "," | sample: 10 | size }}',
-      '2'
-    ))
-    it('should return partial array sample', () => test(
-      '{{ "hello,world" | split: "," | sample: 1 | size }}',
-      '5'
-    ))
-    it('should sample nil value', () => test(
-      '{{ nil | sample: 2 }}',
-      ''
-    ))
-    it('should sample string characters', () => test(
-      '{{ "aaa" | sample: 2 }}',
-      'aa'
-    ))
+    it('should return full array sample even if excess count', () =>
+      test('{{ "hello,world" | split: "," | sample: 10 | size }}', '2'))
+    it('should return partial array sample', () => test('{{ "hello,world" | split: "," | sample: 1 | size }}', '5'))
+    it('should sample nil value', () => test('{{ nil | sample: 2 }}', ''))
+    it('should sample string characters', () => test('{{ "aaa" | sample: 2 }}', 'aa'))
   })
   describe('size', function () {
-    it('should return string length', () => test(
-      '{{ "Ground control to Major Tom." | size }}',
-      '28'
-    ))
-    it('should return array size', () => test(
-      '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}{{ my_array | size }}',
-      '4'
-    ))
-    it('should be respected with <string>.size notation', () => test(
-      '{% assign my_string = "Ground control to Major Tom." %}{{ my_string.size }}',
-      '28'
-    ))
-    it('should be respected with <array>.size notation', () => test(
-      '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}{{ my_array.size }}',
-      '4'
-    ))
+    it('should return string length', () => test('{{ "Ground control to Major Tom." | size }}', '28'))
+    it('should return array size', () =>
+      test('{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}{{ my_array | size }}', '4'))
+    it('should be respected with <string>.size notation', () =>
+      test('{% assign my_string = "Ground control to Major Tom." %}{{ my_string.size }}', '28'))
+    it('should be respected with <array>.size notation', () =>
+      test('{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}{{ my_array.size }}', '4'))
     it('should return 0 for false', () => test('{{ false | size }}', '0'))
     it('should return 0 for nil', () => test('{{ nil | size }}', '0'))
     it('should return 0 for undefined', () => test('{{ foo | size }}', '0'))
     it('should work for string', () => test('{{ "foo" | size }}', {}, '3'))
   })
   describe('first', function () {
-    it('should support first', () => test(
-      '{{arr | first}}',
-      { arr: [ 'zebra', 'tiger' ] },
-      'zebra'
-    ))
+    it('should support first', () => test('{{arr | first}}', { arr: ['zebra', 'tiger'] }, 'zebra'))
     it('should return empty for nil', () => test('{{nil | first}}', ''))
     it('should return empty for undefined', () => test('{{foo | first}}', ''))
     it('should return empty for false', () => test('{{false | first}}', ''))
     it('should work for string', () => test('{{ "foo" | first }}', 'f'))
   })
   describe('last', function () {
-    it('should support last', () => test(
-      '{{arr | last}}',
-      { arr: [ 'zebra', 'tiger' ] },
-      'tiger'
-    ))
+    it('should support last', () => test('{{arr | last}}', { arr: ['zebra', 'tiger'] }, 'tiger'))
     it('should return empty for nil', () => test('{{nil | last}}', ''))
     it('should return empty for undefined', () => test('{{foo | last}}', ''))
     it('should return empty for false', () => test('{{false | last}}', ''))
@@ -288,13 +253,19 @@ describe('filters/array', function () {
     it('should slice substr by -2,2', () => test('{{ "abc" | slice: -2, 2 }}', 'bc'))
     it('should support array', () => test('{{ "1,2,3,4" | split: "," | slice: 1,2 | join }}', '2 3'))
     it('should return empty array for nil value', () => test('{{ nil | slice: 0 }}', ''))
+    it('should return empty when begin is out of negative range', () => test('{{ "hello" | slice: -10, 2 }}', ''))
+    it('should return empty when length is negative', () => test('{{ "Liquid" | slice: 1, -2 }}', ''))
+    it('should return empty array when begin is out of negative range', () =>
+      test('{{ "1,2,3,4,5" | split: "," | slice: -10, 2 | join: "," }}', ''))
   })
   describe('sort', function () {
     it('should support sort', function () {
-      return test('{% assign my_array = "zebra, octopus, giraffe, Sally Snake"' +
-              ' | split: ", " %}' +
-              '{{ my_array | sort | join: ", " }}',
-      'Sally Snake, giraffe, octopus, zebra')
+      return test(
+        '{% assign my_array = "zebra, octopus, giraffe, Sally Snake"' +
+          ' | split: ", " %}' +
+          '{{ my_array | sort | join: ", " }}',
+        'Sally Snake, giraffe, octopus, zebra'
+      )
     })
     it('should support sort by key', function () {
       const tpl = '{{ arr | sort: "name" | map: "name" | join }}'
@@ -321,19 +292,24 @@ describe('filters/array', function () {
       a.name = 'a'
       const b = Object.create({ secret: 'aaa' })
       b.name = 'b'
-      const html = await engine.parseAndRender(
-        '{{ arr | sort: "secret" | map: "name" | join: "," }}',
-        { arr: [a, b] }
-      )
+      const html = await engine.parseAndRender('{{ arr | sort: "secret" | map: "name" | join: "," }}', { arr: [a, b] })
       expect(html).toBe('a,b')
     })
     it('should handle nil property values', async () => {
       const arr = [{ age: 'cc' }, { name: 'x' }, { age: 'aa' }, { age: 'bb' }]
-      await test('{% assign sorted = arr | sort: "age" %}{% for item in sorted %}[{{ item.age }}]{% endfor %}', { arr }, '[aa][bb][cc][]')
+      await test(
+        '{% assign sorted = arr | sort: "age" %}{% for item in sorted %}[{{ item.age }}]{% endfor %}',
+        { arr },
+        '[aa][bb][cc][]'
+      )
     })
     it('should handle mixed-type items', async () => {
       const arr = ['40', null, 30, undefined, true, false, 0, 'str', 50]
-      await test('{% assign sorted = arr | sort %}{% for item in sorted %}[{{ item }}]{% endfor %}', { arr }, '[false][0][true][30][40][str][50][][]')
+      await test(
+        '{% assign sorted = arr | sort %}{% for item in sorted %}[{{ item }}]{% endfor %}',
+        { arr },
+        '[false][0][true][30][40][str][50][][]'
+      )
     })
   })
   describe('sort_natural', function () {
@@ -343,66 +319,80 @@ describe('filters/array', function () {
         'giraffe, octopus, Sally Snake, zebra'
       )
     })
-    it('should sort with specified property', () => test(
-      '{{ students | sort_natural: "name" | map: "name" | join }}',
-      { students: [{ name: 'bob' }, { name: 'alice' }, { name: 'carol' }] },
-      'alice bob carol'
-    ))
-    it('should be stable', () => test(
-      '{{ students | sort_natural: "age" | map: "name" | join }}',
-      { students: [{ name: 'bob', age: 1 }, { name: 'alice', age: 1 }, { name: 'carol', age: 1 }] },
-      'bob alice carol'
-    ))
-    it('should be stable when it comes to undefined props', () => test(
-      '{{ students | sort_natural: "age" | map: "name" | join }}',
-      { students: [{ name: 'bob' }, { name: 'alice', age: 2 }, { name: 'amber' }, { name: 'watson' }, { name: 'michael' }, { name: 'charlie' }] },
-      'alice bob amber watson michael charlie'
-    ))
-    it('should tolerate undefined props', () => test(
-      '{{ students | sort_natural: "age" | map: "name" | join }}',
-      { students: [{ name: 'bob' }, { name: 'alice', age: 2 }, { name: 'carol' }] },
-      'alice bob carol'
-    ))
-    it('should tolerate non array', async () => {
-      await test(
+    it('should sort with specified property', () =>
+      test(
+        '{{ students | sort_natural: "name" | map: "name" | join }}',
+        { students: [{ name: 'bob' }, { name: 'alice' }, { name: 'carol' }] },
+        'alice bob carol'
+      ))
+    it('should be stable', () =>
+      test(
         '{{ students | sort_natural: "age" | map: "name" | join }}',
-        { students: {} },
-        ''
-      )
-      await test(
-        '{{ students | sort_natural: "age" | map: "name" | size }}',
-        { students: {} },
-        '1'
-      )
+        {
+          students: [
+            { name: 'bob', age: 1 },
+            { name: 'alice', age: 1 },
+            { name: 'carol', age: 1 }
+          ]
+        },
+        'bob alice carol'
+      ))
+    it('should be stable when it comes to undefined props', () =>
+      test(
+        '{{ students | sort_natural: "age" | map: "name" | join }}',
+        {
+          students: [
+            { name: 'bob' },
+            { name: 'alice', age: 2 },
+            { name: 'amber' },
+            { name: 'watson' },
+            { name: 'michael' },
+            { name: 'charlie' }
+          ]
+        },
+        'alice bob amber watson michael charlie'
+      ))
+    it('should tolerate undefined props', () =>
+      test(
+        '{{ students | sort_natural: "age" | map: "name" | join }}',
+        { students: [{ name: 'bob' }, { name: 'alice', age: 2 }, { name: 'carol' }] },
+        'alice bob carol'
+      ))
+    it('should tolerate non array', async () => {
+      await test('{{ students | sort_natural: "age" | map: "name" | join }}', { students: {} }, '')
+      await test('{{ students | sort_natural: "age" | map: "name" | size }}', { students: {} }, '1')
     })
-    it('should return empty array for nil value', () => test(
-      '{{ students | sort_natural: "age" | map: "name" | size }}',
-      { students: undefined },
-      '0'
-    ))
+    it('should return empty array for nil value', () =>
+      test('{{ students | sort_natural: "age" | map: "name" | size }}', { students: undefined }, '0'))
     it('should respect ownPropertyOnly', async () => {
       const engine = new Liquid({ ownPropertyOnly: true })
       const target = Object.create({ secret: 'bbb' })
-      const html = await engine.parseAndRender(
-        '{{ arr | sort_natural: "secret" | map: "secret" | join: "," }}',
-        { arr: [{ secret: 'ccc' }, target, { secret: 'aaa' }] }
-      )
+      const html = await engine.parseAndRender('{{ arr | sort_natural: "secret" | map: "secret" | join: "," }}', {
+        arr: [{ secret: 'ccc' }, target, { secret: 'aaa' }]
+      })
       expect(html).toBe('aaa,ccc,')
     })
     it('should handle nil property values', async () => {
       const arr = [{ age: '40' }, { name: 'x' }, { age: 30 }, { age: 50 }]
-      await test('{% assign sorted = arr | sort_natural: "age" %}{% for item in sorted %}[{{ item.age }}]{% endfor %}', { arr }, '[30][40][50][]')
+      await test(
+        '{% assign sorted = arr | sort_natural: "age" %}{% for item in sorted %}[{{ item.age }}]{% endfor %}',
+        { arr },
+        '[30][40][50][]'
+      )
     })
     it('should handle mixed-type items', async () => {
       const arr = ['40', null, 30, undefined, true, false, 0, 'str', 50]
-      await test('{% assign sorted = arr | sort_natural %}{% for item in sorted %}[{{ item }}]{% endfor %}', { arr }, '[0][30][40][50][false][str][true][][]')
+      await test(
+        '{% assign sorted = arr | sort_natural %}{% for item in sorted %}[{{ item }}]{% endfor %}',
+        { arr },
+        '[0][30][40][50][false][str][true][][]'
+      )
     })
   })
   describe('uniq', function () {
     it('should uniq string list', function () {
       return test(
-        '{% assign my_array = "ants, bugs, bees, bugs, ants" | split: ", " %}' +
-        '{{ my_array | uniq | join: ", " }}',
+        '{% assign my_array = "ants, bugs, bees, bugs, ants" | split: ", " %}' + '{{ my_array | uniq | join: ", " }}',
         'ants, bugs, bees'
       )
     })
@@ -421,64 +411,84 @@ describe('filters/array', function () {
       { title: 'Boring sneakers', available: true }
     ]
     it('should support filter by property value', function () {
-      return test(`{% assign kitchen_products = products | where: "type", "kitchen" %}
+      return test(
+        `{% assign kitchen_products = products | where: "type", "kitchen" %}
         Kitchen products:
         {% for product in kitchen_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Kitchen products:
         - Spatula
         - Garlic press
-        `)
+        `
+      )
     })
     it('should support filter truthy property', function () {
-      return test(`{% assign available_products = products | where: "available" %}
+      return test(
+        `{% assign available_products = products | where: "available" %}
         Available products:
         {% for product in available_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Available products:
         - Coffee mug
         - Boring sneakers
-        `)
+        `
+      )
     })
     it('should support filter by null property', function () {
-      return test(`{% assign untyped_products = products | where: "type", null %}
+      return test(
+        `{% assign untyped_products = products | where: "type", null %}
         Untyped products:
         {% for product in untyped_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Untyped products:
         - Coffee mug
         - Limited edition sneakers
         - Boring sneakers
-        `)
+        `
+      )
     })
     it('should support filter with undefined target', function () {
-      return test(`{% assign typed_products = products | where: "type", notdefined %}
+      return test(
+        `{% assign typed_products = products | where: "type", notdefined %}
         Typed products:
         {% for product in typed_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Typed products:
         - Vacuum
         - Spatula
         - Television
         - Garlic press
-        `)
+        `
+      )
     })
     it('should support no target', function () {
-      return test(`{% assign typed_products = products | where: "type" %}
+      return test(
+        `{% assign typed_products = products | where: "type" %}
         Typed products:
         {% for product in typed_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Typed products:
         - Vacuum
         - Spatula
         - Television
         - Garlic press
-        `)
+        `
+      )
     })
     it('should support nested property', async function () {
       const authors = [
@@ -491,9 +501,11 @@ describe('filters/array', function () {
         {%- for author in recentAuthors %}
           - {{author.name}}
         {%- endfor %}`,
-        { authors }, `
+        { authors },
+        `
         Recent Authors:
-          - Alice`)
+          - Alice`
+      )
     })
     it('should apply to string', async () => {
       await test('{{"abc" | where: 1, "b" }}', 'abc')
@@ -510,13 +522,17 @@ describe('filters/array', function () {
         { meta: { details: { class: 'B' } }, order: 2 },
         { meta: { details: { class: 'B' } }, order: 3 }
       ]
-      return test(`{% assign selected = products | where: 'meta.details["class"]', exp %}
+      return test(
+        `{% assign selected = products | where: 'meta.details["class"]', exp %}
         {% for item in selected -%}
         - {{ item.order }}
-        {% endfor %}`, { products, exp: 'B' }, `
+        {% endfor %}`,
+        { products, exp: 'B' },
+        `
         - 2
         - 3
-        `)
+        `
+      )
     })
     it('should support escape in property', function () {
       const array = [
@@ -524,22 +540,30 @@ describe('filters/array', function () {
         { foo: { "'": 'foo' }, order: 2 },
         { foo: { "'": 'bar' }, order: 3 }
       ]
-      return test(`{% assign selected = array | where: 'foo["\\'"]', "foo" %}
+      return test(
+        `{% assign selected = array | where: 'foo["\\'"]', "foo" %}
         {% for item in selected -%}
         - {{ item.order }}
-        {% endfor %}`, { array }, `
+        {% endfor %}`,
+        { array },
+        `
         - 1
         - 2
-        `)
+        `
+      )
     })
     it('should render none if args not specified', function () {
-      return test(`{% assign kitchen_products = products | where %}
+      return test(
+        `{% assign kitchen_products = products | where %}
         Kitchen products:
         {% for product in kitchen_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Kitchen products:
-        `)
+        `
+      )
     })
     it('should support nil as target', () => {
       const scope = { list: [{ foo: 'FOO' }, { bar: 'BAR', type: 2 }] }
@@ -563,12 +587,20 @@ describe('filters/array', function () {
         await test('{{pages | where: "tags", empty | json}}', scope, '[{"tags":[]}]', { jekyllWhere: true })
       })
       it('should filter by undefined when target is omitted', async () => {
-        await test('{{products | where: "type" | map: "title" | join: ","}}', { products },
-          'Coffee mug,Limited edition sneakers,Boring sneakers', { jekyllWhere: true })
+        await test(
+          '{{products | where: "type" | map: "title" | join: ","}}',
+          { products },
+          'Coffee mug,Limited edition sneakers,Boring sneakers',
+          { jekyllWhere: true }
+        )
       })
       it('should filter plainly when target is undefined', async () => {
-        await test('{{products | where: "type", notdefined | map: "title" | join: ","}}', { products },
-          'Coffee mug,Limited edition sneakers,Boring sneakers', { jekyllWhere: true })
+        await test(
+          '{{products | where: "type", notdefined | map: "title" | join: ","}}',
+          { products },
+          'Coffee mug,Limited edition sneakers,Boring sneakers',
+          { jekyllWhere: true }
+        )
       })
     })
   })
@@ -583,15 +615,19 @@ describe('filters/array', function () {
       { title: 'Boring sneakers', available: true }
     ]
     it('should support filter by exp', function () {
-      return test(`{% assign kitchen_products = products | where_exp: "item", "item.type == 'kitchen'" %}
+      return test(
+        `{% assign kitchen_products = products | where_exp: "item", "item.type == 'kitchen'" %}
         Kitchen products:
         {% for product in kitchen_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Kitchen products:
         - Spatula
         - Garlic press
-        `)
+        `
+      )
     })
     it('should be aware context', function () {
       const tpl = `{% assign kitchen_products = products | where_exp: "item", "item.type == target" %}
@@ -619,44 +655,56 @@ describe('filters/array', function () {
       { title: 'Boring sneakers', available: true }
     ]
     it('should support reject by property value', function () {
-      return test(`{% assign kitchen_products = products | reject: "type", "kitchen" %}
+      return test(
+        `{% assign kitchen_products = products | reject: "type", "kitchen" %}
         Kitchen products:
         {% for product in kitchen_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Kitchen products:
         - Vacuum
         - Television
         - Coffee mug
         - Limited edition sneakers
         - Boring sneakers
-        `)
+        `
+      )
     })
     it('should support reject truthy property', function () {
-      return test(`{% assign unavailable_products = products | reject: "available" %}
+      return test(
+        `{% assign unavailable_products = products | reject: "available" %}
         Unavailable products:
         {% for product in unavailable_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Unavailable products:
         - Vacuum
         - Spatula
         - Television
         - Garlic press
         - Limited edition sneakers
-        `)
+        `
+      )
     })
     it('should support reject by string property', function () {
-      return test(`{% assign untyped_products = products | reject: "type" %}
+      return test(
+        `{% assign untyped_products = products | reject: "type" %}
         Untyped products:
         {% for product in untyped_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Untyped products:
         - Coffee mug
         - Limited edition sneakers
         - Boring sneakers
-        `)
+        `
+      )
     })
     describe('jekyll style', () => {
       it('should filter arrays by exclusion', async () => {
@@ -664,8 +712,12 @@ describe('filters/array', function () {
         await test('{{objs | reject: "foo", "FOO" | json}}', scope, '[{"foo":["bar","baz"]}]', { jekyllWhere: true })
       })
       it('should filter by undefined when target is omitted', async () => {
-        await test('{{products | reject: "type" | map: "title" | join: ","}}', { products },
-          'Vacuum,Spatula,Television,Garlic press', { jekyllWhere: true })
+        await test(
+          '{{products | reject: "type" | map: "title" | join: ","}}',
+          { products },
+          'Vacuum,Spatula,Television,Garlic press',
+          { jekyllWhere: true }
+        )
       })
     })
   })
@@ -680,15 +732,19 @@ describe('filters/array', function () {
       { title: 'Boring sneakers', available: true }
     ]
     it('should support reject by exp', function () {
-      return test(`{% assign kitchen_products = products | reject_exp: "item", "item.type != 'kitchen'" %}
+      return test(
+        `{% assign kitchen_products = products | reject_exp: "item", "item.type != 'kitchen'" %}
         Kitchen products:
         {% for product in kitchen_products -%}
         - {{ product.title }}
-        {% endfor %}`, { products }, `
+        {% endfor %}`,
+        { products },
+        `
         Kitchen products:
         - Spatula
         - Garlic press
-        `)
+        `
+      )
     })
   })
   describe('group_by', function () {
@@ -698,22 +754,20 @@ describe('filters/array', function () {
       { graduation_year: 2004, name: 'Jack' }
     ]
     it('should support group by property', function () {
-      const expected = [{
-        name: 2003,
-        items: [
-          { graduation_year: 2003, name: 'Jay' },
-          { graduation_year: 2003, name: 'John' }
-        ]
-      }, {
-        name: 2004,
-        items: [
-          { graduation_year: 2004, name: 'Jack' }
-        ]
-      }]
-      return test(
-        `{{ members | group_by: "graduation_year" | json}}`,
-        { members },
-        JSON.stringify(expected))
+      const expected = [
+        {
+          name: 2003,
+          items: [
+            { graduation_year: 2003, name: 'Jay' },
+            { graduation_year: 2003, name: 'John' }
+          ]
+        },
+        {
+          name: 2004,
+          items: [{ graduation_year: 2004, name: 'Jack' }]
+        }
+      ]
+      return test(`{{ members | group_by: "graduation_year" | json}}`, { members }, JSON.stringify(expected))
     })
   })
   describe('group_by_exp', function () {
@@ -723,51 +777,54 @@ describe('filters/array', function () {
       { graduation_year: 2009, name: 'Jack' }
     ]
     const postsByTags = {
-      CPP: [ 'page0' ],
-      PHP: [ 'page0', 'page2' ],
-      JavaScript: [ 'page1', 'page2', 'page3' ],
-      CSharp: [ 'page2', 'page4' ]
+      CPP: ['page0'],
+      PHP: ['page0', 'page2'],
+      JavaScript: ['page1', 'page2', 'page3'],
+      CSharp: ['page2', 'page4']
     }
     it('should support group by expression', function () {
-      const expected = [{
-        name: '201',
-        items: [
-          { graduation_year: 2013, name: 'Jay' },
-          { graduation_year: 2014, name: 'John' }
-        ]
-      }, {
-        name: '200',
-        items: [
-          { graduation_year: 2009, name: 'Jack' }
-        ]
-      }]
+      const expected = [
+        {
+          name: '201',
+          items: [
+            { graduation_year: 2013, name: 'Jay' },
+            { graduation_year: 2014, name: 'John' }
+          ]
+        },
+        {
+          name: '200',
+          items: [{ graduation_year: 2009, name: 'Jack' }]
+        }
+      ]
       return test(
         `{{ members | group_by_exp: "item", "item.graduation_year | truncate: 3, ''" | json}}`,
         { members },
-        JSON.stringify(expected))
+        JSON.stringify(expected)
+      )
     })
     it('should group key/values in plain object', function () {
-      const expected = [{
-        name: 3,
-        items: [
-          ['JavaScript', ['page1', 'page2', 'page3']]
-        ]
-      }, {
-        name: 2,
-        items: [
-          ['PHP', ['page0', 'page2']],
-          ['CSharp', ['page2', 'page4']]
-        ]
-      }, {
-        name: 1,
-        items: [
-          ['CPP', ['page0']]
-        ]
-      }]
+      const expected = [
+        {
+          name: 3,
+          items: [['JavaScript', ['page1', 'page2', 'page3']]]
+        },
+        {
+          name: 2,
+          items: [
+            ['PHP', ['page0', 'page2']],
+            ['CSharp', ['page2', 'page4']]
+          ]
+        },
+        {
+          name: 1,
+          items: [['CPP', ['page0']]]
+        }
+      ]
       return test(
         `{{ postsByTags | group_by_exp: "tag", "tag[1].size" | sort: 'name' | reverse | json}}`,
         { postsByTags },
-        JSON.stringify(expected))
+        JSON.stringify(expected)
+      )
     })
   })
   describe('has', function () {
@@ -777,22 +834,13 @@ describe('filters/array', function () {
       { graduation_year: 2014, name: 'Jack', age: 13 }
     ]
     it('should support has with no value', function () {
-      return test(
-        `{{ members | has: "age" | json }}, {{ members | has: "height" | json }}`,
-        { members },
-        `true, false`)
+      return test(`{{ members | has: "age" | json }}, {{ members | has: "height" | json }}`, { members }, `true, false`)
     })
     it('should support has by property', function () {
-      return test(
-        `{{ members | has: "graduation_year", 2014 | json }}`,
-        { members },
-        `true`)
+      return test(`{{ members | has: "graduation_year", 2014 | json }}`, { members }, `true`)
     })
     it('should return false if not found', function () {
-      return test(
-        `{{ members | has: "graduation_year", 2018 | json }}`,
-        { members },
-        `false`)
+      return test(`{{ members | has: "graduation_year", 2018 | json }}`, { members }, `false`)
     })
     describe('jekyll style', () => {
       it('should select array by inclusion', async () => {
@@ -816,16 +864,10 @@ describe('filters/array', function () {
       { graduation_year: 2014, name: 'Jack' }
     ]
     it('should support has by expression', function () {
-      return test(
-        `{{ members | has_exp: "item", "item.graduation_year == 2014" | json }}`,
-        { members },
-        `true`)
+      return test(`{{ members | has_exp: "item", "item.graduation_year == 2014" | json }}`, { members }, `true`)
     })
     it('should return false if not found', function () {
-      return test(
-        `{{ members | has_exp: "item", "item.graduation_year == 2018" | json }}`,
-        { members },
-        `false`)
+      return test(`{{ members | has_exp: "item", "item.graduation_year == 2018" | json }}`, { members }, `false`)
     })
   })
   describe('find', function () {
@@ -835,22 +877,17 @@ describe('filters/array', function () {
       { graduation_year: 2014, name: 'Jack', age: 13 }
     ]
     it('should support find with no value', function () {
-      return test(
-        `{{ members | find: "age" | json }}`,
-        { members },
-        `{"graduation_year":2014,"name":"Jack","age":13}`)
+      return test(`{{ members | find: "age" | json }}`, { members }, `{"graduation_year":2014,"name":"Jack","age":13}`)
     })
     it('should support find by property', function () {
       return test(
         `{{ members | find: "graduation_year", 2014 | json }}`,
         { members },
-        `{"graduation_year":2014,"name":"John"}`)
+        `{"graduation_year":2014,"name":"John"}`
+      )
     })
     it('should render none if not found', function () {
-      return test(
-        `{{ members | find: "graduation_year", 2018 | json }}`,
-        { members },
-        ``)
+      return test(`{{ members | find: "graduation_year", 2018 | json }}`, { members }, ``)
     })
     describe('jekyll style', () => {
       it('should select array by inclusion', async () => {
@@ -866,7 +903,8 @@ describe('filters/array', function () {
           '{{members | find: "age", notdefined | json}}',
           { members },
           '{"graduation_year":2013,"name":"Jay"}',
-          { jekyllWhere: true })
+          { jekyllWhere: true }
+        )
         await test('{{members | find: "name", notdefined | json}}', { members }, '', { jekyllWhere: true })
       })
     })
@@ -881,13 +919,11 @@ describe('filters/array', function () {
       return test(
         `{{ members | find_exp: "item", "item.graduation_year == 2014" | json }}`,
         { members },
-        `{"graduation_year":2014,"name":"John"}`)
+        `{"graduation_year":2014,"name":"John"}`
+      )
     })
     it('should render none if not found', function () {
-      return test(
-        `{{ members | find_exp: "item", "item.graduation_year == 2018" | json }}`,
-        { members },
-        ``)
+      return test(`{{ members | find_exp: "item", "item.graduation_year == 2018" | json }}`, { members }, ``)
     })
   })
   describe('find_index', function () {
@@ -897,22 +933,13 @@ describe('filters/array', function () {
       { graduation_year: 2014, name: 'Jack', age: 13 }
     ]
     it('should support find_index with no value', function () {
-      return test(
-        `{{ members | find_index: "age" | json }}`,
-        { members },
-        `2`)
+      return test(`{{ members | find_index: "age" | json }}`, { members }, `2`)
     })
     it('should support find_index by property', function () {
-      return test(
-        `{{ members | find_index: "graduation_year", 2014 | json }}`,
-        { members },
-        `1`)
+      return test(`{{ members | find_index: "graduation_year", 2014 | json }}`, { members }, `1`)
     })
     it('should render none if not found', function () {
-      return test(
-        `{{ members | find_index: "graduation_year", 2018 | json }}`,
-        { members },
-        ``)
+      return test(`{{ members | find_index: "graduation_year", 2018 | json }}`, { members }, ``)
     })
     describe('jekyll style', () => {
       it('should select array by inclusion', async () => {
@@ -936,16 +963,10 @@ describe('filters/array', function () {
       { graduation_year: 2014, name: 'Jack' }
     ]
     it('should support find_index by expression', function () {
-      return test(
-        `{{ members | find_index_exp: "item", "item.graduation_year == 2014" | json }}`,
-        { members },
-        `1`)
+      return test(`{{ members | find_index_exp: "item", "item.graduation_year == 2014" | json }}`, { members }, `1`)
     })
     it('should render none if not found', function () {
-      return test(
-        `{{ members | find_index_exp: "item", "item.graduation_year == 2018" | json }}`,
-        { members },
-        ``)
+      return test(`{{ members | find_index_exp: "item", "item.graduation_year == 2018" | json }}`, { members }, ``)
     })
   })
 })

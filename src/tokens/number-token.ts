@@ -3,7 +3,7 @@ import { TokenKind } from '../parser'
 
 export class NumberToken extends Token {
   public content: number
-  constructor (
+  constructor(
     public input: string,
     public begin: number,
     public end: number,

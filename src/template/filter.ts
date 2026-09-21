@@ -14,17 +14,15 @@ export class Filter {
   private liquid: Liquid
   private token: FilterToken
 
-  public constructor (token: FilterToken, options: FilterImplOptions | undefined, liquid: Liquid) {
+  public constructor(token: FilterToken, options: FilterImplOptions | undefined, liquid: Liquid) {
     this.token = token
     this.name = token.name
-    this.handler = isFunction(options)
-      ? options
-      : (isFunction(options?.handler) ? options!.handler : identify)
+    this.handler = isFunction(options) ? options : isFunction(options?.handler) ? options!.handler : identify
     this.raw = !isFunction(options) && !!options?.raw
     this.args = token.args
     this.liquid = liquid
   }
-  public * render (value: any, context: Context): IterableIterator<unknown> {
+  public *render(value: any, context: Context): IterableIterator<unknown> {
     const argv: any[] = []
     for (const arg of this.args as FilterArg[]) {
       if (isKeyValuePair(arg)) argv.push([arg[0], yield evalToken(arg[1], context)])

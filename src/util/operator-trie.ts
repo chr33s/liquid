@@ -17,7 +17,7 @@ export type Trie<T> = {
 // by callers (matchTrie only reads it); do not mutate it.
 const trieCache = new WeakMap<TrieInput<any>, Trie<any>>()
 
-export function createTrie<T = any> (input: TrieInput<T>): Trie<T> {
+export function createTrie<T = any>(input: TrieInput<T>): Trie<T> {
   const cached = trieCache.get(input)
   if (cached) return cached
   const trie: Trie<T> = {}

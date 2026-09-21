@@ -4,7 +4,7 @@ import { TokenKind } from '../parser'
 export class HTMLToken extends Token {
   trimLeft = 0
   trimRight = 0
-  constructor (
+  constructor(
     public input: string,
     public begin: number,
     public end: number,
@@ -12,7 +12,7 @@ export class HTMLToken extends Token {
   ) {
     super(TokenKind.HTML, input, begin, end, file)
   }
-  public getContent () {
+  public getContent() {
     return this.input.slice(this.begin + this.trimLeft, this.end - this.trimRight)
   }
 }

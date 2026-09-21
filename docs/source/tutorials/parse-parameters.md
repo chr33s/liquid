@@ -38,7 +38,7 @@ The following modified template also contains 3 values to random from, but they'
 It can be tricky to parse all these cases manually, but there's a [Tokenizer][Tokenizer] class in LiquidJS you can make use of.
 
 ```javascript
-const { Liquid, Tokenizer, evalToken } = require('liquidjs')
+import { Liquid, Tokenizer, evalToken } from 'liquidjs'
 engine.registerTag('random', {
   parse(tagToken) {
     const tokenizer = new Tokenizer(tagToken.args)
@@ -75,7 +75,7 @@ Named parameters become very handy when there are optional parameters or lots of
 In the above example, we're trying to generate a random number in the range [2, max]. We'll use `Hash` to parse `from` and `to` parameters.
 
 ```javascript
-const { Liquid, Hash } = require('liquidjs')
+import { Liquid, Hash } from 'liquidjs'
 
 engine.registerTag('random', {
   parse(tagToken) {

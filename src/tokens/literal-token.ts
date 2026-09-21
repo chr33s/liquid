@@ -5,7 +5,7 @@ import { literalValues, LiteralValue, LiteralKey } from '../util'
 export class LiteralToken extends Token {
   public content: LiteralValue
   public literal: LiteralKey
-  public constructor (
+  public constructor(
     public input: string,
     public begin: number,
     public end: number,

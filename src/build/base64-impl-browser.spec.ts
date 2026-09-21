@@ -1,32 +1,6 @@
 import * as base64 from './base64-impl-browser'
-import { JSDOM } from 'jsdom'
 
 describe('base64-impl/browser', function () {
-  beforeEach(function () {
-    const dom = new JSDOM(``, {
-      url: 'https://example.com/',
-      contentType: 'text/html',
-      includeNodeLocations: true
-    })
-
-    // Mock btoa and atob on global object
-    Object.defineProperty(global, 'btoa', {
-      value: dom.window.btoa,
-      writable: true,
-      configurable: true
-    })
-    Object.defineProperty(global, 'atob', {
-      value: dom.window.atob,
-      writable: true,
-      configurable: true
-    })
-  })
-
-  afterEach(function () {
-    delete (global as any).btoa
-    delete (global as any).atob
-  })
-
   describe('#base64Encode()', function () {
     it('should encode a simple string', function () {
       expect(base64.base64Encode('one two three')).toBe('b25lIHR3byB0aHJlZQ==')

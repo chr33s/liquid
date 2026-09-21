@@ -1,6 +1,38 @@
-import { FilteredValueToken, TagToken, HTMLToken, HashToken, QuotedToken, LiquidTagToken, OutputToken, ValueToken, Token, RangeToken, FilterToken, TopLevelToken, PropertyAccessToken, OperatorToken, LiteralToken, IdentifierToken, NumberToken } from '../tokens'
+import {
+  FilteredValueToken,
+  TagToken,
+  HTMLToken,
+  HashToken,
+  QuotedToken,
+  LiquidTagToken,
+  OutputToken,
+  ValueToken,
+  Token,
+  RangeToken,
+  FilterToken,
+  TopLevelToken,
+  PropertyAccessToken,
+  OperatorToken,
+  LiteralToken,
+  IdentifierToken,
+  NumberToken
+} from '../tokens'
 import { OperatorHandler } from '../render/operator'
-import { LiteralValue, Trie, createTrie, ellipsis, literalValues, TokenizationError, TYPES, QUOTE, BLANK, NUMBER, SIGN, isWord, isString } from '../util'
+import {
+  LiteralValue,
+  Trie,
+  createTrie,
+  ellipsis,
+  literalValues,
+  TokenizationError,
+  TYPES,
+  QUOTE,
+  BLANK,
+  NUMBER,
+  SIGN,
+  isWord,
+  isString
+} from '../util'
 import { Operators, Expression } from '../render'
 import { NormalizedFullOptions, defaultOptions } from '../liquid-options'
 import { FilterArg } from './filter-arg'
@@ -13,7 +45,7 @@ export class Tokenizer {
   private opTrie: Trie<OperatorHandler>
   private literalTrie: Trie<LiteralValue>
 
-  constructor (
+  constructor(
     public input: string,
     operators: Operators = defaultOptions.operators,
     public file?: string,
@@ -25,11 +57,11 @@ export class Tokenizer {
     this.literalTrie = createTrie(literalValues)
   }
 
-  readExpression () {
+  readExpression() {
     return new Expression(this.readExpressionTokens())
   }
 
-  * readExpressionTokens (): IterableIterator<Token> {
+  *readExpressionTokens(): IterableIterator<Token> {
     while (this.p < this.N) {
       const operator = this.readOperator()
       if (operator) {
@@ -44,13 +76,13 @@ export class Tokenizer {
       return
     }
   }
-  readOperator (): OperatorToken | undefined {
+  readOperator(): OperatorToken | undefined {
     this.skipBlank()
     const end = this.matchTrie(this.opTrie)
     if (end === -1) return
     return new OperatorToken(this.input, this.p, (this.p = end), this.file)
   }
-  matchTrie<T> (trie: Trie<T>) {
+  matchTrie<T>(trie: Trie<T>) {
     let node: Trie<T> = trie
     let i = this.p
     let info: Trie<T> | undefined
@@ -62,14 +94,14 @@ export class Tokenizer {
     if (info['needBoundary'] && isWord(this.peek(i - this.p))) return -1
     return i
   }
-  readFilteredValue (): FilteredValueToken {
+  readFilteredValue(): FilteredValueToken {
     const begin = this.p
     const initial = this.readExpression()
     this.assert(initial.valid(), `invalid value expression: ${this.snapshot()}`)
     const filters = this.readFilters()
     return new FilteredValueToken(initial, filters, this.input, begin, this.p, this.file)
   }
-  readFilters (): FilterToken[] {
+  readFilters(): FilterToken[] {
     const filters = []
     while (true) {
       const filter = this.readFilter()
@@ -77,7 +109,7 @@ export class Tokenizer {
       filters.push(filter)
     }
   }
-  readFilter (): FilterToken | null {
+  readFilter(): FilterToken | null {
     this.skipBlank()
     if (this.end()) return null
     this.assert(this.read() === '|', `expected "|" before filter`)
@@ -94,7 +126,10 @@ export class Tokenizer {
         const arg = this.readFilterArg()
         arg && args.push(arg)
         this.skipBlank()
-        this.assert(this.end() || this.peek() === ',' || this.peek() === '|', () => `unexpected character ${this.snapshot()}`)
+        this.assert(
+          this.end() || this.peek() === ',' || this.peek() === '|',
+          () => `unexpected character ${this.snapshot()}`
+        )
       } while (this.peek() === ',')
     } else if (this.peek() === '|' || this.end()) {
       // do nothing
@@ -104,7 +139,7 @@ export class Tokenizer {
     return new FilterToken(name.getText(), args, this.input, name.begin, this.p, this.file)
   }
 
-  readFilterArg (): FilterArg | undefined {
+  readFilterArg(): FilterArg | undefined {
     const key = this.readValue()
     if (!key) return
     this.skipBlank()
@@ -114,7 +149,7 @@ export class Tokenizer {
     return [key.getText(), value]
   }
 
-  readTopLevelTokens (options: NormalizedFullOptions = defaultOptions): TopLevelToken[] {
+  readTopLevelTokens(options: NormalizedFullOptions = defaultOptions): TopLevelToken[] {
     const tokens: TopLevelToken[] = []
     while (this.p < this.N) {
       const token = this.readTopLevelToken(options)
@@ -124,7 +159,7 @@ export class Tokenizer {
     return tokens
   }
 
-  readTopLevelToken (options: NormalizedFullOptions): TopLevelToken {
+  readTopLevelToken(options: NormalizedFullOptions): TopLevelToken {
     const { tagDelimiterLeft, outputDelimiterLeft } = options
     if (this.rawBeginAt > -1) return this.readEndrawOrRawContent(options)
     if (this.match(tagDelimiterLeft)) return this.readTagToken(options)
@@ -132,7 +167,7 @@ export class Tokenizer {
     return this.readHTMLToken([tagDelimiterLeft, outputDelimiterLeft])
   }
 
-  readHTMLToken (stopStrings: string[]): HTMLToken {
+  readHTMLToken(stopStrings: string[]): HTMLToken {
     const begin = this.p
     while (this.p < this.N) {
       if (stopStrings.some(str => this.match(str))) break
@@ -141,7 +176,7 @@ export class Tokenizer {
     return new HTMLToken(this.input, begin, this.p, this.file)
   }
 
-  readTagToken (options: NormalizedFullOptions): TagToken {
+  readTagToken(options: NormalizedFullOptions): TagToken {
     const { file, input } = this
     const begin = this.p
     if (this.readToDelimiter(options.tagDelimiterRight) === -1) {
@@ -152,10 +187,10 @@ export class Tokenizer {
     return token
   }
 
-  readToDelimiter (delimiter: string, respectQuoted = false) {
+  readToDelimiter(delimiter: string, respectQuoted = false) {
     this.skipBlank()
     while (this.p < this.N) {
-      if (respectQuoted && (this.peekType() & QUOTE)) {
+      if (respectQuoted && this.peekType() & QUOTE) {
         this.readQuoted()
         continue
       }
@@ -165,7 +200,7 @@ export class Tokenizer {
     return -1
   }
 
-  readOutputToken (options: NormalizedFullOptions = defaultOptions): OutputToken {
+  readOutputToken(options: NormalizedFullOptions = defaultOptions): OutputToken {
     const { file, input } = this
     const { outputDelimiterRight } = options
     const begin = this.p
@@ -175,7 +210,7 @@ export class Tokenizer {
     return new OutputToken(input, begin, this.p, options, file)
   }
 
-  readEndrawOrRawContent (options: NormalizedFullOptions): HTMLToken | TagToken {
+  readEndrawOrRawContent(options: NormalizedFullOptions): HTMLToken | TagToken {
     const { tagDelimiterLeft, tagDelimiterRight } = options
     const begin = this.p
     let leftPos = this.readTo(tagDelimiterLeft) - tagDelimiterLeft.length
@@ -202,7 +237,7 @@ export class Tokenizer {
     throw this.error(`raw ${this.snapshot(this.rawBeginAt)} not closed`, begin)
   }
 
-  readLiquidTagTokens (options: NormalizedFullOptions = defaultOptions): LiquidTagToken[] {
+  readLiquidTagTokens(options: NormalizedFullOptions = defaultOptions): LiquidTagToken[] {
     const tokens: LiquidTagToken[] = []
     while (this.p < this.N) {
       const token = this.readLiquidTagToken(options)
@@ -211,7 +246,7 @@ export class Tokenizer {
     return tokens
   }
 
-  readLiquidTagToken (options: NormalizedFullOptions): LiquidTagToken | undefined {
+  readLiquidTagToken(options: NormalizedFullOptions): LiquidTagToken | undefined {
     this.skipBlank()
     if (this.end()) return
 
@@ -221,45 +256,45 @@ export class Tokenizer {
     return new LiquidTagToken(this.input, begin, end, options, this.file)
   }
 
-  error (msg: string, pos: number = this.p) {
+  error(msg: string, pos: number = this.p) {
     return new TokenizationError(msg, new IdentifierToken(this.input, pos, this.N, this.file))
   }
 
-  assert (pred: unknown, msg: string | (() => string), pos?: number) {
+  assert(pred: unknown, msg: string | (() => string), pos?: number) {
     if (!pred) throw this.error(typeof msg === 'function' ? msg() : msg, pos)
   }
 
-  snapshot (begin: number = this.p) {
+  snapshot(begin: number = this.p) {
     return JSON.stringify(ellipsis(this.input.slice(begin, this.N), 32))
   }
 
   /**
    * @deprecated use #readIdentifier instead
    */
-  readWord () {
+  readWord() {
     return this.readIdentifier()
   }
 
-  readIdentifier (): IdentifierToken {
+  readIdentifier(): IdentifierToken {
     this.skipBlank()
     const begin = this.p
     while (!this.end() && isWord(this.peek())) ++this.p
     return new IdentifierToken(this.input, begin, this.p, this.file)
   }
 
-  readNonEmptyIdentifier (): IdentifierToken | undefined {
+  readNonEmptyIdentifier(): IdentifierToken | undefined {
     const id = this.readIdentifier()
     return id.size() ? id : undefined
   }
 
-  readTagName (): string {
+  readTagName(): string {
     this.skipBlank()
     // Handle inline comment tags
     if (this.input[this.p] === '#') return this.input.slice(this.p, ++this.p)
     return this.readIdentifier().getText()
   }
 
-  readHashes (jekyllStyle?: boolean | string) {
+  readHashes(jekyllStyle?: boolean | string) {
     const hashes = []
     while (true) {
       const hash = this.readHash(jekyllStyle)
@@ -268,7 +303,7 @@ export class Tokenizer {
     }
   }
 
-  readHash (jekyllStyle?: boolean | string): HashToken | undefined {
+  readHash(jekyllStyle?: boolean | string): HashToken | undefined {
     this.skipBlank()
     if (this.peek() === ',') ++this.p
     const begin = this.p
@@ -277,7 +312,7 @@ export class Tokenizer {
     let value
 
     this.skipBlank()
-    const sep = isString(jekyllStyle) ? jekyllStyle : (jekyllStyle ? '=' : ':')
+    const sep = isString(jekyllStyle) ? jekyllStyle : jekyllStyle ? '=' : ':'
     if (this.peek() === sep) {
       ++this.p
       value = this.readValue()
@@ -285,21 +320,21 @@ export class Tokenizer {
     return new HashToken(this.input, begin, this.p, name, value, this.file)
   }
 
-  remaining () {
+  remaining() {
     return this.input.slice(this.p, this.N)
   }
 
-  advance (step = 1) {
+  advance(step = 1) {
     this.p += step
   }
 
-  end () {
+  end() {
     return this.p >= this.N
   }
-  read () {
+  read() {
     return this.input[this.p++]
   }
-  readTo (end: string): number {
+  readTo(end: string): number {
     while (this.p < this.N) {
       ++this.p
       if (this.rmatch(end)) return this.p
@@ -307,7 +342,7 @@ export class Tokenizer {
     return -1
   }
 
-  readValue (): ValueToken | undefined {
+  readValue(): ValueToken | undefined {
     this.skipBlank()
     const begin = this.p
     const variable = this.readLiteral() || this.readQuoted() || this.readRange() || this.readNumber()
@@ -316,7 +351,7 @@ export class Tokenizer {
     return new PropertyAccessToken(variable, props, this.input, begin, this.p)
   }
 
-  readScopeValue (): ValueToken | undefined {
+  readScopeValue(): ValueToken | undefined {
     this.skipBlank()
     const begin = this.p
     const props = this.readProperties()
@@ -324,7 +359,7 @@ export class Tokenizer {
     return new PropertyAccessToken(undefined, props, this.input, begin, this.p)
   }
 
-  private readProperties (isBegin = true): (ValueToken | IdentifierToken)[] {
+  private readProperties(isBegin = true): (ValueToken | IdentifierToken)[] {
     const props: (ValueToken | IdentifierToken)[] = []
     while (true) {
       if (this.peek() === '[') {
@@ -341,7 +376,8 @@ export class Tokenizer {
           continue
         }
       }
-      if (this.peek() === '.' && this.peek(1) !== '.') { // skip range syntax
+      if (this.peek() === '.' && this.peek(1) !== '.') {
+        // skip range syntax
         this.p++
         const prop = this.readNonEmptyIdentifier()
         if (!prop) break
@@ -353,7 +389,7 @@ export class Tokenizer {
     return props
   }
 
-  readNumber (): NumberToken | undefined {
+  readNumber(): NumberToken | undefined {
     this.skipBlank()
     let decimalFound = false
     let digitFound = false
@@ -376,7 +412,7 @@ export class Tokenizer {
     }
   }
 
-  readLiteral (): LiteralToken | undefined {
+  readLiteral(): LiteralToken | undefined {
     this.skipBlank()
     const end = this.matchTrie(this.literalTrie)
     if (end === -1) return
@@ -385,7 +421,7 @@ export class Tokenizer {
     return literal
   }
 
-  readRange (): RangeToken | undefined {
+  readRange(): RangeToken | undefined {
     this.skipBlank()
     const begin = this.p
     if (this.peek() !== '(') return
@@ -399,13 +435,13 @@ export class Tokenizer {
     return new RangeToken(this.input, begin, this.p, lhs, rhs, this.file)
   }
 
-  readValueOrThrow (): ValueToken {
+  readValueOrThrow(): ValueToken {
     const value = this.readValue()
     this.assert(value, () => `unexpected token ${this.snapshot()}, value expected`)
     return value!
   }
 
-  readQuoted (): QuotedToken | undefined {
+  readQuoted(): QuotedToken | undefined {
     this.skipBlank()
     const begin = this.p
     if (!(this.peekType() & QUOTE)) return
@@ -420,41 +456,39 @@ export class Tokenizer {
     return new QuotedToken(this.input, begin, this.p, this.file)
   }
 
-  * readFileNameTemplate (options: NormalizedFullOptions): IterableIterator<TopLevelToken> {
+  *readFileNameTemplate(options: NormalizedFullOptions): IterableIterator<TopLevelToken> {
     const { outputDelimiterLeft } = options
     const htmlStopStrings = [',', ' ', '\r', '\n', '\t', outputDelimiterLeft]
     const htmlStopStringSet = new Set(htmlStopStrings)
     // break on ',' and ' ', outputDelimiterLeft only stops HTML token
     while (this.p < this.N && !htmlStopStringSet.has(this.peek())) {
-      yield this.match(outputDelimiterLeft)
-        ? this.readOutputToken(options)
-        : this.readHTMLToken(htmlStopStrings)
+      yield this.match(outputDelimiterLeft) ? this.readOutputToken(options) : this.readHTMLToken(htmlStopStrings)
     }
   }
 
-  match (word: string) {
+  match(word: string) {
     for (let i = 0; i < word.length; i++) {
       if (word[i] !== this.input[this.p + i]) return false
     }
     return true
   }
 
-  rmatch (pattern: string) {
+  rmatch(pattern: string) {
     for (let i = 0; i < pattern.length; i++) {
       if (pattern[pattern.length - 1 - i] !== this.input[this.p - 1 - i]) return false
     }
     return true
   }
 
-  peekType (n = 0) {
+  peekType(n = 0) {
     return this.p + n >= this.N ? 0 : TYPES[this.input.charCodeAt(this.p + n)]
   }
 
-  peek (n = 0): string {
+  peek(n = 0): string {
     return this.p + n >= this.N ? '' : this.input[this.p + n]
   }
 
-  skipBlank () {
+  skipBlank() {
     while (this.peekType() & BLANK) ++this.p
   }
 }

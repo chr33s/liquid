@@ -9,13 +9,21 @@ const OneMinute = 60000
  */
 const TIMEZONE_PATTERN = /([zZ]|([+-])(\d{2}):?(\d{2}))$/
 const monthNames = [
-  'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-  'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
 ]
 const monthNamesShort = monthNames.map(name => name.slice(0, 3))
-const dayNames = [
-  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
-]
+const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const dayNamesShort = dayNames.map(name => name.slice(0, 3))
 
 /**
@@ -32,7 +40,7 @@ export class LiquidDate {
   private displayDate: Date
   private DateTimeFormat = getDateTimeFormat()
   public timezoneFixed: boolean
-  constructor (
+  constructor(
     init: string | number | Date,
     private locale: string,
     timezone?: number | string
@@ -50,69 +58,69 @@ export class LiquidDate {
     this.displayDate = new Date(time)
   }
 
-  getTime () {
+  getTime() {
     return this.displayDate.getTime()
   }
-  getMilliseconds () {
+  getMilliseconds() {
     return this.displayDate.getMilliseconds()
   }
-  getSeconds () {
+  getSeconds() {
     return this.displayDate.getSeconds()
   }
-  getMinutes () {
+  getMinutes() {
     return this.displayDate.getMinutes()
   }
-  getHours () {
+  getHours() {
     return this.displayDate.getHours()
   }
-  getDay () {
+  getDay() {
     return this.displayDate.getDay()
   }
-  getDate () {
+  getDate() {
     return this.displayDate.getDate()
   }
-  getMonth () {
+  getMonth() {
     return this.displayDate.getMonth()
   }
-  getFullYear () {
+  getFullYear() {
     return this.displayDate.getFullYear()
   }
-  toLocaleString (locale?: string, init?: any) {
+  toLocaleString(locale?: string, init?: any) {
     if (init?.timeZone) {
       return this.date.toLocaleString(locale, init)
     }
     return this.displayDate.toLocaleString(locale, init)
   }
-  toLocaleTimeString (locale?: string) {
+  toLocaleTimeString(locale?: string) {
     return this.displayDate.toLocaleTimeString(locale)
   }
-  toLocaleDateString (locale?: string) {
+  toLocaleDateString(locale?: string) {
     return this.displayDate.toLocaleDateString(locale)
   }
-  getTimezoneOffset () {
+  getTimezoneOffset() {
     return this.timezoneOffset!
   }
-  getTimeZoneName () {
+  getTimeZoneName() {
     if (this.timezoneFixed) return this.timezoneName
     if (!this.DateTimeFormat) return
     return this.DateTimeFormat().resolvedOptions().timeZone
   }
-  getLongMonthName () {
+  getLongMonthName() {
     return this.format({ month: 'long' }) ?? monthNames[this.getMonth()]
   }
-  getShortMonthName () {
+  getShortMonthName() {
     return this.format({ month: 'short' }) ?? monthNamesShort[this.getMonth()]
   }
-  getLongWeekdayName () {
+  getLongWeekdayName() {
     return this.format({ weekday: 'long' }) ?? dayNames[this.displayDate.getDay()]
   }
-  getShortWeekdayName () {
+  getShortWeekdayName() {
     return this.format({ weekday: 'short' }) ?? dayNamesShort[this.displayDate.getDay()]
   }
-  valid () {
+  valid() {
     return !isNaN(this.getTime())
   }
-  private format (options: Intl.DateTimeFormatOptions) {
+  private format(options: Intl.DateTimeFormatOptions) {
     return this.DateTimeFormat && this.DateTimeFormat(this.locale, options).format(this.displayDate)
   }
 
@@ -129,7 +137,7 @@ export class LiquidDate {
    * we create a different Date to trick strftime, it's both simpler and more performant.
    * Given that a template is expected to be parsed fewer times than rendered.
    */
-  static createDateFixedToTimezone (dateString: string, locale: string): LiquidDate {
+  static createDateFixedToTimezone(dateString: string, locale: string): LiquidDate {
     const m = dateString.match(TIMEZONE_PATTERN)
     // representing a UTC timestamp
     if (m && m[1] === 'Z') {
@@ -143,7 +151,7 @@ export class LiquidDate {
     }
     return new LiquidDate(dateString, locale)
   }
-  private static getTimezoneOffset (timezoneName: string, date: Date) {
+  private static getTimezoneOffset(timezoneName: string, date: Date) {
     const localDateString = date.toLocaleString('en-US', { timeZone: timezoneName })
     const utcDateString = date.toLocaleString('en-US', { timeZone: 'UTC' })
 

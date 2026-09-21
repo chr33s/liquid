@@ -11,7 +11,7 @@ describe('tags/decrement', function () {
 
   it('should decrement defined variable', async function () {
     const src = '{% decrement var %}{% decrement var %}{% decrement var %}'
-    const ctx = { 'var': 10 }
+    const ctx = { var: 10 }
     const html = await liquid.parseAndRender(src, ctx)
     expect(html).toBe('987')
     expect(ctx.var).toBe(7)

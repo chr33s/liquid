@@ -1,10 +1,24 @@
 import { Drop } from '../drop/drop'
-import { __assign } from 'tslib'
 import { NormalizedFullOptions, defaultOptions, RenderOptions } from '../liquid-options'
 import { createScope, Scope } from './scope'
-import { hasOwnProperty, isArray, isNil, isUndefined, isString, isFunction, isNumber, toLiquid, InternalUndefinedVariableError, toValueSync, isObject, Limiter, toValue, readArrayElement } from '../util'
+import {
+  hasOwnProperty,
+  isArray,
+  isNil,
+  isUndefined,
+  isString,
+  isFunction,
+  isNumber,
+  toLiquid,
+  InternalUndefinedVariableError,
+  toValueSync,
+  isObject,
+  Limiter,
+  toValue,
+  readArrayElement
+} from '../util'
 
-type PropertyKey = string | number;
+type PropertyKey = string | number
 
 const BLOCKED_SCOPE_KEYS: ReadonlySet<PropertyKey> = new Set(['__proto__', 'constructor', 'prototype'])
 
@@ -35,12 +49,21 @@ export class Context {
   /**
    * Throw when accessing undefined variable?
    */
-  public strictVariables: boolean;
-  public ownPropertyOnly: boolean;
-  public templateLimit: Limiter;
-  public outputLengthLimit: Limiter;
-  public depthLimit: Limiter;
-  public constructor (env: object = {}, opts: NormalizedFullOptions = defaultOptions, renderOptions: RenderOptions = {}, { templateLimit, outputLengthLimit, depthLimit }: { templateLimit?: Limiter, outputLengthLimit?: Limiter, depthLimit?: Limiter } = {}) {
+  public strictVariables: boolean
+  public ownPropertyOnly: boolean
+  public templateLimit: Limiter
+  public outputLengthLimit: Limiter
+  public depthLimit: Limiter
+  public constructor(
+    env: object = {},
+    opts: NormalizedFullOptions = defaultOptions,
+    renderOptions: RenderOptions = {},
+    {
+      templateLimit,
+      outputLengthLimit,
+      depthLimit
+    }: { templateLimit?: Limiter; outputLengthLimit?: Limiter; depthLimit?: Limiter } = {}
+  ) {
     this.sync = !!renderOptions.sync
     this.opts = opts
     this.globals = renderOptions.globals ?? opts.globals
@@ -48,45 +71,49 @@ export class Context {
     this.strictVariables = renderOptions.strictVariables ?? this.opts.strictVariables
     this.ownPropertyOnly = renderOptions.ownPropertyOnly ?? opts.ownPropertyOnly
     this.templateLimit = templateLimit ?? new Limiter('template', renderOptions.templateLimit ?? opts.templateLimit)
-    this.outputLengthLimit = outputLengthLimit ?? new Limiter('output length', renderOptions.outputLengthLimit ?? opts.outputLengthLimit)
+    this.outputLengthLimit =
+      outputLengthLimit ?? new Limiter('output length', renderOptions.outputLengthLimit ?? opts.outputLengthLimit)
     this.depthLimit = depthLimit ?? new Limiter('template depth', opts.maxDepth)
   }
-  public getRegister<T> (key: string, defaultValue: T = undefined as T): T {
+  public getRegister<T>(key: string, defaultValue: T = undefined as T): T {
     return (this.registers[key] = this.registers[key] || defaultValue)
   }
-  public setRegister (key: string, value: any) {
+  public setRegister(key: string, value: any) {
     return (this.registers[key] = value)
   }
-  public saveRegister (...keys: string[]): [string, any][] {
+  public saveRegister(...keys: string[]): [string, any][] {
     return keys.map(key => [key, this.getRegister(key)])
   }
-  public restoreRegister (keyValues: [string, any][]) {
+  public restoreRegister(keyValues: [string, any][]) {
     return keyValues.forEach(([key, value]) => this.setRegister(key, value))
   }
-  public getAll () {
-    return [this.globals, this.environments, ...this.scopes]
-      .reduce((ctx, val) => __assign(ctx, val), {})
+  public getAll() {
+    return [this.globals, this.environments, ...this.scopes].reduce((ctx, val) => Object.assign(ctx, val), {})
   }
   /**
    * @deprecated use `_get()` or `getSync()` instead
    */
-  public get (paths: PropertyKey[]): unknown {
+  public get(paths: PropertyKey[]): unknown {
     return this.getSync(paths)
   }
-  public getSync (paths: PropertyKey[]): unknown {
+  public getSync(paths: PropertyKey[]): unknown {
     return toValueSync(this._get(paths))
   }
-  public * _get (paths: (PropertyKey | Drop)[]): IterableIterator<unknown> {
+  public *_get(paths: (PropertyKey | Drop)[]): IterableIterator<unknown> {
     const scope = this.findScope(paths[0] as string) // first prop should always be a string
     return yield this._getFromScope(scope, paths)
   }
   /**
    * @deprecated use `_get()` instead
    */
-  public getFromScope (scope: unknown, paths: PropertyKey[] | string): IterableIterator<unknown> {
+  public getFromScope(scope: unknown, paths: PropertyKey[] | string): IterableIterator<unknown> {
     return toValueSync(this._getFromScope(scope, paths))
   }
-  public * _getFromScope (scope: unknown, paths: (PropertyKey | Drop)[] | string, strictVariables = this.strictVariables): IterableIterator<unknown> {
+  public *_getFromScope(
+    scope: unknown,
+    paths: (PropertyKey | Drop)[] | string,
+    strictVariables = this.strictVariables
+  ): IterableIterator<unknown> {
     if (isString(paths)) paths = paths.split('.')
     for (let i = 0; i < paths.length; i++) {
       scope = yield this.readProperty(scope as object, paths[i])
@@ -96,38 +123,44 @@ export class Context {
     }
     return scope
   }
-  public push (ctx: Scope): Scope {
+  public push(ctx: Scope): Scope {
     const scope = createScope(ctx)
     this.scopes.push(scope)
     return scope
   }
-  public pop () {
+  public pop() {
     return this.scopes.pop()
   }
-  public bottom () {
+  public bottom() {
     return this.scopes[0]
   }
-  public spawn (scope = {}) {
-    return new Context(scope, this.opts, {
-      sync: this.sync,
-      globals: this.globals,
-      strictVariables: this.strictVariables,
-      ownPropertyOnly: this.ownPropertyOnly
-    }, {
-      templateLimit: this.templateLimit,
-      outputLengthLimit: this.outputLengthLimit,
-      depthLimit: this.depthLimit
-    })
+  public spawn(scope = {}) {
+    return new Context(
+      scope,
+      this.opts,
+      {
+        sync: this.sync,
+        globals: this.globals,
+        strictVariables: this.strictVariables,
+        ownPropertyOnly: this.ownPropertyOnly
+      },
+      {
+        templateLimit: this.templateLimit,
+        outputLengthLimit: this.outputLengthLimit,
+        depthLimit: this.depthLimit
+      }
+    )
   }
-  private findScope (key: string | number) {
+  private findScope(key: string | number) {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       const candidate = this.scopes[i]
       if (this.ownPropertyOnly ? hasOwnProperty.call(candidate, key) : key in candidate) return candidate
     }
-    if (this.ownPropertyOnly ? hasOwnProperty.call(this.environments, key) : key in this.environments) return this.environments
+    if (this.ownPropertyOnly ? hasOwnProperty.call(this.environments, key) : key in this.environments)
+      return this.environments
     return this.globals
   }
-  readProperty (obj: Scope, key: (PropertyKey | Drop)) {
+  readProperty(obj: Scope, key: PropertyKey | Drop) {
     obj = toLiquid(obj)
     key = toValue(key) as PropertyKey
     if (isNil(obj)) return obj
@@ -140,15 +173,15 @@ export class Context {
     else if (key === 'last') return this.readLast(obj)
     return value
   }
-  private readFirst (obj: Scope) {
+  private readFirst(obj: Scope) {
     if (isArray(obj)) return readArrayElement(obj, 0, this.ownPropertyOnly)
     return readJSProperty(obj, 'first', this.ownPropertyOnly)
   }
-  private readLast (obj: Scope) {
+  private readLast(obj: Scope) {
     if (isArray(obj)) return readArrayElement(obj, -1, this.ownPropertyOnly)
     return readJSProperty(obj, 'last', this.ownPropertyOnly)
   }
-  private readSize (obj: Scope) {
+  private readSize(obj: Scope) {
     if (hasOwnProperty.call(obj, 'size')) return obj['size']
     if (!this.ownPropertyOnly && obj['size'] !== undefined) return obj['size']
     if (isArray(obj) || isString(obj)) return obj.length
@@ -157,7 +190,7 @@ export class Context {
   }
 }
 
-export function readJSProperty (obj: Scope, key: PropertyKey, ownPropertyOnly: boolean) {
+export function readJSProperty(obj: Scope, key: PropertyKey, ownPropertyOnly: boolean) {
   if (BLOCKED_SCOPE_KEYS.has(key) && ownPropertyOnly) return undefined
   if (ownPropertyOnly && !hasOwnProperty.call(obj, key) && !(obj instanceof Drop)) return undefined
   return obj[key]

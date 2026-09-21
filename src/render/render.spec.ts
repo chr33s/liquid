@@ -4,6 +4,7 @@ import { Render } from './render'
 import { Tag, HTML } from '../template'
 import { SimpleEmitter } from '../emitters'
 import { toPromise } from '../util'
+import { drainStream } from '../../test/stub/stream'
 
 describe('render', function () {
   let render: Render
@@ -21,29 +22,21 @@ describe('render', function () {
   })
 
   describe('.renderTemplatesToNodeStream()', function () {
-    it('should render to html stream', function (done) {
+    it('should render to html stream', async function () {
       const scope = new Context()
       const tpls = [
         new HTML({ getContent: () => '<p>' } as HTMLToken),
         new HTML({ getContent: () => '</p>' } as HTMLToken)
       ]
       const stream = render.renderTemplatesToNodeStream(tpls, scope)
-      let result = ''
-      stream.on('data', (data) => {
-        result += data
-      })
-      stream.on('end', () => {
-        expect(result).toBe('<p></p>')
-        done()
-      })
+      const result = await drainStream(stream)
+      expect(result).toBe('<p></p>')
     })
-    it('should render to html stream asynchronously', function (done) {
+    it('should render to html stream asynchronously', async function () {
       const scope = new Context()
       class CustomTag extends Tag {
-        render () {
-          return new Promise(
-            resolve => setTimeout(() => resolve('async tag'), 10)
-          )
+        render() {
+          return new Promise(resolve => setTimeout(() => resolve('async tag'), 10))
         }
       }
       const tpls = [
@@ -52,14 +45,8 @@ describe('render', function () {
         new HTML({ getContent: () => '</p>' } as HTMLToken)
       ]
       const stream = render.renderTemplatesToNodeStream(tpls, scope)
-      let result = ''
-      stream.on('data', (data) => {
-        result += data
-      })
-      stream.on('end', () => {
-        expect(result).toBe('<p>async tag</p>')
-        done()
-      })
+      const result = await drainStream(stream)
+      expect(result).toBe('<p>async tag</p>')
     })
   })
 })

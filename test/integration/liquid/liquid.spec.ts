@@ -17,7 +17,9 @@ describe('Liquid', function () {
     it('should call plugin with Liquid', async function () {
       const engine = new Liquid()
       engine.plugin(function () {
-        this.registerFilter('t', function (v) { return isFalsy(v, this.context) })
+        this.registerFilter('t', function (v) {
+          return isFalsy(v, this.context)
+        })
       })
       const html = await engine.parseAndRender('{{false|t}}')
       expect(html).toBe('true')
@@ -35,8 +37,7 @@ describe('Liquid', function () {
       expect(html).toBe('Welcome(to]Liquid')
     })
     it('should support for-in with variable', async function () {
-      const src = '{% assign total = 3 | minus: 1 %}' +
-        '{% for i in (1..total) %}{{ i }}{% endfor %}'
+      const src = '{% assign total = 3 | minus: 1 %}' + '{% for i in (1..total) %}{{ i }}{% endfor %}'
       const html = await engine.parseAndRender(src, {})
       return expect(html).toBe('12')
     })
@@ -71,8 +72,7 @@ describe('Liquid', function () {
       expect(html).toBe('Welcome(to]Liquid')
     })
     it('should support for-in with variable', function () {
-      const src = '{% assign total = 3 | minus: 1 %}' +
-        '{% for i in (1..total) %}{{ i }}{% endfor %}'
+      const src = '{% assign total = 3 | minus: 1 %}' + '{% for i in (1..total) %}{{ i }}{% endfor %}'
       const html = engine.parseAndRenderSync(src, {})
       return expect(html).toBe('12')
     })
@@ -95,19 +95,21 @@ describe('Liquid', function () {
       })
     })
     afterEach(restore)
-    it('should render single template', function (done) {
-      render.call({ root: '/root' }, 'foo', null as any, (err: Error | null, result: string | undefined) => {
-        if (err) return done(err)
-        expect(result).toBe('foo')
-        done()
+    it('should render single template', async function () {
+      const result = await new Promise((resolve, reject) => {
+        render.call({ root: '/root' }, 'foo', null as any, (err: Error | null, html: string | undefined) => {
+          err ? reject(err) : resolve(html)
+        })
       })
+      expect(result).toBe('foo')
     })
-    it('should render single template with Array-typed root', function (done) {
-      render.call({ root: ['/root'] }, 'foo', null as any, (err: Error | null, result: string | undefined) => {
-        if (err) return done(err)
-        expect(result).toBe('foo')
-        done()
+    it('should render single template with Array-typed root', async function () {
+      const result = await new Promise((resolve, reject) => {
+        render.call({ root: ['/root'] }, 'foo', null as any, (err: Error | null, html: string | undefined) => {
+          err ? reject(err) : resolve(html)
+        })
       })
+      expect(result).toBe('foo')
     })
   })
   describe('#renderFile', function () {
@@ -117,7 +119,9 @@ describe('Liquid', function () {
         root: ['/boo', '/root/'],
         extname: '.html'
       })
-      return expect(engine.renderFile('/not/exist.html')).rejects.toThrow(/Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/)
+      return expect(engine.renderFile('/not/exist.html')).rejects.toThrow(
+        /Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/
+      )
     })
     it('should reject absolute paths outside root', async function () {
       mock({
@@ -142,14 +146,16 @@ describe('Liquid', function () {
         root: ['/boo', '/root/'],
         extname: '.html'
       })
-      return expect(engine.parseFile('/not/exist.html')).rejects.toThrow(/Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/)
+      return expect(engine.parseFile('/not/exist.html')).rejects.toThrow(
+        /Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/
+      )
     })
     it('should fallback to require.resolve in Node.js', async function () {
       const engine = new Liquid({
         root: [resolve(__dirname, '../../..')],
         extname: '.html'
       })
-      const tpls = await engine.parseFileSync('jest')
+      const tpls = engine.parseFileSync('express')
       expect(tpls.length).toBeGreaterThanOrEqual(1)
       expect(tpls[0].token.getText()).toContain('use strict')
     })
@@ -205,23 +211,25 @@ describe('Liquid', function () {
         root: ['/boo', '/root/'],
         extname: '.html'
       })
-      return expect(() => engine.parseFileSync('/not/exist.html'))
-        .toThrow(/Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/)
+      return expect(() => engine.parseFileSync('/not/exist.html')).toThrow(
+        /Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/
+      )
     })
     it('should throw with lookup list when file not exist', function () {
       const engine = new Liquid({
         root: ['/boo', '/root/'],
         extname: '.html'
       })
-      return expect(() => engine.parseFileSync('/not/exist.html'))
-        .toThrow(/Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/)
+      return expect(() => engine.parseFileSync('/not/exist.html')).toThrow(
+        /Failed to lookup "\/not\/exist.html" in "\/boo,\/root\/"/
+      )
     })
   })
   describe('#enderToNodeStream', function () {
     const engine = new Liquid()
     it('should render a simple value', async () => {
       const stream = engine.renderToNodeStream(engine.parse('{{"foo"}}'))
-      expect(drainStream(stream)).resolves.toBe('foo')
+      await expect(drainStream(stream)).resolves.toBe('foo')
     })
   })
   describe('#enderFileToNodeStream', function () {
@@ -237,18 +245,18 @@ describe('Liquid', function () {
     afterEach(restore)
     it('should render a simple value', async () => {
       const stream = await engine.renderFileToNodeStream('foo.html')
-      expect(drainStream(stream)).resolves.toBe('foo')
+      await expect(drainStream(stream)).resolves.toBe('foo')
     })
     it('should throw RenderError when tag throws', async () => {
       const stream = await engine.renderFileToNodeStream('error.html')
-      expect(drainStream(stream)).rejects.toThrow(/intended error/)
+      await expect(drainStream(stream)).rejects.toThrow(/intended error/)
     })
   })
   describe('#analyze', () => {
     const engine = new Liquid()
-    it('should analyze templates asynchronously', () => {
+    it('should analyze templates asynchronously', async () => {
       const template = engine.parse('{{ a }}{{ b }}')
-      expect(engine.analyze(template).then((a) => Object.keys(a.variables))).resolves.toStrictEqual(['a', 'b'])
+      await expect(engine.analyze(template).then(a => Object.keys(a.variables))).resolves.toStrictEqual(['a', 'b'])
     })
   })
   describe('#analyzeSync', () => {
@@ -260,8 +268,10 @@ describe('Liquid', function () {
   })
   describe('#parseAndAnalyze', () => {
     const engine = new Liquid()
-    it('should parse and analyze templates asynchronously', () => {
-      expect(engine.parseAndAnalyze('{{ a }}{{ b }}').then((a) => Object.keys(a.variables))).resolves.toStrictEqual(['a', 'b'])
+    it('should parse and analyze templates asynchronously', async () => {
+      await expect(engine.parseAndAnalyze('{{ a }}{{ b }}').then(a => Object.keys(a.variables))).resolves.toStrictEqual(
+        ['a', 'b']
+      )
     })
   })
   describe('#parseAndAnalyzeSync', () => {
@@ -273,9 +283,12 @@ describe('Liquid', function () {
   describe('Convenience analysis', () => {
     const engine = new Liquid()
 
-    it('should list all variables without their properties', () => {
-      expect(engine.variables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual(['a', 'c'])
-      expect(engine.variables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).resolves.toStrictEqual(['a', 'c'])
+    it('should list all variables without their properties', async () => {
+      await expect(engine.variables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual(['a', 'c'])
+      await expect(engine.variables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).resolves.toStrictEqual([
+        'a',
+        'c'
+      ])
     })
 
     it('should list all variables without their properties synchronously', () => {
@@ -283,9 +296,11 @@ describe('Liquid', function () {
       expect(engine.variablesSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual(['a', 'c'])
     })
 
-    it('should list global variables without their properties', () => {
-      expect(engine.globalVariables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual(['a'])
-      expect(engine.globalVariables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).resolves.toStrictEqual(['a'])
+    it('should list global variables without their properties', async () => {
+      await expect(engine.globalVariables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual(['a'])
+      await expect(
+        engine.globalVariables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))
+      ).resolves.toStrictEqual(['a'])
     })
 
     it('should list global variables without their properties synchronously', () => {
@@ -293,64 +308,119 @@ describe('Liquid', function () {
       expect(engine.globalVariablesSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual(['a'])
     })
 
-    it('should list all variables with their properties', () => {
-      expect(engine.fullVariables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual(['a.b', 'c'])
-      expect(engine.fullVariables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).resolves.toStrictEqual(['a.b', 'c'])
+    it('should list all variables with their properties', async () => {
+      await expect(engine.fullVariables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual([
+        'a.b',
+        'c'
+      ])
+      await expect(
+        engine.fullVariables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))
+      ).resolves.toStrictEqual(['a.b', 'c'])
     })
 
     it('should list all variables with their properties synchronously', () => {
       expect(engine.fullVariablesSync('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).toStrictEqual(['a.b', 'c'])
-      expect(engine.fullVariablesSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual(['a.b', 'c'])
+      expect(engine.fullVariablesSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual([
+        'a.b',
+        'c'
+      ])
     })
 
-    it('should list global variables with their properties', () => {
-      expect(engine.globalFullVariables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual(['a.b'])
-      expect(engine.globalFullVariables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).resolves.toStrictEqual(['a.b'])
+    it('should list global variables with their properties', async () => {
+      await expect(engine.globalFullVariables('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual([
+        'a.b'
+      ])
+      await expect(
+        engine.globalFullVariables(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))
+      ).resolves.toStrictEqual(['a.b'])
     })
 
     it('should list global variables with their properties synchronously', () => {
       expect(engine.globalFullVariablesSync('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).toStrictEqual(['a.b'])
-      expect(engine.globalFullVariablesSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual(['a.b'])
+      expect(engine.globalFullVariablesSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual([
+        'a.b'
+      ])
     })
 
-    it('should list all variables as an array of segments', () => {
-      expect(engine.variableSegments('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual([['a', 'b'], ['c']])
-      expect(engine.variableSegments(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).resolves.toStrictEqual([['a', 'b'], ['c']])
+    it('should list all variables as an array of segments', async () => {
+      await expect(engine.variableSegments('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual([
+        ['a', 'b'],
+        ['c']
+      ])
+      await expect(
+        engine.variableSegments(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))
+      ).resolves.toStrictEqual([['a', 'b'], ['c']])
     })
 
     it('should list all variables as an array of segments synchronously', () => {
-      expect(engine.variableSegmentsSync('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).toStrictEqual([['a', 'b'], ['c']])
-      expect(engine.variableSegmentsSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual([['a', 'b'], ['c']])
+      expect(engine.variableSegmentsSync('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).toStrictEqual([
+        ['a', 'b'],
+        ['c']
+      ])
+      expect(engine.variableSegmentsSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual([
+        ['a', 'b'],
+        ['c']
+      ])
     })
 
-    it('should list all variables as an array of segments with nested variables as arrays', () => {
-      expect(engine.variableSegments('{{ a[b.c].d }}')).resolves.toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
-      expect(engine.variableSegments(engine.parse('{{ a[b.c].d }}'))).resolves.toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
+    it('should list all variables as an array of segments with nested variables as arrays', async () => {
+      await expect(engine.variableSegments('{{ a[b.c].d }}')).resolves.toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
+      await expect(engine.variableSegments(engine.parse('{{ a[b.c].d }}'))).resolves.toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
     })
 
     it('should list all variables synchronously as an array of segments with nested variables as arrays', () => {
-      expect(engine.variableSegmentsSync('{{ a[b.c].d }}')).toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
-      expect(engine.variableSegmentsSync(engine.parse('{{ a[b.c].d }}'))).toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
+      expect(engine.variableSegmentsSync('{{ a[b.c].d }}')).toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
+      expect(engine.variableSegmentsSync(engine.parse('{{ a[b.c].d }}'))).toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
     })
 
-    it('should list global variables as an array of segments', () => {
-      expect(engine.globalVariableSegments('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual([['a', 'b']])
-      expect(engine.globalVariableSegments(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).resolves.toStrictEqual([['a', 'b']])
+    it('should list global variables as an array of segments', async () => {
+      await expect(engine.globalVariableSegments('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).resolves.toStrictEqual([
+        ['a', 'b']
+      ])
+      await expect(
+        engine.globalVariableSegments(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))
+      ).resolves.toStrictEqual([['a', 'b']])
     })
 
     it('should list global variables as an array of segments synchronously', () => {
       expect(engine.globalVariableSegmentsSync('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}')).toStrictEqual([['a', 'b']])
-      expect(engine.globalVariableSegmentsSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))).toStrictEqual([['a', 'b']])
+      expect(
+        engine.globalVariableSegmentsSync(engine.parse('{% assign c = 1 %}{{ a.b }}{{ c }}{{ c }}'))
+      ).toStrictEqual([['a', 'b']])
     })
 
-    it('should list global variables as an array of segments with nested variables as arrays', () => {
-      expect(engine.globalVariableSegments('{{ a[b.c].d }}')).resolves.toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
-      expect(engine.globalVariableSegments(engine.parse('{{ a[b.c].d }}'))).resolves.toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
+    it('should list global variables as an array of segments with nested variables as arrays', async () => {
+      await expect(engine.globalVariableSegments('{{ a[b.c].d }}')).resolves.toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
+      await expect(engine.globalVariableSegments(engine.parse('{{ a[b.c].d }}'))).resolves.toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
     })
 
     it('should list global variables synchronously as an array of segments with nested variables as arrays', () => {
-      expect(engine.globalVariableSegmentsSync('{{ a[b.c].d }}')).toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
-      expect(engine.globalVariableSegmentsSync(engine.parse('{{ a[b.c].d }}'))).toStrictEqual([['a', ['b', 'c'], 'd'], ['b', 'c']])
+      expect(engine.globalVariableSegmentsSync('{{ a[b.c].d }}')).toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
+      expect(engine.globalVariableSegmentsSync(engine.parse('{{ a[b.c].d }}'))).toStrictEqual([
+        ['a', ['b', 'c'], 'd'],
+        ['b', 'c']
+      ])
     })
   })
 })

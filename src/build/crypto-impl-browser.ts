@@ -1,4 +1,4 @@
-function bufferToHex (buffer: ArrayBuffer): string {
+function bufferToHex(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
   let hex = ''
   for (let i = 0; i < bytes.length; i++) {
@@ -7,13 +7,13 @@ function bufferToHex (buffer: ArrayBuffer): string {
   return hex
 }
 
-export async function sha256 (str: string): Promise<string> {
+export async function sha256(str: string): Promise<string> {
   const data = new TextEncoder().encode(str)
   const digest = await crypto.subtle.digest('SHA-256', data)
   return bufferToHex(digest)
 }
 
-export async function hmacSha256 (str: string, key: string): Promise<string> {
+export async function hmacSha256(str: string, key: string): Promise<string> {
   const encoder = new TextEncoder()
   const cryptoKey = await crypto.subtle.importKey(
     'raw',

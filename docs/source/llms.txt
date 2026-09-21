@@ -17,6 +17,7 @@
 - [Truthy and falsy](https://liquidjs.com/tutorials/truthy-and-falsy.html)
 - [Security model](https://liquidjs.com/tutorials/security-model.html)
 - [Differences from Shopify Liquid](https://liquidjs.com/tutorials/differences.html)
+- [Migrate to v11](https://liquidjs.com/tutorials/migrate-to-11.html)
 - [Migrate to v9](https://liquidjs.com/tutorials/migrate-to-9.html)
 - [Changelog](https://liquidjs.com/tutorials/changelog.html)
 

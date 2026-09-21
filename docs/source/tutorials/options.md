@@ -5,7 +5,7 @@ title: Options
 The [Liquid][liquid] constructor accepts a plain object as options to define the behavior of LiquidJS. All of these options are optional thus we can specify any of them, for example the `cache` option:
 
 ```javascript
-const { Liquid } = require('liquidjs')
+import { Liquid } from 'liquidjs'
 const engine = new Liquid({
     cache: true
 })

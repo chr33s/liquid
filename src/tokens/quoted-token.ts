@@ -4,7 +4,7 @@ import { parseStringLiteral } from '../render/string'
 
 export class QuotedToken extends Token {
   public readonly content: string
-  constructor (
+  constructor(
     public input: string,
     public begin: number,
     public end: number,

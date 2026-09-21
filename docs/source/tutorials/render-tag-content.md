@@ -30,7 +30,7 @@ Firstly, [register][register-tags] a tag named `wrap` and parse the content into
 Basically, what we need to do is take/`.shift()` enough tags from `remainTokens` until we get an `endwrap` token (the name can be arbitrary, but by convention it should be `endwrap`). And if there's no `endwrap` until the end of the template file, we need to throw a tag-not-closed `Error`.
 
 ```javascript
-const { Tag } = require('liquidjs')
+import { Tag } from 'liquidjs'
 
 engine.registerTag('wrap', class WrapTag extends Tag {
   tpls = []
@@ -107,7 +107,7 @@ As you've noticed, there's an additional `repeat.i` in the context of `repeat`. 
 Each time we enter a new *Context*, we need to push a new *Scope*. And when we finish rendering and exit the *Context*, we pop the *Scope* from the *Context*. As you can see in the following implementation:
 
 ```javascript
-const { Tag } = require('liquidjs')
+import { Tag } from 'liquidjs'
 
 engine.registerTag('repeat', class RepeatTag extends Tag {
   tpls = []

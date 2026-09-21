@@ -1,4 +1,4 @@
-import * as sinon from 'sinon'
+import { fakeXhrServer, FakeXhrServer, FakeXMLHttpRequest } from '../stub/fake-xhr'
 import { JSDOM } from 'jsdom'
 import type { Liquid } from '../../src/liquid'
 const LiquidUMD = require('../../dist/liquid.browser.umd.js').Liquid
@@ -8,19 +8,20 @@ describe('xhr', () => {
     console.info('jsdom not supported, skipping xhr...')
     return
   }
-  let server: sinon.SinonFakeServer, engine: Liquid
+  let server: FakeXhrServer, engine: Liquid
   beforeEach(() => {
-    server = sinon.fakeServer.create()
-    server.autoRespond = true
-    server.respondWith('GET', 'https://example.com/views/hello.html',
-      [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}'])
-    let dom = new JSDOM('', {
+    server = fakeXhrServer()
+    server.respondWith('GET', 'https://example.com/views/hello.html', [
+      200,
+      { 'Content-Type': 'text/plain' },
+      'hello {{name}}'
+    ])
+    const dom = new JSDOM('', {
       url: 'https://example.com/foo/bar.html',
       contentType: 'text/html',
       includeNodeLocations: true
-    });
-    (global as any).XMLHttpRequest = sinon.FakeXMLHttpRequest;
-    (global as any).document = dom.window.document
+    })
+    ;(global as any).document = dom.window.document
     engine = new LiquidUMD({
       root: 'https://example.com/views/',
       extname: '.html'
@@ -28,7 +29,6 @@ describe('xhr', () => {
   })
   afterEach(() => {
     server.restore()
-    delete (global as any).XMLHttpRequest
     delete (global as any).document
   })
   describe('#renderFile()', () => {
@@ -41,8 +41,7 @@ describe('xhr', () => {
       return expect(html).toBe('hello alice2')
     })
     it('should support with absolute path', async () => {
-      server.respondWith('GET', 'https://example.com/foo.html',
-        [200, { 'Content-Type': 'text/plain' }, 'foo'])
+      server.respondWith('GET', 'https://example.com/foo.html', [200, { 'Content-Type': 'text/plain' }, 'foo'])
       const html = await engine.renderFile('/foo.html')
       return expect(html).toBe('foo')
     })
@@ -51,21 +50,27 @@ describe('xhr', () => {
       return expect(html).toBe('hello alice4')
     })
     it('should support include', async () => {
-      server.respondWith('GET', 'https://example.com/views/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, "hello {% include 'name.html' %}"])
-      server.respondWith('GET', 'https://example.com/views/name.html',
-        [200, { 'Content-Type': 'text/plain' }, '{{name}}'])
+      server.respondWith('GET', 'https://example.com/views/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        "hello {% include 'name.html' %}"
+      ])
+      server.respondWith('GET', 'https://example.com/views/name.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        '{{name}}'
+      ])
       const html = await engine.renderFile('hello.html', { name: 'alice5' })
       return expect(html).toBe('hello alice5')
     })
     it('should throw 404', () => {
-      return expect(engine.renderFile('/not/exist.html'))
-        .rejects.toThrow('Not Found')
+      return expect(engine.renderFile('/not/exist.html')).rejects.toThrow('Not Found')
     })
     it('should throw error', function () {
-      const result = expect(engine.renderFile('hello.html'))
-        .rejects.toThrow('An error occurred whilst receiving the response.');
-      (global as any).XMLHttpRequest.onCreate = function (request: sinon.SinonFakeXMLHttpRequest) {
+      const result = expect(engine.renderFile('hello.html')).rejects.toThrow(
+        'An error occurred whilst receiving the response.'
+      )
+      FakeXMLHttpRequest.onCreate = function (request: FakeXMLHttpRequest) {
         setTimeout(() => request.error())
       }
       return result
@@ -76,8 +81,11 @@ describe('xhr', () => {
       engine = new LiquidUMD({
         extname: '.html'
       })
-      server.respondWith('GET', 'https://example.com/foo/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}'])
+      server.respondWith('GET', 'https://example.com/foo/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        'hello {{name}}'
+      ])
       const html = await engine.renderFile('hello.html', { name: 'alice5' })
       return expect(html).toBe('hello alice5')
     })
@@ -86,8 +94,11 @@ describe('xhr', () => {
         root: '',
         extname: '.html'
       })
-      server.respondWith('https://example.com/foo/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}'])
+      server.respondWith('https://example.com/foo/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        'hello {{name}}'
+      ])
       const html = await engine.renderFile('hello.html', { name: 'alice5' })
       return expect(html).toBe('hello alice5')
     })
@@ -96,8 +107,11 @@ describe('xhr', () => {
         root: './views/',
         extname: '.html'
       })
-      server.respondWith('GET', 'https://example.com/foo/views/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}'])
+      server.respondWith('GET', 'https://example.com/foo/views/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        'hello {{name}}'
+      ])
       const html = await engine.renderFile('hello.html', { name: 'alice5' })
       return expect(html).toBe('hello alice5')
     })
@@ -106,8 +120,11 @@ describe('xhr', () => {
         root: '/views/',
         extname: '.html'
       })
-      server.respondWith('GET', 'https://example.com/views/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}'])
+      server.respondWith('GET', 'https://example.com/views/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        'hello {{name}}'
+      ])
       const html = await engine.renderFile('hello.html', { name: 'alice5' })
       return expect(html).toBe('hello alice5')
     })
@@ -116,21 +133,27 @@ describe('xhr', () => {
         root: 'https://example.com/bar/',
         extname: '.html'
       })
-      server.respondWith('GET', 'https://example.com/bar/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}'])
+      server.respondWith('GET', 'https://example.com/bar/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        'hello {{name}}'
+      ])
       const html = await engine.renderFile('hello.html', { name: 'alice5' })
       return expect(html).toBe('hello alice5')
     })
   })
   describe('cache options', () => {
     it('should be disabled by default', () => {
-      server.respondWith('GET', 'https://example.com/views/foo.html',
-        [200, { 'Content-Type': 'text/plain' }, 'foo1'])
-      return engine.renderFile('foo.html')
+      server.respondWith('GET', 'https://example.com/views/foo.html', [200, { 'Content-Type': 'text/plain' }, 'foo1'])
+      return engine
+        .renderFile('foo.html')
         .then((html: string) => {
           expect(html).toBe('foo1')
-          server.respondWith('GET', 'https://example.com/views/foo.html',
-            [200, { 'Content-Type': 'text/plain' }, 'foo2'])
+          server.respondWith('GET', 'https://example.com/views/foo.html', [
+            200,
+            { 'Content-Type': 'text/plain' },
+            'foo2'
+          ])
           return engine.renderFile('foo.html')
         })
         .then((html: string) => expect(html).toBe('foo2'))
@@ -141,13 +164,16 @@ describe('xhr', () => {
         extname: '.html',
         cache: true
       })
-      server.respondWith('GET', 'https://example.com/views/foo.html',
-        [200, { 'Content-Type': 'text/plain' }, 'foo1'])
-      return engine.renderFile('foo.html')
+      server.respondWith('GET', 'https://example.com/views/foo.html', [200, { 'Content-Type': 'text/plain' }, 'foo1'])
+      return engine
+        .renderFile('foo.html')
         .then((html: string) => {
           expect(html).toBe('foo1')
-          server.respondWith('GET', 'https://example.com/views/foo.html',
-            [200, { 'Content-Type': 'text/plain' }, 'foo2'])
+          server.respondWith('GET', 'https://example.com/views/foo.html', [
+            200,
+            { 'Content-Type': 'text/plain' },
+            'foo2'
+          ])
           return engine.renderFile('foo.html')
         })
         .then((html: string) => expect(html).toBe('foo1'))

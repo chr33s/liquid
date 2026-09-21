@@ -17,7 +17,7 @@ describe('tags/capture', function () {
 
   it('should not change root scope', async function () {
     const src = '{% capture var %}10{% endcapture %}{{var}}'
-    const ctx = { 'var': 20 }
+    const ctx = { var: 20 }
     const html = await liquid.parseAndRender(src, ctx)
     expect(html).toBe('10')
     expect(ctx.var).toBe(20)
@@ -25,14 +25,12 @@ describe('tags/capture', function () {
 
   it('should throw on invalid identifier', function () {
     const src = '{% capture = %}{%endcapture%}'
-    return expect(liquid.parseAndRender(src))
-      .rejects.toThrow('invalid capture name, line:1, col:12')
+    return expect(liquid.parseAndRender(src)).rejects.toThrow('invalid capture name, line:1, col:12')
   })
 
   it('should throw when capture not closed', function () {
     const src = '{%capture c%}{{c}}'
-    return expect(liquid.parseAndRender(src))
-      .rejects.toThrow(/tag .* not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow(/tag .* not closed/)
   })
   it('should support sync', function () {
     const src = '{% capture f %}{{"a" | capitalize}}{%endcapture%}{{f}}'

@@ -46,8 +46,10 @@ describe('LiquidOptions#strict*', function () {
       return expect(html).toBe('beforeafter')
     })
     it('should support elsif with undefined variables', async function () {
-      const tpl = engine.parse('{% if notdefined1 %}a{% elsif notdefined2 %}b{% elsif defined3 %}{{defined3}}{% else %}d{% endif %}')
-      const html = await engine.render(tpl, { 'defined3': 'bla' })
+      const tpl = engine.parse(
+        '{% if notdefined1 %}a{% elsif notdefined2 %}b{% elsif defined3 %}{{defined3}}{% else %}d{% endif %}'
+      )
+      const html = await engine.render(tpl, { defined3: 'bla' })
       return expect(html).toBe('bla')
     })
     it('should not throw in `unless` with a single variable', async function () {

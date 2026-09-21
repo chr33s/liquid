@@ -11,7 +11,7 @@ export abstract class LiquidError extends Error {
   public token!: Token
   public context = ''
   public originalError?: Error
-  public constructor (err: Error | string, token: Token) {
+  public constructor(err: Error | string, token: Token) {
     /**
      * note: for ES5 targeting, `this` will be replaced by return value of Error(),
      * thus everything on `this` will be lost, avoid calling `LiquidError` methods here
@@ -21,20 +21,19 @@ export abstract class LiquidError extends Error {
     Object.defineProperty(this, 'token', { value: token, enumerable: false })
     Object.defineProperty(this, TRAIT, { value: 'LiquidError', enumerable: false })
   }
-  protected update () {
+  protected update() {
     Object.defineProperty(this, 'context', { value: mkContext(this.token), enumerable: false })
     this.message = mkMessage(this.message, this.token)
-    this.stack = this.message + '\n' + this.context +
-      '\n' + this.stack
+    this.stack = this.message + '\n' + this.context + '\n' + this.stack
     if (this.originalError) this.stack += '\nFrom ' + this.originalError.stack
   }
-  static is (obj: unknown): obj is LiquidError {
+  static is(obj: unknown): obj is LiquidError {
     return (obj as Record<string, unknown> | null | undefined)?.[TRAIT] === 'LiquidError'
   }
 }
 
 export class TokenizationError extends LiquidError {
-  public constructor (message: string, token: Token) {
+  public constructor(message: string, token: Token) {
     super(message, token)
     this.name = 'TokenizationError'
     super.update()
@@ -42,7 +41,7 @@ export class TokenizationError extends LiquidError {
 }
 
 export class ParseError extends LiquidError {
-  public constructor (err: Error, token: Token) {
+  public constructor(err: Error, token: Token) {
     super(err, token)
     this.name = 'ParseError'
     this.message = err.message
@@ -51,32 +50,32 @@ export class ParseError extends LiquidError {
 }
 
 export class RenderError extends LiquidError {
-  public constructor (err: Error, tpl: Template) {
+  public constructor(err: Error, tpl: Template) {
     super(err, tpl.token)
     this.name = 'RenderError'
     this.message = err.message
     super.update()
   }
-  public static is (obj: any): obj is RenderError {
+  public static is(obj: any): obj is RenderError {
     return obj.name === 'RenderError'
   }
 }
 
 export class LiquidErrors extends LiquidError {
-  public constructor (public errors: RenderError[]) {
+  public constructor(public errors: RenderError[]) {
     super(errors[0], errors[0].token)
     this.name = 'LiquidErrors'
     const s = errors.length > 1 ? 's' : ''
     this.message = `${errors.length} error${s} found`
     super.update()
   }
-  public static is (obj: any): obj is LiquidErrors {
+  public static is(obj: any): obj is LiquidErrors {
     return obj.name === 'LiquidErrors'
   }
 }
 
 export class UndefinedVariableError extends LiquidError {
-  public constructor (err: Error, token: Token) {
+  public constructor(err: Error, token: Token) {
     super(err, token)
     this.name = 'UndefinedVariableError'
     this.message = err.message
@@ -89,7 +88,7 @@ export class UndefinedVariableError extends LiquidError {
 export class InternalUndefinedVariableError extends Error {
   variableName: string
 
-  public constructor (variableName: string) {
+  public constructor(variableName: string) {
     super(`undefined variable: ${variableName}`)
     this.name = 'InternalUndefinedVariableError'
     this.variableName = variableName
@@ -97,29 +96,26 @@ export class InternalUndefinedVariableError extends Error {
 }
 
 export class AssertionError extends Error {
-  public constructor (message: string) {
+  public constructor(message: string) {
     super(message)
     this.name = 'AssertionError'
     this.message = message + ''
   }
 }
 
-function mkContext (token: Token) {
+function mkContext(token: Token) {
   const [line, col] = token.getPosition()
   const lines = token.input.split('\n')
   const begin = Math.max(line - 2, 1)
   const end = Math.min(line + 3, lines.length)
 
-  const context = _
-    .range(begin, end + 1)
+  const context = _.range(begin, end + 1)
     .map(lineNumber => {
-      const rowIndicator = (lineNumber === line) ? '>> ' : '   '
+      const rowIndicator = lineNumber === line ? '>> ' : '   '
       const num = _.padStart(String(lineNumber), String(end).length)
       let text = `${rowIndicator}${num}| `
 
-      const colIndicator = lineNumber === line
-        ? '\n' + _.padStart('^', col + text.length)
-        : ''
+      const colIndicator = lineNumber === line ? '\n' + _.padStart('^', col + text.length) : ''
 
       text += lines[lineNumber - 1]
       text += colIndicator
@@ -130,7 +126,7 @@ function mkContext (token: Token) {
   return context
 }
 
-function mkMessage (msg: string, token: Token) {
+function mkMessage(msg: string, token: Token) {
   if (token.file) msg += `, file:${token.file}`
   const [line, col] = token.getPosition()
   msg += `, line:${line}, col:${col}`

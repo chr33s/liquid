@@ -1,5 +1,5 @@
 import * as fs from './fs-impl-browser'
-import * as sinon from 'sinon'
+import { fakeXhrServer, FakeXhrServer } from '../../test/stub/fake-xhr'
 import { JSDOM } from 'jsdom'
 
 describe('fs/browser', function () {
@@ -8,8 +8,8 @@ describe('fs/browser', function () {
       url: 'https://example.com/foo/bar/',
       contentType: 'text/html',
       includeNodeLocations: true
-    });
-    (global as any).document = dom.window.document
+    })
+    ;(global as any).document = dom.window.document
   })
   afterEach(function () {
     delete (global as any).document
@@ -34,10 +34,14 @@ describe('fs/browser', function () {
       expect(fs.resolve('https://example.com/views/', 'page', '.html')).toBe('https://example.com/views/page.html')
     })
     it('should add extname for urls have searchParams', function () {
-      expect(fs.resolve('https://example.com/views/', 'page?foo=bar', '.html')).toBe('https://example.com/views/page.html?foo=bar')
+      expect(fs.resolve('https://example.com/views/', 'page?foo=bar', '.html')).toBe(
+        'https://example.com/views/page.html?foo=bar'
+      )
     })
     it('should not add extname when full url is given', function () {
-      expect(fs.resolve('https://example.com/views/', 'https://google.com/page.php', '.html')).toBe('https://google.com/page.php')
+      expect(fs.resolve('https://example.com/views/', 'https://google.com/page.php', '.html')).toBe(
+        'https://google.com/page.php'
+      )
     })
     it('should not add extname when already have one', function () {
       expect(fs.resolve('https://example.com/views/', 'page.php', '.html')).toBe('https://example.com/views/page.php')
@@ -65,56 +69,54 @@ describe('fs/browser', function () {
   })
 
   describe('#readFile()', () => {
-    let server: sinon.SinonFakeServer
+    let server: FakeXhrServer
     beforeEach(() => {
-      server = sinon.fakeServer.create()
-      server.autoRespond = true
-      server.respondWith('GET', 'https://example.com/views/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}']);
-      (global as any).XMLHttpRequest = sinon.useFakeXMLHttpRequest()
+      server = fakeXhrServer()
+      server.respondWith('GET', 'https://example.com/views/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        'hello {{name}}'
+      ])
     })
     afterEach(() => {
       server.restore()
-      delete (global as any).XMLHttpRequest
     })
     it('should get corresponding text', async function () {
       const html = await fs.readFile('https://example.com/views/hello.html')
       return expect(html).toBe('hello {{name}}')
     })
     it('should throw 404', () => {
-      return expect(fs.readFile('https://example.com/not/exist.html'))
-        .rejects.toHaveProperty('message', 'Not Found')
+      return expect(fs.readFile('https://example.com/not/exist.html')).rejects.toHaveProperty('message', 'Not Found')
     })
     it('should throw error', function () {
-      const result = expect(fs.readFile('https://example.com/views/hello.html'))
-        .rejects.toHaveProperty('message', 'An error occurred whilst receiving the response.')
+      const result = expect(fs.readFile('https://example.com/views/hello.html')).rejects.toHaveProperty(
+        'message',
+        'An error occurred whilst receiving the response.'
+      )
       server.requests[0].error()
       return result
     })
   })
 
   describe('#readFileSync()', () => {
-    let server: sinon.SinonFakeServer
+    let server: FakeXhrServer
     beforeEach(() => {
-      server = sinon.fakeServer.create()
-      server.autoRespond = true
-      server.respondWith(
-        'GET', 'https://example.com/views/hello.html',
-        [200, { 'Content-Type': 'text/plain' }, 'hello {{name}}']
-      );
-      (global as any).XMLHttpRequest = sinon.useFakeXMLHttpRequest()
+      server = fakeXhrServer()
+      server.respondWith('GET', 'https://example.com/views/hello.html', [
+        200,
+        { 'Content-Type': 'text/plain' },
+        'hello {{name}}'
+      ])
     })
     afterEach(() => {
       server.restore()
-      delete (global as any).XMLHttpRequest
     })
     it('should get corresponding text', function () {
       const html = fs.readFileSync('https://example.com/views/hello.html')
       return expect(html).toBe('hello {{name}}')
     })
     it('should throw 404', () => {
-      return expect(() => fs.readFileSync('https://example.com/not/exist.html'))
-        .toThrow('Not Found')
+      return expect(() => fs.readFileSync('https://example.com/not/exist.html')).toThrow('Not Found')
     })
   })
 })

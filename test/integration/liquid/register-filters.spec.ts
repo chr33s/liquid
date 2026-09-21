@@ -1,8 +1,10 @@
-import { Liquid } from '../../../src/liquid'
+import { Liquid, filters } from '../../../src'
 
 describe('liquid#registerFilter()', function () {
   let liquid: Liquid
-  beforeEach(() => { liquid = new Liquid() })
+  beforeEach(() => {
+    liquid = new Liquid()
+  })
 
   describe('key-value arguments', function () {
     beforeEach(() => {
@@ -43,7 +45,7 @@ describe('liquid#registerFilter()', function () {
       })
     })
     it('should escape filter output when outputEscape set to true', async () => {
-      liquid.registerFilter('break', (str) => str.replace(/\n/g, '<br/>'))
+      liquid.registerFilter('break', str => str.replace(/\n/g, '<br/>'))
       const src = `{{ "a\nb" | break }}`
       const dst = 'a&lt;br/&gt;b'
       const html = await liquid.parseAndRender(src)
@@ -51,7 +53,7 @@ describe('liquid#registerFilter()', function () {
     })
     it('should not escape filter output when registered as "raw"', async () => {
       liquid.registerFilter('break', {
-        handler: (str) => str.replace(/\n/g, '<br/>'),
+        handler: str => str.replace(/\n/g, '<br/>'),
         raw: true
       })
       const src = `{{ "a\nb" | break }}`
@@ -64,6 +66,39 @@ describe('liquid#registerFilter()', function () {
   it('should not treat Object.prototype names as registered filters', async () => {
     expect(Object.getPrototypeOf(liquid.filters)).toBeNull()
     await expect(liquid.parseAndRender('{{ x | constructor }}', { x: 42 })).resolves.toBe('42')
-    await expect(new Liquid({ strictFilters: true }).parseAndRender('{{ 1 | constructor }}')).rejects.toThrow('undefined filter')
+    await expect(new Liquid({ strictFilters: true }).parseAndRender('{{ 1 | constructor }}')).rejects.toThrow(
+      'undefined filter'
+    )
+  })
+})
+
+describe('liquid#unregisterFilter()', function () {
+  let liquid: Liquid
+  beforeEach(() => {
+    liquid = new Liquid()
+  })
+
+  it('should unregister a custom filter', async () => {
+    liquid.registerFilter('greet', value => `hello ${value}`)
+    liquid.unregisterFilter('greet')
+    const html = await liquid.parseAndRender('{{ "world" | greet }}')
+    return expect(html).toBe('world')
+  })
+
+  it('should unregister a built-in filter', () => {
+    liquid = new Liquid({ strictFilters: true })
+    liquid.unregisterFilter('upcase')
+    return expect(liquid.parseAndRender('{{ "foo" | upcase }}')).rejects.toThrow('undefined filter: upcase')
+  })
+
+  it('should support re-registering a built-in filter', async () => {
+    liquid.unregisterFilter('upcase')
+    liquid.registerFilter('upcase', filters.upcase)
+    const html = await liquid.parseAndRender('{{ "foo" | upcase }}')
+    return expect(html).toBe('FOO')
+  })
+
+  it('should not throw for an unknown filter', () => {
+    expect(() => liquid.unregisterFilter('unknown')).not.toThrow()
   })
 })

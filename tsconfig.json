@@ -1,17 +1,39 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module":"ES2020",
-    "lib": ["ES2020", "dom"],
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "lib": [
+      "ES2020",
+      "dom"
+    ],
+    "moduleResolution": "bundler",
+    "types": [
+      "node",
+      "vitest/globals"
+    ],
     "sourceMap": true,
     "outDir": "dist",
     "declaration": true,
+    "noEmit": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "strict": true
+    "isolatedModules": true,
+    "strict": true,
+    "allowJs": true
   },
-  "all": true,
-  "exclude": [ "node_modules", "dist", "demo", "test" ]
+  "include": [
+    "src",
+    "test",
+    "bin",
+    "vitest.config.mts",
+    "rolldown.config.mjs"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "demo",
+    "docs",
+    "benchmark"
+  ]
 }

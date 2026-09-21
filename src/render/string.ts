@@ -9,14 +9,14 @@ const escapeChar: Record<string, string> = {
   v: '\x0B'
 }
 
-function hexVal (c: string) {
+function hexVal(c: string) {
   const code = c.charCodeAt(0)
   if (code >= 97) return code - 87
   if (code >= 65) return code - 55
   return code - 48
 }
 
-export function parseStringLiteral (str: string): string {
+export function parseStringLiteral(str: string): string {
   let ret = ''
   for (let i = 1; i < str.length - 1; i++) {
     if (str[i] !== '\\') {

@@ -1,5 +1,17 @@
 import { isValueToken, toEnumerable } from '../util'
-import { ValueToken, Liquid, Tag, evalToken, Emitter, Hash, TagToken, TopLevelToken, Context, Template, ParseStream } from '..'
+import {
+  ValueToken,
+  Liquid,
+  Tag,
+  evalToken,
+  Emitter,
+  Hash,
+  TagToken,
+  TopLevelToken,
+  Context,
+  Template,
+  ParseStream
+} from '..'
 import { TablerowloopDrop } from '../drop/tablerowloop-drop'
 import { Parser } from '../parser'
 import { Arguments } from '../template'
@@ -9,7 +21,7 @@ export default class extends Tag {
   args: Hash
   templates: Template[]
   collection: ValueToken
-  constructor (tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
     const variable = this.tokenizer.readIdentifier()
     this.tokenizer.skipBlank()
@@ -26,7 +38,8 @@ export default class extends Tag {
     this.templates = []
 
     let p
-    const stream: ParseStream = parser.parseStream(remainTokens)
+    const stream: ParseStream = parser
+      .parseStream(remainTokens)
       .on('start', () => (p = this.templates))
       .on('tag:endtablerow', () => stream.stop())
       .on('template', (tpl: Template) => p.push(tpl))
@@ -37,11 +50,11 @@ export default class extends Tag {
     stream.start()
   }
 
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     let collection = toEnumerable(yield evalToken(this.collection, ctx))
     const args = (yield this.args.render(ctx)) as Record<string, any>
     const offset = args.offset || 0
-    const limit = (args.limit === undefined) ? collection.length : args.limit
+    const limit = args.limit === undefined ? collection.length : args.limit
 
     collection = collection.slice(offset, offset + limit)
     if (!collection.length) return
@@ -68,11 +81,11 @@ export default class extends Tag {
     ctx.pop()
   }
 
-  public * children (): Generator<unknown, Template[]> {
+  public *children(): Generator<unknown, Template[]> {
     return this.templates
   }
 
-  public * arguments (): Arguments {
+  public *arguments(): Arguments {
     yield this.collection
 
     for (const v of Object.values(this.args.hash)) {
@@ -82,7 +95,7 @@ export default class extends Tag {
     }
   }
 
-  public blockScope (): string[] {
+  public blockScope(): string[] {
     return [this.variable, 'tablerowloop']
   }
 }

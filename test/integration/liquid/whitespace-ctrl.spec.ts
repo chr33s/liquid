@@ -18,7 +18,8 @@ const cases = [
         </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -35,7 +36,8 @@ const cases = [
         <p>John</p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -54,7 +56,8 @@ const cases = [
         <p>yes</p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -73,7 +76,8 @@ const cases = [
         </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -90,40 +94,52 @@ const cases = [
         </p>
       </div>
     `
-  }, {
-    text: '<p>{{- \'John\' -}}</p>',
+  },
+  {
+    text: "<p>{{- 'John' -}}</p>",
     expected: '<p>John</p>'
-  }, {
+  },
+  {
     text: '<p>{%- if true -%}yes{%- endif -%}</p>',
     expected: '<p>yes</p>'
-  }, {
+  },
+  {
     text: '<p>{%- if false -%}no{%- endif -%}</p>',
     expected: '<p></p>'
-  }, {
+  },
+  {
     text: '<p> {%- if true %} yes {% endif -%} </p>',
     expected: '<p> yes </p>'
-  }, {
+  },
+  {
     text: '<p> {%- if false %} no {% endif -%} </p>',
     expected: '<p></p>'
-  }, {
+  },
+  {
     text: '<p> {% if true -%} yes {%- endif %} </p>',
     expected: '<p> yes </p>'
-  }, {
+  },
+  {
     text: '<p> {% if false -%} no {%- endif %} </p>',
     expected: '<p>  </p>'
-  }, {
+  },
+  {
     text: '<p> {% if true -%} yes {% endif -%} </p>',
     expected: '<p> yes </p>'
-  }, {
+  },
+  {
     text: '<p> {% if false -%} no {% endif -%} </p>',
     expected: '<p> </p>'
-  }, {
+  },
+  {
     text: '<p> {%- if true %} yes {%- endif %} </p>',
     expected: '<p> yes </p>'
-  }, {
+  },
+  {
     text: '<p> {%- if false %} no {%- endif %} </p>',
     expected: '<p> </p>'
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -137,7 +153,8 @@ const cases = [
         </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -154,7 +171,8 @@ const cases = [
         </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -170,7 +188,8 @@ const cases = [
         </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -184,7 +203,8 @@ const cases = [
           John</p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -201,7 +221,8 @@ const cases = [
           </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -217,7 +238,8 @@ const cases = [
           </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -234,7 +256,8 @@ const cases = [
           </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -249,7 +272,8 @@ const cases = [
         <p></p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -266,7 +290,8 @@ const cases = [
         </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -283,7 +308,8 @@ const cases = [
         </p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -296,7 +322,8 @@ const cases = [
         <p>John</p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -311,7 +338,8 @@ const cases = [
         <p>yes</p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -326,7 +354,8 @@ const cases = [
         <p></p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -340,7 +369,8 @@ const cases = [
         <p>John,30</p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -355,7 +385,8 @@ const cases = [
         <p>yes</p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -370,7 +401,8 @@ const cases = [
         <p></p>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         <p>
@@ -397,7 +429,8 @@ const cases = [
           30</i>
       </div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         {%- if true -%}
@@ -412,7 +445,8 @@ const cases = [
     expected: `
       <div><p>John</p></div>
     `
-  }, {
+  },
+  {
     text: `
       <div>
         {% raw %}
@@ -439,11 +473,10 @@ const cases = [
 ]
 
 describe('Whitespace Control', function () {
-  cases.forEach(item => it(
-    item.text,
-    async () => {
+  cases.forEach(item =>
+    it(item.text, async () => {
       const html = await liquid.parseAndRender(item.text)
       expect(html).toBe(item.expected)
-    }
-  ))
+    })
+  )
 })

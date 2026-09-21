@@ -3,7 +3,7 @@ import { FilterArg } from '../parser/filter-arg'
 import { TokenKind } from '../parser'
 
 export class FilterToken extends Token {
-  public constructor (
+  public constructor(
     public name: string,
     public args: FilterArg[],
     input: string,

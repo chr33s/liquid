@@ -1,0 +1,24 @@
+{
+  "$schema": "../node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "categories": {
+    "correctness": "error"
+  },
+  "ignorePatterns": [
+    "public/",
+    "source/api/",
+    "themes/navy/source/js/liquid.browser.min.js"
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "caughtErrors": "none"
+      }
+    ]
+  }
+}

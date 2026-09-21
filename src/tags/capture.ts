@@ -7,7 +7,7 @@ export default class extends Tag {
   identifier: IdentifierToken | QuotedToken
   variable: string
   templates: Template[] = []
-  constructor (tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
     this.identifier = this.readVariable()
     this.variable = this.identifier.content
@@ -20,7 +20,7 @@ export default class extends Tag {
     throw new Error(`tag ${tagToken.getText()} not closed`)
   }
 
-  private readVariable (): IdentifierToken | QuotedToken {
+  private readVariable(): IdentifierToken | QuotedToken {
     let ident: IdentifierToken | QuotedToken | undefined = this.tokenizer.readIdentifier()
     if (ident.content) return ident
     ident = this.tokenizer.readQuoted()
@@ -28,17 +28,17 @@ export default class extends Tag {
     throw this.tokenizer.error('invalid capture name')
   }
 
-  * render (ctx: Context): Generator<unknown, void, string> {
+  *render(ctx: Context): Generator<unknown, void, string> {
     const r = this.liquid.renderer
     const html = yield r.renderTemplates(this.templates, ctx)
     ctx.bottom()[this.variable] = html
   }
 
-  public * children (): Generator<unknown, Template[]> {
+  public *children(): Generator<unknown, Template[]> {
     return this.templates
   }
 
-  public * localScope (): Iterable<string | IdentifierToken | QuotedToken> {
+  public *localScope(): Iterable<string | IdentifierToken | QuotedToken> {
     yield this.identifier
   }
 }

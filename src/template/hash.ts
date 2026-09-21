@@ -16,14 +16,14 @@ type HashValueTokens = Record<string, Token | undefined>
 export class Hash {
   hash: HashValueTokens = {}
 
-  constructor (input: string | Tokenizer, jekyllStyle?: boolean | string) {
+  constructor(input: string | Tokenizer, jekyllStyle?: boolean | string) {
     const tokenizer = input instanceof Tokenizer ? input : new Tokenizer(input, {})
     for (const hash of tokenizer.readHashes(jekyllStyle)) {
       this.hash[hash.name.content] = hash.value
     }
   }
 
-  * render (ctx: Context): Generator<unknown, Record<string, any>, unknown> {
+  *render(ctx: Context): Generator<unknown, Record<string, any>, unknown> {
     const hash: Record<string, any> = {}
     for (const key of Object.keys(this.hash)) {
       hash[key] = this.hash[key] === undefined ? true : yield evalToken(this.hash[key], ctx)

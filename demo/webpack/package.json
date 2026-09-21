@@ -13,7 +13,7 @@
     "liquidjs": "latest"
   },
   "devDependencies": {
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
+    "webpack": "^5.111.1",
+    "webpack-cli": "^7.2.3"
   }
 }

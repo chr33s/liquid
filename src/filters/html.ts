@@ -16,34 +16,39 @@ const unescapeMap: Record<string, string> = {
   '&#39;': "'"
 }
 
-export function escape (this: FilterImpl, str: string) {
+export function escape(this: FilterImpl, str: string) {
   str = stringify(str)
   return str.replace(/&|<|>|"|'/g, m => escapeMap[m])
 }
 
-export function xml_escape (this: FilterImpl, str: string) {
+export function xml_escape(this: FilterImpl, str: string) {
   return escape.call(this, str)
 }
 
-function unescape (this: FilterImpl, str: string) {
+function unescape(this: FilterImpl, str: string) {
   str = stringify(str)
   return str.replace(/&(amp|lt|gt|#34|#39);/g, m => unescapeMap[m])
 }
 
-export function escape_once (this: FilterImpl, str: string) {
+export function escape_once(this: FilterImpl, str: string) {
   return escape.call(this, unescape.call(this, str))
 }
 
-export function newline_to_br (this: FilterImpl, v: string) {
+export function newline_to_br(this: FilterImpl, v: string) {
   const str = stringify(v)
   return str.replace(/\r?\n/gm, '<br />\n')
 }
 
 // Raw-text blocks (HTML5) plus '<...>' as the catch-all kind; a regex
 // equivalent is O(n^2) in V8 on unclosed openers.
-export function strip_html (this: FilterImpl, v: string) {
+export function strip_html(this: FilterImpl, v: string) {
   const str = stringify(v)
-  const blocks = new Map([['<script', '</script>'], ['<style', '</style>'], ['<!--', '-->'], ['<', '>']])
+  const blocks = new Map([
+    ['<script', '</script>'],
+    ['<style', '</style>'],
+    ['<!--', '-->'],
+    ['<', '>']
+  ])
   let out = ''
   let i = 0
   while (i < str.length) {
@@ -53,7 +58,10 @@ export function strip_html (this: FilterImpl, v: string) {
     for (const [opener, closer] of blocks) {
       if (!str.startsWith(opener, lt)) continue
       const e = str.indexOf(closer, lt + opener.length)
-      if (e >= 0) { i = e + closer.length; break }
+      if (e >= 0) {
+        i = e + closer.length
+        break
+      }
       blocks.delete(opener)
     }
     if (i <= lt) return out + str.slice(lt)

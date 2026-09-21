@@ -3,7 +3,7 @@ import { ValueToken } from './value-token'
 import { TokenKind } from '../parser'
 
 export class RangeToken extends Token {
-  constructor (
+  constructor(
     public input: string,
     public begin: number,
     public end: number,

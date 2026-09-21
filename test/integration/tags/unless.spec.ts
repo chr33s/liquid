@@ -2,7 +2,9 @@ import { Liquid } from '../../../src/liquid'
 
 describe('tags/unless', function () {
   let liquid: Liquid
-  beforeEach(() => { liquid = new Liquid() })
+  beforeEach(() => {
+    liquid = new Liquid()
+  })
 
   it('should render else when predicate yields true', async function () {
     // 0 is truthy
@@ -22,8 +24,7 @@ describe('tags/unless', function () {
   })
   it('should reject when tag not closed', function () {
     const src = '{% unless 1 > 2 %}yes'
-    return expect(liquid.parseAndRender(src))
-      .rejects.toThrow(/tag {% unless 1 > 2 %} not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow(/tag {% unless 1 > 2 %} not closed/)
   })
   it('should render unless when predicate yields false and else undefined', async function () {
     const src = '{% unless 1 > 2 %}yes{%endunless%}'
@@ -48,26 +49,29 @@ describe('tags/unless', function () {
       After wonderland`)
   })
   it('should not render anything after an else branch', async function () {
-    const html = await liquid.parseAndRenderSync('{% assign value = "this" %}' +
-      '{% unless true %}don\'t show' +
-      '{% else %}show {{ value }}' +
-      '{% else %}don\'t show' +
-    '{% endunless %}', {})
+    const html = await liquid.parseAndRenderSync(
+      '{% assign value = "this" %}' +
+        "{% unless true %}don't show" +
+        '{% else %}show {{ value }}' +
+        "{% else %}don't show" +
+        '{% endunless %}',
+      {}
+    )
     expect(html).toEqual('show this')
   })
   it('should not render anything after an else branch even when first else branch is empty', async function () {
-    const html = await liquid.parseAndRenderSync('{% unless true %}don\'t show' +
-      '{% else %}' +
-      '{% else %}don\'t show' +
-    '{% endunless %}', {})
+    const html = await liquid.parseAndRenderSync(
+      "{% unless true %}don't show" + '{% else %}' + "{% else %}don't show" + '{% endunless %}',
+      {}
+    )
     expect(html).toEqual('')
   })
   it('should not render an elseif after an else branch', () => {
     const engine = new Liquid()
-    const result = engine.parseAndRenderSync('{% unless true %}don\'t show' +
-      '{% else %}show' +
-      '{% elsif true %}don\'t show' +
-    '{% endunless %}', {})
+    const result = engine.parseAndRenderSync(
+      "{% unless true %}don't show" + '{% else %}show' + "{% elsif true %}don't show" + '{% endunless %}',
+      {}
+    )
     expect(result).toEqual('show')
   })
 

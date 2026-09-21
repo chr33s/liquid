@@ -2,12 +2,12 @@ import { FS } from './fs'
 import { assert, LiquidAsync, toLiquidAsync } from '../util'
 
 export interface LoaderOptions {
-  fs: FS;
-  extname: string;
-  root: string[];
-  partials: string[];
-  layouts: string[];
-  relativeReference: boolean;
+  fs: FS
+  extname: string
+  root: string[]
+  partials: string[]
+  layouts: string[]
+  relativeReference: boolean
 }
 export enum LookupType {
   Partials = 'partials',
@@ -20,7 +20,7 @@ export class Loader {
   private contains: LiquidAsync<NonNullable<FS['containsSync']>>
   private exists: LiquidAsync<FS['existsSync']>
 
-  constructor (options: LoaderOptions) {
+  constructor(options: LoaderOptions) {
     this.options = options
     if (options.relativeReference) {
       const sep = options.fs.sep
@@ -35,18 +35,23 @@ export class Loader {
       fs.contains?.bind(fs) || (async () => true),
       fs.containsSync?.bind(fs) || (() => true)
     )
-    this.exists = toLiquidAsync(
-      fs.exists?.bind(fs) || (async () => false),
-      fs.existsSync?.bind(fs)
-    )
+    this.exists = toLiquidAsync(fs.exists?.bind(fs) || (async () => false), fs.existsSync?.bind(fs))
   }
 
-  public * lookup (file: string, type: LookupType, sync?: boolean, currentFile?: string): Generator<unknown, string, string> {
+  public *lookup(
+    file: string,
+    type: LookupType,
+    sync?: boolean,
+    currentFile?: string
+  ): Generator<unknown, string, string> {
     const dirs = this.options[type]
     for (const filepath of this.candidates(file, dirs, currentFile)) {
       let allowed = false
       for (const dir of dirs) {
-        if (yield this.contains(!!sync, dir, filepath)) { allowed = true; break }
+        if (yield this.contains(!!sync, dir, filepath)) {
+          allowed = true
+          break
+        }
       }
       if (!allowed) continue
       if (yield this.exists(!!sync, filepath)) return filepath
@@ -54,7 +59,7 @@ export class Loader {
     throw this.lookupError(file, dirs)
   }
 
-  public * candidates (file: string, dirs: string[], currentFile?: string) {
+  public *candidates(file: string, dirs: string[], currentFile?: string) {
     const { fs, extname } = this.options
 
     if (this.shouldLoadRelative(file) && currentFile) {
@@ -72,13 +77,13 @@ export class Loader {
     }
   }
 
-  private dirname (path: string) {
+  private dirname(path: string) {
     const fs = this.options.fs
     assert(fs.dirname, '`fs.dirname` is required for relative reference')
     return fs.dirname!(path)
   }
 
-  private lookupError (file: string, roots: string[]) {
+  private lookupError(file: string, roots: string[]) {
     const err = new Error('ENOENT') as any
     err.message = `ENOENT: Failed to lookup "${file}" in "${roots}"`
     err.code = 'ENOENT'

@@ -2,11 +2,13 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "types": [
       "node"
     ],
     "outDir": "dist"
   },
-  "include": ["*.ts"]
+  "include": [
+    "*.ts"
+  ]
 }

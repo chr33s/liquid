@@ -1,4 +1,16 @@
-import { Hash, ValueToken, Liquid, Tag, evalToken, Emitter, TagToken, TopLevelToken, Context, Template, ParseStream } from '..'
+import {
+  Hash,
+  ValueToken,
+  Liquid,
+  Tag,
+  evalToken,
+  Emitter,
+  TagToken,
+  TopLevelToken,
+  Context,
+  Template,
+  ParseStream
+} from '..'
 import { assertEmpty, isValueToken, toEnumerable } from '../util'
 import { ForloopDrop } from '../drop/forloop-drop'
 import { Parser } from '../parser'
@@ -15,7 +27,7 @@ export default class extends Tag {
   templates: Template[]
   elseTemplates: Template[]
 
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(token, remainTokens, liquid)
     const variable = this.tokenizer.readIdentifier()
     const inStr = this.tokenizer.readIdentifier()
@@ -31,16 +43,25 @@ export default class extends Tag {
     this.elseTemplates = []
 
     let p
-    const stream: ParseStream = parser.parseStream(remainTokens)
+    const stream: ParseStream = parser
+      .parseStream(remainTokens)
       .on('start', () => (p = this.templates))
-      .on<TagToken>('tag:else', tag => { assertEmpty(tag.args); p = this.elseTemplates })
-      .on<TagToken>('tag:endfor', tag => { assertEmpty(tag.args); stream.stop() })
+      .on<TagToken>('tag:else', tag => {
+        assertEmpty(tag.args)
+        p = this.elseTemplates
+      })
+      .on<TagToken>('tag:endfor', tag => {
+        assertEmpty(tag.args)
+        stream.stop()
+      })
       .on('template', (tpl: Template) => p.push(tpl))
-      .on('end', () => { throw new Error(`tag ${token.getText()} not closed`) })
+      .on('end', () => {
+        throw new Error(`tag ${token.getText()} not closed`)
+      })
 
     stream.start()
   }
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, void | string, Template[]> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, void | string, Template[]> {
     const r = this.liquid.renderer
     const continueKey = 'continue-' + this.variable + '-' + this.collection.getText()
     ctx.push({ continue: ctx.getRegister(continueKey, {}) })
@@ -79,7 +100,7 @@ export default class extends Tag {
     ctx.pop()
   }
 
-  public * children (): Generator<unknown, Template[]> {
+  public *children(): Generator<unknown, Template[]> {
     const templates = this.templates.slice()
     if (this.elseTemplates) {
       templates.push(...this.elseTemplates)
@@ -87,7 +108,7 @@ export default class extends Tag {
     return templates
   }
 
-  public * arguments (): Arguments {
+  public *arguments(): Arguments {
     yield this.collection
 
     for (const v of Object.values(this.hash.hash)) {
@@ -97,19 +118,19 @@ export default class extends Tag {
     }
   }
 
-  public blockScope (): Iterable<string> {
+  public blockScope(): Iterable<string> {
     return [this.variable, 'forloop']
   }
 }
 
-function reversed<T> (arr: Array<T>) {
+function reversed<T>(arr: Array<T>) {
   return [...arr].reverse()
 }
 
-function offset<T> (arr: Array<T>, count: number) {
+function offset<T>(arr: Array<T>, count: number) {
   return arr.slice(count)
 }
 
-function limit<T> (arr: Array<T>, count: number) {
+function limit<T>(arr: Array<T>, count: number) {
   return arr.slice(0, count)
 }

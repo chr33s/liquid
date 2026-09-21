@@ -1,16 +1,13 @@
-#!/usr/bin/env node
-
-const fs = require('fs/promises')
-const Liquid = require('..').Liquid
+import fs from 'fs/promises'
+import { program } from 'commander'
+import { Liquid } from './index'
 
 render().catch(err => {
   process.stderr.write(`${err.message}\n`)
   process.exitCode = 1
 })
 
-async function render () {
-  const { program } = require('commander')
-
+async function render() {
   program
     .name('liquidjs')
     .description('Render a Liquid template')
@@ -22,7 +19,10 @@ async function render () {
     .option('--jekyll-include', 'use jekyll-style include (pass parameters to include variable of current scope)')
     .option('--js-truthy', 'use JavaScript-style truthiness')
     .option('--layouts <path...>', 'directories from where to resolve layouts (defaults to --root)')
-    .option('--lenient-if', 'do not throw on undefined variables in conditional expressions (when using --strict-variables)')
+    .option(
+      '--lenient-if',
+      'do not throw on undefined variables in conditional expressions (when using --strict-variables)'
+    )
     .option('--no-dynamic-partials', 'always treat file paths for partials and layouts as a literal value')
     .option('--no-greedy', 'disable greedy matching for --trim* options')
     .option('--no-relative-reference', 'require absolute file paths for partials and layouts')
@@ -36,7 +36,10 @@ async function render () {
     .option('--strict-variables', 'throw on undefined variables instead of rendering them as empty string')
     .option('--tag-delimiter-left', 'left delimiter to use for liquid tags')
     .option('--tag-delimiter-right', 'right delimiter to use for liquid tags')
-    .option('--timezone-offset <value>', 'JavaScript timezone name or timezoneOffset value to use in date filter (defaults to local timezone)')
+    .option(
+      '--timezone-offset <value>',
+      'JavaScript timezone name or timezoneOffset value to use in date filter (defaults to local timezone)'
+    )
     .option('--trim-output-left', 'trim whitespace from left of liquid outputs')
     .option('--trim-output-right', 'trim whitespace from right of liquid outputs')
     .option('--trim-tag-left', 'trim whitespace from left of liquid tags')
@@ -47,7 +50,9 @@ async function render () {
   const options = program.opts()
   const templateOption = program.args[0]
 
-  if (Object.values({ template: templateOption, context: options.context }).filter((value) => value === '@-').length > 1) {
+  if (
+    Object.values({ template: templateOption, context: options.context }).filter(value => value === '@-').length > 1
+  ) {
     throw new Error(`The stdin input specifier '@-' must only be used once.`)
   }
 
@@ -62,7 +67,7 @@ async function render () {
   }
 }
 
-async function resolveContext (contextOption) {
+async function resolveContext(contextOption?: string) {
   let contextJson = '{}'
   if (contextOption) {
     contextJson = await resolveInputOption(contextOption)
@@ -71,29 +76,25 @@ async function resolveContext (contextOption) {
   return context
 }
 
-async function resolveInputOption (option) {
-  let content = null
-  if (option) {
-    if (option === '@-') {
-      content = await readStream(process.stdin)
-    } else if (option.startsWith('@')) {
-      const filePath = option.slice(1)
-      const stat = await fs.stat(filePath, { throwIfNoEntry: false })
-      if (!stat || !stat.isFile) {
-        throw new Error(`'${filePath}' does not exist or is not a file`)
-      }
-      content = await fs.readFile(filePath, 'utf8')
-    } else {
-      content = option
-    }
+async function resolveInputOption(option: string): Promise<string> {
+  if (option === '@-') {
+    return readStream(process.stdin)
   }
-  return content
+  if (option.startsWith('@')) {
+    const filePath = option.slice(1)
+    const stat = await fs.stat(filePath).catch(() => null)
+    if (!stat?.isFile()) {
+      throw new Error(`'${filePath}' does not exist or is not a file`)
+    }
+    return fs.readFile(filePath, 'utf8')
+  }
+  return option
 }
 
-async function readStream (stream) {
-  const chunks = []
+async function readStream(stream: NodeJS.ReadableStream) {
+  const chunks: Buffer[] = []
   for await (const chunk of stream) {
-    chunks.push(chunk)
+    chunks.push(chunk as Buffer)
   }
   return Buffer.concat(chunks).toString('utf8')
 }

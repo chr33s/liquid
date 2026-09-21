@@ -6,21 +6,21 @@ describe('drop/drop', function () {
 
   class CustomDrop extends Drop {
     private name = 'NAME'
-    public getName () {
+    public getName() {
       return 'GET NAME'
     }
   }
   class CustomDropWithMethodMissing extends CustomDrop {
-    public liquidMethodMissing (key: string) {
+    public liquidMethodMissing(key: string) {
       return key.toUpperCase()
     }
   }
   class PromiseDrop extends Drop {
     private name = Promise.resolve('NAME')
-    public async getName () {
+    public async getName() {
       return 'GET NAME'
     }
-    public async liquidMethodMissing (key: string) {
+    public async liquidMethodMissing(key: string) {
       return key.toUpperCase()
     }
   }
@@ -29,7 +29,9 @@ describe('drop/drop', function () {
     expect(html).toBe('GET NAME')
   })
   it('should call corresponding method when expression evaluates', async function () {
-    const html = await liquid.parseAndRender(`{% if obj.getName == "GET NAME" %}true{% endif %}`, { obj: new CustomDrop() })
+    const html = await liquid.parseAndRender(`{% if obj.getName == "GET NAME" %}true{% endif %}`, {
+      obj: new CustomDrop()
+    })
     expect(html).toBe('true')
   })
   it('should read corresponding property', async function () {
@@ -63,7 +65,7 @@ describe('drop/drop', function () {
   it('should respect valueOf', async () => {
     class CustomDrop extends Drop {
       prop = 'not enumerable'
-      valueOf () {
+      valueOf() {
         return ['foo', 'bar']
       }
     }
@@ -73,7 +75,7 @@ describe('drop/drop', function () {
   })
   it('should support valueOf in == expression', async () => {
     class AddressDrop extends Drop {
-      valueOf () {
+      valueOf() {
         return 'test'
       }
     }
@@ -85,15 +87,15 @@ describe('drop/drop', function () {
   })
   it('should correctly evaluate custom Drop objects with equals function without full Comparable implementation', async () => {
     class TestDrop extends Drop {
-      value: string;
-      constructor () {
+      value: string
+      constructor() {
         super()
         this.value = 'test'
       }
-      equals (rhs: string): boolean {
+      equals(rhs: string): boolean {
         return this.valueOf() === rhs
       }
-      valueOf (): string {
+      valueOf(): string {
         return this.value
       }
     }
@@ -105,18 +107,27 @@ describe('drop/drop', function () {
   })
   it('should support returning supported value types from liquidMethodMissing', async function () {
     class DynamicTypeDrop extends Drop {
-      liquidMethodMissing (key: string) {
+      liquidMethodMissing(key: string) {
         switch (key) {
-          case 'number': return 42
-          case 'string': return 'foo'
-          case 'boolean': return true
-          case 'array': return [1, 2, 3]
-          case 'object': return { foo: 'bar' }
-          case 'drop': return new CustomDrop()
+          case 'number':
+            return 42
+          case 'string':
+            return 'foo'
+          case 'boolean':
+            return true
+          case 'array':
+            return [1, 2, 3]
+          case 'object':
+            return { foo: 'bar' }
+          case 'drop':
+            return new CustomDrop()
         }
       }
     }
-    const html = await liquid.parseAndRender(`{{obj.number}} {{obj.string}} {{obj.boolean}} {{obj.array | first}} {{obj.object.foo}} {{obj.drop.getName}}`, { obj: new DynamicTypeDrop() })
+    const html = await liquid.parseAndRender(
+      `{{obj.number}} {{obj.string}} {{obj.boolean}} {{obj.array | first}} {{obj.object.foo}} {{obj.drop.getName}}`,
+      { obj: new DynamicTypeDrop() }
+    )
     expect(html).toBe('42 foo true 1 bar GET NAME')
   })
 })

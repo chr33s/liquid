@@ -3,22 +3,22 @@ import { Comparable } from './comparable'
 import { isNil, toValue } from '../util'
 
 export class NullDrop extends Drop implements Comparable {
-  public equals (value: any) {
+  public equals(value: any) {
     return isNil(toValue(value))
   }
-  public gt () {
+  public gt() {
     return false
   }
-  public geq () {
+  public geq() {
     return false
   }
-  public lt () {
+  public lt() {
     return false
   }
-  public leq () {
+  public leq() {
     return false
   }
-  public valueOf () {
+  public valueOf() {
     return null
   }
 }

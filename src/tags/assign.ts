@@ -7,7 +7,7 @@ export default class extends Tag {
   private value: Value
   private identifier: IdentifierToken
 
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
     super(token, remainTokens, liquid)
     this.identifier = this.tokenizer.readIdentifier()
     this.key = this.identifier.content
@@ -19,15 +19,15 @@ export default class extends Tag {
     this.tokenizer.advance()
     this.value = new Value(this.tokenizer.readFilteredValue(), this.liquid)
   }
-  * render (ctx: Context): Generator<unknown, void, unknown> {
+  *render(ctx: Context): Generator<unknown, void, unknown> {
     ctx.bottom()[this.key] = yield this.value.value(ctx, this.liquid.options.lenientIf)
   }
 
-  public * arguments (): Arguments {
+  public *arguments(): Arguments {
     yield this.value
   }
 
-  public * localScope (): Iterable<IdentifierToken> {
+  public *localScope(): Iterable<IdentifierToken> {
     yield this.identifier
   }
 }

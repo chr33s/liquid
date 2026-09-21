@@ -1,0 +1,61 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "oxc",
+    "import"
+  ],
+  "env": {
+    "es2024": true,
+    "browser": true,
+    "node": true
+  },
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-var": "error",
+    "prefer-const": "error",
+    "require-yield": "off",
+    "no-unused-expressions": [
+      "error",
+      {
+        "allowShortCircuit": true,
+        "allowTernary": true,
+        "allowTaggedTemplates": true
+      }
+    ],
+    "typescript/no-explicit-any": "off",
+    "typescript/no-non-null-assertion": "off",
+    "typescript/no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "none",
+        "caughtErrors": "none",
+        "ignoreRestSiblings": false
+      }
+    ],
+    "no-empty-function": "off",
+    "import/export": "off",
+    "no-unused-vars": "off",
+    "import/namespace": "off",
+    "typescript/restrict-template-expressions": "off",
+    "typescript/no-base-to-string": "off",
+    "typescript/no-misused-spread": "off",
+    "typescript/unbound-method": "off",
+    "typescript/no-redundant-type-constituents": "off",
+    "typescript/no-floating-promises": "off"
+  },
+  "ignorePatterns": [
+    "dist/",
+    "demo/",
+    "docs/",
+    "coverage/",
+    "benchmark/"
+  ],
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  }
+}

@@ -33,7 +33,7 @@ describe('Variable analysis', () => {
   })
 
   it('should include the template name if available', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ b }}' } })
+    const engine = new Liquid({ templates: { a: '{{ b }}' } })
     const template = engine.parseFileSync('a')
     const analysis = analyzeSync(template)
 
@@ -161,8 +161,8 @@ describe('Variable analysis', () => {
     const a = new Variable(['a', bc], { row: 1, col: 4, file: undefined })
 
     expect(analysis).toStrictEqual({
-      variables: { 'a': [a], 'b': [bc] },
-      globals: { 'a': [a], 'b': [bc] },
+      variables: { a: [a], b: [bc] },
+      globals: { a: [a], b: [bc] },
       locals: {}
     })
   })
@@ -176,8 +176,8 @@ describe('Variable analysis', () => {
     const d = new Variable(['d', a], { row: 1, col: 4, file: undefined })
 
     expect(analysis).toStrictEqual({
-      variables: { 'd': [d], 'a': [a], 'b': [bc] },
-      globals: { 'd': [d], 'a': [a], 'b': [bc] },
+      variables: { d: [d], a: [a], b: [bc] },
+      globals: { d: [d], a: [a], b: [bc] },
       locals: {}
     })
   })
@@ -191,9 +191,9 @@ describe('Variable analysis', () => {
     const d = new Variable(['d', a], { row: 1, col: 25, file: undefined })
 
     expect(analysis).toStrictEqual({
-      variables: { 'd': [d], 'a': [a], 'b': [bc] },
-      globals: { 'd': [d], 'a': [a] },
-      locals: { 'b': [new Variable(['b'], { row: 1, col: 11, file: undefined })] }
+      variables: { d: [d], a: [a], b: [bc] },
+      globals: { d: [d], a: [a] },
+      locals: { b: [new Variable(['b'], { row: 1, col: 11, file: undefined })] }
     })
   })
 
@@ -219,7 +219,7 @@ describe('Variable analysis', () => {
 
     expect(analysis).toStrictEqual({
       variables: { a: [new Variable(['a'], { row: 1, col: 26, file: undefined })] },
-      globals: { },
+      globals: {},
       locals: { a: [new Variable(['a'], { row: 1, col: 11, file: undefined })] }
     })
   })
@@ -321,7 +321,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: refs,
       globals: refs,
-      locals: { }
+      locals: {}
     })
   })
 
@@ -338,7 +338,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: refs,
       globals: refs,
-      locals: { }
+      locals: {}
     })
   })
 
@@ -347,8 +347,8 @@ describe('Variable analysis', () => {
     const analysis = analyzeSync(template)
 
     expect(analysis).toStrictEqual({
-      variables: { },
-      globals: { },
+      variables: {},
+      globals: {},
       locals: { a: [new Variable(['a'], { row: 1, col: 14, file: undefined })] }
     })
   })
@@ -366,7 +366,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: refs,
       globals: refs,
-      locals: { }
+      locals: {}
     })
   })
 
@@ -395,7 +395,7 @@ describe('Variable analysis', () => {
         x,
         y,
         z,
-        'forloop': [
+        forloop: [
           new Variable(['forloop', 'index'], { row: 2, col: 14, file: undefined }),
           new Variable(['forloop', 'first'], { row: 2, col: 34, file: undefined })
         ]
@@ -430,7 +430,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: refs,
       globals: refs,
-      locals: { }
+      locals: {}
     })
   })
 
@@ -439,8 +439,8 @@ describe('Variable analysis', () => {
     const analysis = analyzeSync(template)
 
     expect(analysis).toStrictEqual({
-      variables: { },
-      globals: { },
+      variables: {},
+      globals: {},
       locals: { a: [new Variable(['a'], { row: 1, col: 14, file: undefined })] }
     })
   })
@@ -463,7 +463,7 @@ describe('Variable analysis', () => {
     const analysis = analyzeSync(template)
 
     const globals = {
-      'product': [new Variable(['product', 'title'], { row: 2, col: 6, file: undefined })],
+      product: [new Variable(['product', 'title'], { row: 2, col: 6, file: undefined })],
       foo: [new Variable(['foo'], { row: 3, col: 10, file: undefined })]
     }
 
@@ -472,7 +472,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { ...globals, i },
       globals: globals,
-      locals: { }
+      locals: {}
     })
   })
 
@@ -481,7 +481,7 @@ describe('Variable analysis', () => {
     const analysis = analyzeSync(template)
 
     const globals = {
-      'y': [new Variable(['y', 'z'], { row: 1, col: 18, file: undefined })],
+      y: [new Variable(['y', 'z'], { row: 1, col: 18, file: undefined })],
       a: [new Variable(['a'], { row: 1, col: 46, file: undefined })]
     }
 
@@ -490,7 +490,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { ...globals, x },
       globals: globals,
-      locals: { }
+      locals: {}
     })
   })
 
@@ -519,7 +519,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: refs,
       globals: refs,
-      locals: { }
+      locals: {}
     })
   })
 
@@ -557,12 +557,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { ...refs, x },
       globals: refs,
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from included templates with a string name', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "a" %}')
     const analysis = analyzeSync(template)
 
@@ -571,31 +571,31 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x },
       globals: { x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should ignore included templates when partials is set to false', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "a" %}')
     const analysis = analyzeSync(template, { partials: false })
 
     expect(analysis).toStrictEqual({
-      variables: { },
-      globals: { },
-      locals: { }
+      variables: {},
+      globals: {},
+      locals: {}
     })
   })
 
   it('should throw an error if an included template does not exist', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "b" %}')
 
     expect(() => analyzeSync(template)).toThrow('Failed to lookup "b"')
   })
 
   it('should ignore templates included with a dynamic variable name', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include a %}')
     const analysis = analyzeSync(template)
 
@@ -604,12 +604,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { a },
       globals: { a },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report local variables from included templates', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}{% assign y = 42 %}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}{% assign y = 42 %}' } })
     const template = engine.parse('{% include "a" %}{{ y }}')
     const analysis = analyzeSync(template)
 
@@ -623,7 +623,7 @@ describe('Variable analysis', () => {
   })
 
   it('should analyze included templates only once', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "a" %}{% include "a" %}')
     const analysis = analyzeSync(template)
 
@@ -632,12 +632,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x },
       globals: { x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should handle templates that are included recursively', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}{% include "a" %}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}{% include "a" %}' } })
     const template = engine.parse('{% include "a" %}')
     const analysis = analyzeSync(template)
 
@@ -646,12 +646,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x },
       globals: { x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from included templates with a bound variable', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y }}{{ a.foo }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y }}{{ a.foo }}' } })
     const template = engine.parse('{% include "a" with z %}') // z is aliased as a
     const analysis = analyzeSync(template)
 
@@ -667,12 +667,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { z: [z[0]], x, y, a },
       globals: { z, x, y },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from included templates with keyword arguments', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% include "a" x:y z:42 %}{{ x }}')
     const analysis = analyzeSync(template)
 
@@ -689,12 +689,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x, y },
       globals: { x: [x[1]], y },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should handle jekyll style includes', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ include.x | append: y }}' }, jekyllInclude: true })
+    const engine = new Liquid({ templates: { a: '{{ include.x | append: y }}' }, jekyllInclude: true })
     const template = engine.parse('{% include a x=y z=42 %}{{ x }}')
     const analysis = analyzeSync(template)
 
@@ -709,12 +709,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { include, x, y },
       globals: { x, y },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from rendered templates', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "a" %}')
     const analysis = analyzeSync(template)
 
@@ -723,31 +723,31 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x },
       globals: { x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should throw an error if a rendered template does not exist', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "b" %}')
 
     expect(() => analyzeSync(template)).toThrow('Failed to lookup "b"')
   })
 
   it('should ignore rendered templates when partials is set to false', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "a" %}')
     const analysis = analyzeSync(template, { partials: false })
 
     expect(analysis).toStrictEqual({
-      variables: { },
-      globals: { },
-      locals: { }
+      variables: {},
+      globals: {},
+      locals: {}
     })
   })
 
   it('should report local variables from rendered templates', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}{% assign y = 42 %}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}{% assign y = 42 %}' } })
     const template = engine.parse('{% render "a" %}{{ y }}')
     const analysis = analyzeSync(template)
 
@@ -762,7 +762,7 @@ describe('Variable analysis', () => {
   })
 
   it('should analyze rendered templates only once', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "a" %}{% render "a" %}')
     const analysis = analyzeSync(template)
 
@@ -771,12 +771,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x },
       globals: { x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should handle templates that are rendered recursively', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}{% render "a" %}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}{% render "a" %}' } })
     const template = engine.parse('{% render "a" %}')
     const analysis = analyzeSync(template)
 
@@ -785,12 +785,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x },
       globals: { x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from rendered templates with a bound variable', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y }}{{ a.foo }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y }}{{ a.foo }}' } })
     const template = engine.parse('{% render "a" with z %}') // z is aliased as a
     const analysis = analyzeSync(template)
 
@@ -806,12 +806,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { z: [z[0]], x, y, a },
       globals: { z, x, y },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from rendered templates with a bound variable and alias', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y.foo }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y.foo }}' } })
     const template = engine.parse('{% render "a" with z as y %}') // z is aliased as y
     const analysis = analyzeSync(template)
 
@@ -826,12 +826,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { z: [z[0]], x, y },
       globals: { z, x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from rendered templates using _for_ syntax', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% render "a" for z %}') // z is aliased as a
     const analysis = analyzeSync(template)
 
@@ -842,12 +842,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { z, x, y },
       globals: { z, x, y },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from rendered templates using _for_ syntax and an alias', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% render "a" for z as y %}') // z is aliased as y
     const analysis = analyzeSync(template)
 
@@ -862,12 +862,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { z: [z[0]], x, y },
       globals: { z, x },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from rendered templates with keyword arguments', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% render "a" x:y z:42 %}{{ x }}')
     const analysis = analyzeSync(template)
 
@@ -884,27 +884,29 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x, y },
       globals: { x: [x[1]], y },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should analyze rendered templates in an isolated scope', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ foo }}' } })
+    const engine = new Liquid({ templates: { a: '{{ foo }}' } })
     const template = engine.parse('{% assign foo = "bar" %}{% render "a" %}{{ foo }}')
     const analysis = analyzeSync(template)
 
     expect(analysis).toStrictEqual({
-      variables: { foo: [
-        new Variable(['foo'], { row: 1, col: 4, file: 'a' }),
-        new Variable(['foo'], { row: 1, col: 44, file: undefined })
-      ] },
+      variables: {
+        foo: [
+          new Variable(['foo'], { row: 1, col: 4, file: 'a' }),
+          new Variable(['foo'], { row: 1, col: 44, file: undefined })
+        ]
+      },
       globals: { foo: [new Variable(['foo'], { row: 1, col: 4, file: 'a' })] },
       locals: { foo: [new Variable(['foo'], { row: 1, col: 11, file: undefined })] }
     })
   })
 
   it('should report variables from layout templates', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}{% block %}{% endblock %}{{ y }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{% endblock %}{{ y }}' } })
     const template = engine.parse('{% layout "a" %}{% block %}{{ z }}{% endblock %}')
     const analysis = analyzeSync(template)
 
@@ -915,12 +917,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x, y, z },
       globals: { x, y, z },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables outside block tags', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}{% block %}{% endblock %}{{ y }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{% endblock %}{{ y }}' } })
     const template = engine.parse('{% layout "a" %}{{ b }}{% block %}{{ z }}{% endblock %}')
     const analysis = analyzeSync(template)
 
@@ -932,7 +934,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { b, x, y, z },
       globals: { b, x, y, z },
-      locals: { }
+      locals: {}
     })
   })
 
@@ -946,12 +948,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { z },
       globals: { z },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should handle block.super', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x }}{% block %}{{ b }}{% endblock %}{{ y }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{{ b }}{% endblock %}{{ y }}' } })
     const template = engine.parse('{% layout "a" %}{% block %}{{ z }}{{ block.super }}{% endblock %}')
     const analysis = analyzeSync(template)
 
@@ -964,15 +966,17 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { b, x, y, z, block },
       globals: { b, x, y, z },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should handle recursive layout', () => {
-    const engine = new Liquid({ templates: {
-      'a': '{% layout "b" %}{% block %}{{ a }}{% endblock %}',
-      'b': '{% layout "a" %}{% block %}{{ b }}{% endblock %}'
-    } })
+    const engine = new Liquid({
+      templates: {
+        a: '{% layout "b" %}{% block %}{{ a }}{% endblock %}',
+        b: '{% layout "a" %}{% block %}{{ b }}{% endblock %}'
+      }
+    })
     const template = engine.parse('{% layout "a" %}{{ c }}')
     const analysis = analyzeSync(template)
 
@@ -983,7 +987,7 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { a, c },
       globals: { a, c },
-      locals: { }
+      locals: {}
     })
   })
 
@@ -997,12 +1001,12 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { a },
       globals: { a },
-      locals: { }
+      locals: {}
     })
   })
 
   it('should report variables from layout keyword arguments', () => {
-    const engine = new Liquid({ templates: { 'a': '{% block %}{{ x }}{% endblock %}' } })
+    const engine = new Liquid({ templates: { a: '{% block %}{{ x }}{% endblock %}' } })
     const template = engine.parse('{% layout "a" x:y %}')
     const analysis = analyzeSync(template)
 
@@ -1012,11 +1016,11 @@ describe('Variable analysis', () => {
     expect(analysis).toStrictEqual({
       variables: { x, y },
       globals: { y },
-      locals: { }
+      locals: {}
     })
   })
 
-  it('should load child templates asynchronously', () => {
+  it('should load child templates asynchronously', async () => {
     const source = [
       '{% if a %}',
       '  {% for x in b %}',
@@ -1047,15 +1051,15 @@ describe('Variable analysis', () => {
 
     const x = [new Variable(['x'], { row: 3, col: 15, file: undefined })]
 
-    expect(analysis).resolves.toStrictEqual({
+    await expect(analysis).resolves.toStrictEqual({
       variables: { ...refs, x },
       globals: refs,
-      locals: { }
+      locals: {}
     })
   })
 
   it('should not treat aliased variables as globals if they are in scope', () => {
-    const engine = new Liquid({ templates: { 'a': '{{ x | append: y.foo }}' } })
+    const engine = new Liquid({ templates: { a: '{{ x | append: y.foo }}' } })
     const template = engine.parse('{% assign z = 42 %}{% render "a" with z as y %}') // z is aliased as y
     const analysis = analyzeSync(template)
 
@@ -1071,7 +1075,7 @@ describe('Variable analysis', () => {
   })
 
   it('should recognize when an alias has been redefined', () => {
-    const engine = new Liquid({ templates: { 'a': '{% assign y = 42 %}{{ x | append: y.foo }}' } })
+    const engine = new Liquid({ templates: { a: '{% assign y = 42 %}{{ x | append: y.foo }}' } })
     const template = engine.parse('{% render "a" with z as y %}') // z is aliased as y
     const analysis = analyzeSync(template)
 

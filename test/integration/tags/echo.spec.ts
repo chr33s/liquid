@@ -11,7 +11,7 @@ describe('tags/echo', function () {
 
   it('should output variables', async function () {
     const src = '{% echo people.users[0].name %}'
-    const html = await liquid.parseAndRender(src, { people: { users: [ { name: 'Sally' } ] } })
+    const html = await liquid.parseAndRender(src, { people: { users: [{ name: 'Sally' }] } })
     return expect(html).toBe('Sally')
   })
 

@@ -3,11 +3,11 @@ import { LiquidOptions } from '../../src/liquid-options'
 
 export const liquid = new Liquid()
 
-export function render (src: string, ctx?: object) {
+export function render(src: string, ctx?: object) {
   return liquid.parseAndRender(src, ctx)
 }
 
-export async function test (src: string, ctx: object | string, expected?: string | RegExp, opts?: LiquidOptions) {
+export async function test(src: string, ctx: object | string, expected?: string | RegExp, opts?: LiquidOptions) {
   if (expected === undefined) {
     expected = ctx as string
     ctx = {}

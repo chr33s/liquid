@@ -10,15 +10,14 @@ describe('tags/if', function () {
   }
 
   class BooleanDrop extends Drop {
-    public valueOf () {
+    public valueOf() {
       return false
     }
   }
 
   it('should throw if not closed', function () {
     const src = '{% if false%}yes'
-    return expect(liquid.parseAndRender(src, scope))
-      .rejects.toThrow(/tag {% if false%} not closed/)
+    return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(/tag {% if false%} not closed/)
   })
   it('should support nested', async function () {
     const src = '{%if false%}{%if true%}{%else%}a{%endif%}{%endif%}'
@@ -28,8 +27,7 @@ describe('tags/if', function () {
 
   it('should throw for additional args', function () {
     const src = "{% if foo %} foo {% else foo = 'blah' %} {% endif %}"
-    return expect(liquid.parseAndRender(src, scope))
-      .rejects.toThrow(`unexpected "foo = 'blah'", line:1, col:1`)
+    return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(`unexpected "foo = 'blah'", line:1, col:1`)
   })
 
   describe('single value as condition', function () {
@@ -67,7 +65,7 @@ describe('tags/if', function () {
     })
     it('should support value and expression', async function () {
       const src = `X{%if version and version != '' %}x{{version}}y{%endif%}Y`
-      const scope = { 'version': '' }
+      const scope = { version: '' }
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('XY')
     })
@@ -89,7 +87,7 @@ describe('tags/if', function () {
   })
   describe('filters as condition', function () {
     it('should support filter on expression', async function () {
-      liquid.registerFilter('negate', (val) => !val)
+      liquid.registerFilter('negate', val => !val)
       const src = '{% if 2 == 3 | negate %}yes{%else%}no{%endif%}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('yes')
@@ -151,7 +149,7 @@ describe('tags/if', function () {
   })
   it('should support async variables', async () => {
     const src = `{%if var == 'var' %}success{%endif%}`
-    const scope = { 'var': Promise.resolve('var') }
+    const scope = { var: Promise.resolve('var') }
     const html = await liquid.parseAndRender(src, scope)
     return expect(html).toBe('success')
   })
@@ -162,11 +160,11 @@ describe('tags/if', function () {
     return expect(html).toBe('no')
   })
   it('should throw for duplicated else', () => {
-    expect(() => liquid.parseAndRenderSync('{% if false %}{% else %}{% else %}{% endif %}'))
-      .toThrow(`duplicated else`)
+    expect(() => liquid.parseAndRenderSync('{% if false %}{% else %}{% else %}{% endif %}')).toThrow(`duplicated else`)
   })
   it('should throw for unexpected elsif', () => {
-    expect(() => liquid.parseAndRenderSync('{% if false %}{% else %}{% elsif true %}{% endif %}'))
-      .toThrow(`unexpected elsif after else`)
+    expect(() => liquid.parseAndRenderSync('{% if false %}{% else %}{% elsif true %}{% endif %}')).toThrow(
+      `unexpected elsif after else`
+    )
   })
 })

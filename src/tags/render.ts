@@ -1,7 +1,22 @@
-import { __assign } from 'tslib'
 import { ForloopDrop } from '../drop'
 import { isString, isValueToken, toEnumerable } from '../util'
-import { TopLevelToken, assert, Liquid, Token, ValueToken, Template, evalQuotedToken, TypeGuards, Tokenizer, evalToken, Hash, Emitter, TagToken, Context, Tag } from '..'
+import {
+  TopLevelToken,
+  assert,
+  Liquid,
+  Token,
+  ValueToken,
+  Template,
+  evalQuotedToken,
+  TypeGuards,
+  Tokenizer,
+  evalToken,
+  Hash,
+  Emitter,
+  TagToken,
+  Context,
+  Tag
+} from '..'
 import { Parser } from '../parser'
 import { Argument, Arguments, PartialScope } from '../template'
 
@@ -15,7 +30,7 @@ export default class extends Tag {
   private hash: Hash
   private with?: RenderBinding
   private forBinding?: RenderBinding
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(token, remainTokens, liquid)
     const tokenizer = this.tokenizer
     this.file = parseFilePath(tokenizer, this.liquid, parser)
@@ -54,7 +69,7 @@ export default class extends Tag {
     }
     this.hash = new Hash(tokenizer, liquid.options.keyValueSeparator)
   }
-  * render (ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     ctx.depthLimit.use(1)
     const { liquid, hash } = this
     const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
@@ -62,7 +77,7 @@ export default class extends Tag {
 
     const childCtx = ctx.spawn()
     const scope = childCtx.bottom()
-    __assign(scope, yield hash.render(ctx))
+    Object.assign(scope, yield hash.render(ctx))
     if (this.with) {
       const { value, alias } = this.with
       scope[alias || filepath] = yield evalToken(value, ctx)
@@ -85,14 +100,14 @@ export default class extends Tag {
     ctx.depthLimit.release(1)
   }
 
-  public * children (partials: boolean, sync: boolean): Generator<unknown, Template[]> {
+  public *children(partials: boolean, sync: boolean): Generator<unknown, Template[]> {
     if (partials && isString(this.file)) {
       return (yield this.liquid._parsePartialFile(this.file, sync, this.currentFile)) as Template[]
     }
     return []
   }
 
-  public partialScope (): PartialScope | undefined {
+  public partialScope(): PartialScope | undefined {
     if (isString(this.file)) {
       const names: Array<string | [string, Argument]> = Object.keys(this.hash.hash)
 
@@ -118,7 +133,7 @@ export default class extends Tag {
     }
   }
 
-  public * arguments (): Arguments {
+  public *arguments(): Arguments {
     for (const v of Object.values(this.hash.hash)) {
       if (isValueToken(v)) {
         yield v
@@ -147,7 +162,7 @@ export default class extends Tag {
  * @return Token for expression (not quoted)
  * @throws TypeError if cannot read next token
  */
-export function parseFilePath (tokenizer: Tokenizer, liquid: Liquid, parser: Parser): ParsedFileName {
+export function parseFilePath(tokenizer: Tokenizer, liquid: Liquid, parser: Parser): ParsedFileName {
   if (liquid.options.dynamicPartials) {
     const file = tokenizer.readValue()
     tokenizer.assert(file, 'illegal file path')
@@ -164,13 +179,13 @@ export function parseFilePath (tokenizer: Tokenizer, liquid: Liquid, parser: Par
   return templates === 'none' ? undefined : templates
 }
 
-function optimize (templates: Template[]): string | Template[] {
+function optimize(templates: Template[]): string | Template[] {
   // for filenames like "files/file.liquid", extract the string directly
   if (templates.length === 1 && TypeGuards.isHTMLToken(templates[0].token)) return templates[0].token.getContent()
   return templates
 }
 
-export function * renderFilePath (file: ParsedFileName, ctx: Context, liquid: Liquid): IterableIterator<unknown> {
+export function* renderFilePath(file: ParsedFileName, ctx: Context, liquid: Liquid): IterableIterator<unknown> {
   if (typeof file === 'string') return file
   if (Array.isArray(file)) return liquid.renderer.renderTemplates(file, ctx)
   return yield evalToken(file, ctx)

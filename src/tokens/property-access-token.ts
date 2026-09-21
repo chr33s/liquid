@@ -8,7 +8,7 @@ import { QuotedToken } from './quoted-token'
 import { TokenKind } from '../parser'
 
 export class PropertyAccessToken extends Token {
-  constructor (
+  constructor(
     public variable: QuotedToken | RangeToken | LiteralToken | NumberToken | undefined,
     public props: (ValueToken | IdentifierToken)[],
     input: string,

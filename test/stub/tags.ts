@@ -4,23 +4,23 @@ import type { TagToken, TopLevelToken } from '../../src/tokens'
 import type { Liquid } from '../../src/liquid'
 
 export class ThrowingTag extends Tag {
-  render () {
+  render() {
     throwIntendedError()
   }
 }
 
 export class RejectingTag extends Tag {
-  async render () {
+  async render() {
     await rejectIntendedError()
   }
 }
 
 export class ThrowsOnParseTag extends Tag {
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+  constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
     super(token, remainTokens, liquid)
     throwIntendedError()
   }
-  render () {
+  render() {
     return ''
   }
 }

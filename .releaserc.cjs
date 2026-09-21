@@ -18,7 +18,7 @@ const githubPlugin = [
 ]
 
 // next is branch-protected (PR-only); skip @semantic-release/git there and publish to npm only.
-const onMaster = process.env.GITHUB_REF === 'refs/heads/master'
+const onMain = process.env.GITHUB_REF === 'refs/heads/main'
 const onNext = process.env.GITHUB_REF === 'refs/heads/next'
 
 // On next, breaking changes are v11 WIP — bump alpha prerelease only, not major.
@@ -39,12 +39,12 @@ const basePlugins = [
 
 module.exports = {
   branches: [
-    'master',
+    'main',
     { name: 'next', prerelease: 'alpha' }
   ],
   plugins: [
     ...basePlugins,
-    ...(onMaster ? [gitPlugin] : []),
+    ...(onMain ? [gitPlugin] : []),
     githubPlugin
   ]
 }

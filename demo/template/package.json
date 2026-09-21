@@ -5,14 +5,15 @@
   "main": "index.ts",
   "scripts": {
     "test": "./test.sh",
-    "start": "ts-node index.ts"
+    "typecheck": "tsc --noEmit",
+    "start": "node index.ts"
   },
   "dependencies": {
-    "liquidjs": "latest",
-    "ts-node": "^8.10.2",
-    "typescript": "^4.2.4"
+    "liquidjs": "latest"
   },
   "devDependencies": {
-    "@types/node": "^14.14.37"
-  }
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  },
+  "type": "module"
 }

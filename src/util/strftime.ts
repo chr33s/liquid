@@ -7,47 +7,51 @@ export const MAX_STRFTIME_PAD = 1024 * 1024
 
 const rFormat = /%([-_0^#:]+)?(\d+)?([EO])?(.)/
 interface FormatOptions {
-  flags: Record<string, boolean>;
-  width?: string;
-  modifier?: string;
+  flags: Record<string, boolean>
+  width?: string
+  modifier?: string
 }
 
 // prototype extensions
-function daysInMonth (d: LiquidDate) {
+function daysInMonth(d: LiquidDate) {
   const feb = isLeapYear(d) ? 29 : 28
   return [31, feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 }
-function getDayOfYear (d: LiquidDate) {
+function getDayOfYear(d: LiquidDate) {
   let num = 0
   for (let i = 0; i < d.getMonth(); ++i) {
     num += daysInMonth(d)[i]
   }
   return num + d.getDate()
 }
-function getWeekOfYear (d: LiquidDate, startDay: number) {
+function getWeekOfYear(d: LiquidDate, startDay: number) {
   // Skip to startDay of this week
   const now = getDayOfYear(d) + (startDay - d.getDay())
   // Find the first startDay of the year
   const jan1 = new Date(d.getFullYear(), 0, 1)
-  const then = (7 - jan1.getDay() + startDay)
+  const then = 7 - jan1.getDay() + startDay
   return String(Math.floor((now - then) / 7) + 1)
 }
-function isLeapYear (d: LiquidDate) {
+function isLeapYear(d: LiquidDate) {
   const year = d.getFullYear()
   return !!((year & 3) === 0 && (year % 100 || (year % 400 === 0 && year)))
 }
-function ordinal (d: LiquidDate) {
+function ordinal(d: LiquidDate) {
   const date = d.getDate()
   if ([11, 12, 13].includes(date)) return 'th'
 
   switch (date % 10) {
-    case 1: return 'st'
-    case 2: return 'nd'
-    case 3: return 'rd'
-    default: return 'th'
+    case 1:
+      return 'st'
+    case 2:
+      return 'nd'
+    case 3:
+      return 'rd'
+    default:
+      return 'th'
   }
 }
-function century (d: LiquidDate) {
+function century(d: LiquidDate) {
   return parseInt(d.getFullYear().toString().substring(0, 2), 10)
 }
 
@@ -70,14 +74,13 @@ const padWidths: Record<string, number> = {
 
 const padSpaceChars = new Set('aAbBceklpP')
 
-function getTimezoneOffset (d: LiquidDate, opts: FormatOptions) {
+function getTimezoneOffset(d: LiquidDate, opts: FormatOptions) {
   const nOffset = Math.abs(d.getTimezoneOffset())
   const h = Math.floor(nOffset / 60)
   const m = nOffset % 60
-  return (d.getTimezoneOffset() > 0 ? '-' : '+') +
-    padStart(h, 2, '0') +
-    (opts.flags[':'] ? ':' : '') +
-    padStart(m, 2, '0')
+  return (
+    (d.getTimezoneOffset() > 0 ? '-' : '+') + padStart(h, 2, '0') + (opts.flags[':'] ? ':' : '') + padStart(m, 2, '0')
+  )
 }
 type FormatCodeHandler = (d: LiquidDate, opts: FormatOptions) => unknown
 
@@ -101,7 +104,7 @@ const formatCodes: Record<string, FormatCodeHandler> = {
   N: (d: LiquidDate, opts: FormatOptions) => {
     const width = Number(opts.width) || 9
     assertPadWidth(width)
-    const str = String(d.getMilliseconds()).slice(0, width)
+    const str = padStart(String(d.getMilliseconds()), 3, '0').slice(0, width)
     return padEnd(str, width, '0')
   },
   p: (d: LiquidDate) => (d.getHours() < 12 ? 'AM' : 'PM'),
@@ -119,13 +122,13 @@ const formatCodes: Record<string, FormatCodeHandler> = {
   Y: (d: LiquidDate) => d.getFullYear(),
   z: getTimezoneOffset,
   Z: (d: LiquidDate, opts: FormatOptions) => d.getTimeZoneName() || getTimezoneOffset(d, opts),
-  't': () => '\t',
-  'n': () => '\n',
+  t: () => '\t',
+  n: () => '\n',
   '%': () => '%'
 }
 formatCodes.h = formatCodes.b
 
-export function strftime (d: LiquidDate, formatStr: string) {
+export function strftime(d: LiquidDate, formatStr: string) {
   let output = ''
   let remaining = formatStr
   let match
@@ -137,11 +140,11 @@ export function strftime (d: LiquidDate, formatStr: string) {
   return output + remaining
 }
 
-function assertPadWidth (width: number) {
+function assertPadWidth(width: number) {
   assert(width <= MAX_STRFTIME_PAD, 'strftime pad width limit exceeded')
 }
 
-function format (d: LiquidDate, match: RegExpExecArray) {
+function format(d: LiquidDate, match: RegExpExecArray) {
   const [input, flagStr = '', width, modifier, conversion] = match
   const convert = formatCodes[conversion]
   if (!convert) return input

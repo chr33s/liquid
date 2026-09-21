@@ -2,50 +2,49 @@
   "name": "liquidjs",
   "version": "10.27.1",
   "sideEffects": false,
-  "description": "A simple, expressive, extensible Liquid template engine for JavaScript — Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.",
-  "main": "dist/liquid.node.js",
-  "module": "dist/liquid.node.mjs",
-  "es2015": "dist/liquid.browser.mjs",
-  "browser": {
-    "./dist/liquid.node.js": "./dist/liquid.browser.umd.js",
-    "./dist/liquid.node.mjs": "./dist/liquid.browser.mjs"
-  },
+  "type": "module",
+  "description": "A simple, expressive, extensible Liquid template engine for JavaScript \u2014 Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.",
   "exports": {
+    "types": "./dist/index.d.ts",
+    "browser": "./dist/liquid.browser.mjs",
     "import": "./dist/liquid.node.mjs",
-    "require": "./dist/liquid.node.js"
+    "require": "./dist/liquid.node.cjs"
   },
-  "types": "dist/index.d.ts",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "scripts": {
-    "lint": "eslint \"**/*.mjs\" \"**/*.ts\" .",
-    "check": "npm run build && npm run build:docs && npm test && npm run lint && npm run perf:diff",
-    "test": "jest",
-    "test:coverage": "jest --coverage src test/integration",
-    "test:e2e": "jest test/e2e",
+    "lint": "oxlint && oxfmt --check src test bin rolldown.config.mjs vitest.config.mts",
+    "check": "npm run build && npm run build:docs && npm test && npm run lint && npm run typecheck && npm run perf:diff",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage src test/integration",
+    "test:e2e": "vitest run test/e2e",
     "test:demo": "./test/demo/test.sh",
-    "perf:diff": "node bin/perf-diff.js",
+    "perf:diff": "node bin/perf-diff.mts",
     "perf:engines": "cd benchmark && npm run engines",
     "version": "npm run build && npm test",
-    "build": "rollup -c rollup.config.mjs",
-    "build:cjs": "BUNDLES=cjs rollup -c rollup.config.mjs",
-    "build:min": "BUNDLES=min rollup -c rollup.config.mjs",
-    "build:umd": "BUNDLES=umd rollup -c rollup.config.mjs",
-    "build:charmap": "./bin/character-gen.js > src/util/character.ts",
+    "build": "run-s build:types build:bundles",
+    "build:min": "cross-env BUNDLES=min rolldown -c rolldown.config.mjs",
+    "build:umd": "cross-env BUNDLES=umd rolldown -c rolldown.config.mjs",
+    "build:charmap": "./bin/character-gen.mts > src/util/character.ts && oxfmt src/util/character.ts",
     "prepare:docs": "run-s build:docs-liquid build:contributors build:apidoc build:changelog",
     "build:docs": "run-s prepare:docs build:docs-hexo",
-    "build:docs-liquid": "cross-env BUNDLES=min rollup -c rollup.config.mjs && shx cp dist/liquid.browser.min.js docs/themes/navy/source/js/",
-    "build:contributors": "node bin/build-contributors.js",
-    "build:apidoc": "shx rm -rf docs/source/api && typedoc --plugin typedoc-plugin-missing-exports ./src --gitRevision master --out docs/source/api",
-    "build:changelog": "node bin/build-changelog.js",
-    "build:docs-hexo": "cd docs && npm ci && npm run build && shx cp CNAME public/",
+    "build:docs-liquid": "run-s build:min && shx cp dist/liquid.browser.min.js docs/themes/navy/source/js/",
+    "build:contributors": "node bin/build-contributors.mts",
+    "build:apidoc": "shx rm -rf docs/source/api && typedoc --tsconfig tsconfig.build.json --plugin typedoc-plugin-missing-exports ./src --gitRevision master --out docs/source/api",
+    "build:changelog": "node bin/build-changelog.mts",
+    "build:docs-hexo": "cd docs && npm ci && npm run build && shx cp CNAME .nojekyll public/",
     "serve:docs": "cd docs && npm run start",
-    "dev:docs": "run-s prepare:docs serve:docs"
+    "dev:docs": "run-s prepare:docs serve:docs",
+    "format": "oxfmt src test bin rolldown.config.mjs vitest.config.mts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build:types": "shx rm -rf dist && tsc -p tsconfig.build.json && shx cp src/build/liquid.node.cjs dist/liquid.node.cjs && shx cp src/build/dist-package.json dist/package.json",
+    "build:bundles": "rolldown -c rolldown.config.mjs",
+    "build:cli": "cross-env BUNDLES=cli rolldown -c rolldown.config.mjs"
   },
   "bin": {
-    "liquidjs": "./bin/liquid.js",
-    "liquid": "./bin/liquid.js"
+    "liquidjs": "./dist/liquid.cli.mjs",
+    "liquid": "./dist/liquid.cli.mjs"
   },
   "repository": {
     "type": "git",
@@ -56,7 +55,6 @@
     "url": "https://opencollective.com/liquidjs"
   },
   "files": [
-    "bin/liquid.js",
     "dist",
     "LICENSE",
     "README.md"
@@ -75,62 +73,38 @@
   },
   "homepage": "https://github.com/harttle/liquidjs#readme",
   "devDependencies": {
-    "@commitlint/cli": "^12.1.4",
-    "@commitlint/config-conventional": "^8.2.0",
-    "@semantic-release/changelog": "^6.0.2",
-    "@semantic-release/commit-analyzer": "^9.0.2",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/npm": "^13.1.5",
-    "@semantic-release/release-notes-generator": "^10.0.3",
-    "@types/benchmark": "^1.0.31",
-    "@types/express": "^4.17.2",
-    "@types/jest": "^29.4.0",
-    "@types/jsdom": "^12.2.2",
-    "@types/node": "^22.3.0",
-    "@types/sinon": "^10.0.13",
-    "@types/supertest": "^2.0.7",
-    "@typescript-eslint/eslint-plugin": "^5.6.0",
-    "@typescript-eslint/parser": "^5.6.0",
-    "all-contributors-cli": "^6.24.0",
-    "benchmark": "^2.1.4",
-    "coveralls": "^3.0.2",
-    "cross-env": "^5.2.0",
-    "eslint": "^7.32.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-deprecation": "^1.3.2",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-mocha": "^5.3.0",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "express": "^4.16.4",
-    "jest": "^29.5.0",
-    "jsdom": "^16.5.0",
-    "npm-run-all2": "^8.0.4",
-    "rollup": "^1.26.3",
-    "rollup-plugin-replace": "^2.1.0",
-    "rollup-plugin-typescript2": "^0.31.1",
-    "rollup-plugin-uglify": "^6.0.4",
-    "rollup-plugin-version-injector": "^1.3.3",
-    "semantic-release": "^25.0.3",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/git": "^11.0.1",
+    "@types/express": "^5.0.6",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.6.2",
+    "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "^5.0.1",
+    "cross-env": "^10.1.0",
+    "express": "^5.2.1",
+    "jsdom": "^30.1.0",
+    "npm-run-all2": "^9.0.3",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "rolldown": "^1.2.9",
+    "semantic-release": "^25.0.9",
     "shx": "^0.4.0",
-    "sinon": "^15.0.2",
-    "supertest": "^3.4.2",
-    "ts-jest": "^29.0.5",
-    "tslib": "^2.3.1",
-    "typedoc": "^0.26.5",
-    "typedoc-plugin-missing-exports": "^3.0.0",
-    "typescript": "^4.5.3"
+    "supertest": "^7.2.2",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-missing-exports": "^4.1.4",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
   },
   "dependencies": {
-    "commander": "^10.0.0"
+    "commander": "^15.0.0"
   },
   "publishConfig": {
+    "access": "public",
     "provenance": true
   },
-  "nyc": {
-    "extension": [
-      ".ts"
-    ]
+  "allowScripts": {
+    "fsevents": true
   }
 }
