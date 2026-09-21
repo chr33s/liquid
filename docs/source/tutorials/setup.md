@@ -2,7 +2,7 @@
 title: Setup
 ---
 
-In case you're not familiar with Liquid Template Language, see [Introduction to Liquid Template Language][intro].
+In case you're not familiar with Liquid Template Language, see [Introduction to Liquid Template Language](./intro-to-liquid.md).
 
 ## LiquidJS in Node.js
 
@@ -27,9 +27,11 @@ LiquidJS ships as ES Modules and requires Node.js >= 22.12. CommonJS projects ca
 const { Liquid } = require('@chr33s/liquid');
 ```
 
-Both entries share a single module instance, so classes like `Drop` and `Tag` compare equal (`instanceof`) no matter how each part of your program loads LiquidJS. See [Migrate to LiquidJS 11][migrate11] for details.
+Both entries share a single module instance, so classes like `Drop` and `Tag` compare equal (`instanceof`) no matter how each part of your program loads LiquidJS. See [Migrate to LiquidJS 11](./migrate-to-11.md) for details.
 
-{% note info Working Demo %} Here's a working demo for LiquidJS usage in Node.js: <a href="https://github.com/harttle/liquidjs/blob/master/demo/nodejs/" target="_blank">liquidjs/demo/nodejs/</a>.{% endnote %}
+> **Working Demo**
+>
+> Here's a working demo for LiquidJS usage in Node.js: <a href="https://github.com/chr33s/liquid/tree/main/demo/nodejs/" target="_blank">demo/nodejs/</a>.
 
 Type definitions for LiquidJS are also exported and published, which makes it more enjoyable for TypeScript projects:
 
@@ -42,7 +44,9 @@ engine
     .then(console.log);     // outputs 'Alice'
 ```
 
-{% note info Working Demo %} Here's a working demo for LiquidJS usage in TypeScript: <a href="https://github.com/harttle/liquidjs/blob/master/demo/typescript/" target="_blank">liquidjs/demo/typescript/</a>.{% endnote %}
+> **Working Demo**
+>
+> Here's a working demo for LiquidJS usage in TypeScript: <a href="https://github.com/chr33s/liquid/tree/main/demo/typescript/" target="_blank">demo/typescript/</a>.
 
 ## LiquidJS in Browsers
 
@@ -55,9 +59,13 @@ Pre-built UMD bundles are also available:
 <script src="https://cdn.jsdelivr.net/npm/@chr33s/liquid/dist/liquid.browser.umd.js"></script>
 ```
 
-{% note info Working Demo %} Here's a live demo on jsFiddle: <a href="https://jsfiddle.net/pd4jhzLs/1/" target="_blank">jsfiddle.net/pd4jhzLs/1/</a>, and the source code is also available in <a href="https://github.com/harttle/liquidjs/blob/master/demo/browser/" target="_blank">liquidjs/demo/browser/</a>.{% endnote %}
+> **Working Demo**
+>
+> Here's a live demo on jsFiddle: <a href="https://jsfiddle.net/pd4jhzLs/1/" target="_blank">jsfiddle.net/pd4jhzLs/1/</a>, and the source code is also available in <a href="https://github.com/chr33s/liquid/tree/main/demo/browser/" target="_blank">demo/browser/</a>.
 
-{% note warn Compatibility %} You may need a <a href="https://github.com/taylorhakes/promise-polyfill" target="_blank">Promise polyfill</a> for legacy browsers like IE and Android UC, see <a href="https://caniuse.com/#feat=promises" target="_blank">caniuse statistics</a>. {% endnote %}
+> **Compatibility**
+>
+> You may need a <a href="https://github.com/taylorhakes/promise-polyfill" target="_blank">Promise polyfill</a> for legacy browsers like IE and Android UC, see <a href="https://caniuse.com/#feat=promises" target="_blank">caniuse statistics</a>.
 
 ## LiquidJS in CLI
 
@@ -96,12 +104,9 @@ You can also pass a number of options to customize template rendering behavior. 
 npx liquidjs @./some-template.liquid --js-truthy
 ```
 
-Most of the [options available through the JavaScript API][options] are also available from the CLI. For help on available options, use `npx liquidjs --help`.
+Most of the [options available through the JavaScript API](./options.md) are also available from the CLI. For help on available options, use `npx liquidjs --help`.
 
 ## Miscellaneous
 
-A ReactJS demo is also added by [@stevenanthonyrevo](https://github.com/stevenanthonyrevo), see [liquidjs/demo/reactjs/](https://github.com/harttle/liquidjs/blob/master/demo/reactjs/).
+A ReactJS demo is also added by [@stevenanthonyrevo](https://github.com/stevenanthonyrevo), see [demo/reactjs/](https://github.com/chr33s/liquid/tree/main/demo/reactjs/).
 
-[intro]: ./intro-to-liquid.html
-[options]: ./options.html
-[migrate11]: ./migrate-to-11.html

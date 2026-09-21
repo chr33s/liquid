@@ -22,7 +22,7 @@ Getting started and building is described in [CONTRIBUTING.md](https://github.co
 
 LiquidJS is Open Source and Free. To help it live and thrive, especially when LiquidJS is benefiting your business, consider contributing on [GitHub Sponsors](https://github.com/sponsors/harttle) or [Open Collective][oc].
 
-I'll add all financial contributors into [README.md](https://github.com/harttle/liquidjs#financial-support) and it'll be also shown on https://liquidjs.com after next GitHub Actions build.
+I'll add all financial contributors into [README.md](https://github.com/harttle/liquidjs#financial-support).
 
 If I'm missing anything or you observed it not working, please don't hesitate to file an issue or find me via email (harttleharttle at gmail).
 

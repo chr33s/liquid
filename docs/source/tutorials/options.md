@@ -2,7 +2,7 @@
 title: Options
 ---
 
-The [Liquid][liquid] constructor accepts a plain object as options to define the behavior of LiquidJS. All of these options are optional thus we can specify any of them, for example the `cache` option:
+The {@link Liquid | Liquid} constructor accepts a plain object as options to define the behavior of LiquidJS. All of these options are optional thus we can specify any of them, for example the `cache` option:
 
 ```javascript
 import { Liquid } from '@chr33s/liquid'
@@ -11,9 +11,9 @@ const engine = new Liquid({
 })
 ```
 
-{% note info API documentation %}
-Following is an overview for all the options. For exact types and signatures, see <a href="https://liquidjs.com/api/interfaces/LiquidOptions.html" target="_self">LiquidOptions | API</a>.
-{% endnote %}
+> **API documentation**
+>
+> Following is an overview for all the options. For exact types and signatures, see {@link LiquidOptions}.
 
 ## cache
 
@@ -21,11 +21,11 @@ Following is an overview for all the options. For exact types and signatures, se
 
 It defaults to `false`. When set to `true`, a default LRU cache of size 1024 will be enabled. It can also be a number indicating the cache size you want.
 
-Additionally, it can also be a custom cache implementation. See [Caching][caching] for details.
+Additionally, it can also be a custom cache implementation. See [Caching](./caching.md) for details.
 
 ## Partials/Layouts
 
-**root** is used to specify template directories for LiquidJS to look up and read template files. Can be a single string or an array of strings. See [Render Files][render-file] for details.
+**root** is used to specify template directories for LiquidJS to look up and read template files. Can be a single string or an array of strings. See [Render Files](./render-file.md) for details.
 
 **layouts** is used to specify template directories for LiquidJS to look up files for `{% layout %}`. Same format as `root` and will default to `root` if not specified.
 
@@ -49,12 +49,14 @@ Setting `dynamicPartials: false`, LiquidJS will try to include the file named `f
 {% liquid foo.html %}
 ```
 
-{% note warn Common Pitfall %}
-LiquidJS defaults this option to <code>true</code> to be compatible with shopify/liquid, but if you're from <a href="https://github.com/11ty/eleventy" target="_blank">eleventy</a> it's set to <code>false</code> by default (see <a href="https://www.11ty.dev/docs/languages/liquid/#quoted-include-paths" target="_blank">Quoted Include Paths</a>) which I believe is trying to be compatible with Jekyll.{% endnote %}
+**Common Pitfall**
+
+
+LiquidJS defaults this option to <code>true</code> to be compatible with shopify/liquid, but if you're from <a href="https://github.com/11ty/eleventy" target="_blank">eleventy</a> it's set to <code>false</code> by default (see <a href="https://www.11ty.dev/docs/languages/liquid/#quoted-include-paths" target="_blank">Quoted Include Paths</a>) which I believe is trying to be compatible with Jekyll.
 
 ## Jekyll include
 
-{% since %}v9.33.0{% endsince %}
+Since v9.33.0.
 
 [jekyllInclude][jekyllInclude] is used to enable Jekyll-like include syntax. Defaults to `false`, when set to `true`:
 
@@ -84,17 +86,17 @@ For example in the following template, `name.html` is not quoted, `header` and `
 {% render "foo.html" %}  there is an extname already, loads foo.html directly
 ```
 
-{% note info Legacy Versions %}
-Before 2.0.1, <code>extname</code> is set to `.liquid` by default. To change that you need to set <code>extname: ''</code> explicitly. See <a href="https://github.com/harttle/liquidjs/issues/41" target="_blank">#41</a> for details.
-{% endnote %}
+> **Legacy Versions**
+>
+> Before 2.0.1, <code>extname</code> is set to `.liquid` by default. To change that you need to set <code>extname: ''</code> explicitly. See <a href="https://github.com/harttle/liquidjs/issues/41" target="_blank">#41</a> for details.
 
 ## fs
 
-**fs** is used to define a custom file system implementation which will be used by LiquidJS to look up and read template files. See [Abstract File System][abstract-fs] for details.
+**fs** is used to define a custom file system implementation which will be used by LiquidJS to look up and read template files. See [Abstract File System](./render-file.md) for details.
 
 ## globals
 
-**globals** is used to define global variables available to all templates even in cases of [render tag][render]. See [3185][185] for details.
+**globals** is used to define global variables available to all templates even in cases of [render tag](../tags/render.md). See [3185][185] for details.
 
 ## jsTruthy
 
@@ -104,7 +106,7 @@ It defaults to `false`. For example, when set to `true`, a blank string would ev
 
 ## outputEscape
 
-[outputEscape][outputEscape] can be used to automatically escape output strings. It can be one of `"escape"`, `"json"`, or `(val: unknown) => string`, defaults to `undefined`.
+{@link LiquidOptions.outputEscape | outputEscape} can be used to automatically escape output strings. It can be one of `"escape"`, `"json"`, or `(val: unknown) => string`, defaults to `undefined`.
 
 - For untrusted output variables, set `outputEscape: "escape"` makes them be HTML escaped by default. You'll need [raw][raw] filter for direct output.
 - `"json"` is useful when you're using LiquidJS to create valid JSON files.
@@ -120,11 +122,11 @@ It defaults to `false`. For example, when set to `true`, a blank string would ev
 
 ## Trimming
 
-**greedy**, **trimOutputLeft**, **trimOutputRight**, **trimTagLeft**, **trimTagRight** options are used to eliminate extra newlines and indents in templates around Liquid Constructs. See [Whitespace Control][wc] for details.
+**greedy**, **trimOutputLeft**, **trimOutputRight**, **trimTagLeft**, **trimTagRight** options are used to eliminate extra newlines and indents in templates around Liquid Constructs. See [Whitespace Control](./whitespace-control.md) for details.
 
 ## Delimiter
 
-**outputDelimiterLeft**, **outputDelimiterRight**, **tagDelimiterLeft**, **tagDelimiterRight** are used to customize the delimiters for LiquidJS [Tags and Filters][intro]. For example with `outputDelimiterLeft: <%=, outputDelimiterRight: %>` we are able to avoid conflicts with other languages:
+**outputDelimiterLeft**, **outputDelimiterRight**, **tagDelimiterLeft**, **tagDelimiterRight** are used to customize the delimiters for LiquidJS [Tags and Filters](./intro-to-liquid.md). For example with `outputDelimiterLeft: <%=, outputDelimiterRight: %>` we are able to avoid conflicts with other languages:
 
 ```ejs
 <%= username | append: ", welcome to LiquidJS!" %>
@@ -138,26 +140,22 @@ It defaults to `false`. For example, when set to `true`, a blank string would ev
 
 **lenientIf** modifies the behavior of `strictVariables` to allow handling optional variables. If set to `true`, an undefined variable will *not* cause an exception in the following two situations: a) it is the condition to an `if`, `elsif`, or `unless` tag; b) it occurs right before a `default` filter. Irrelevant if `strictVariables` is not set. Defaults to `false`.
 
-**ownPropertyOnly** limits template property reads on plain scope objects to own properties. Defaults to `true`. See [Security Model](./security-model.html).
+**ownPropertyOnly** limits template property reads on plain scope objects to own properties. Defaults to `true`. See [Security Model](./security-model.md).
 
-{% note info Nonexistent Tags %}
-Nonexistent tags always throw errors during parsing and this behavior cannot be customized.
-{% endnote %}
+> **Nonexistent Tags**
+>
+> Nonexistent tags always throw errors during parsing and this behavior cannot be customized.
 
 ## Parameter Order
 
 Parameter orders are ignored by default, for example `{% for i in (1..8) reversed limit:3 %}` will always perform `limit` before `reversed`, even if `reversed` occurs before `limit`. To make parameter order respected, set **orderedFilterParameters** to `true`. Its default value is `false`.
 
-[liquid]: /api/classes/Liquid.html
-[caching]: ./caching.html
-[abstract-fs]: ./render-file.html#Abstract-File-System
-[render-file]: ./render-file.html
 [185]: https://github.com/harttle/liquidjs/issues/185
-[render]: ../tags/render.html
-[include]: ../tags/include.html
-[layout]: ../tags/layout.html
-[wc]: ./whitespace-control.html
-[intro]: ./intro-to-liquid.html
+[render]: ../tags/render.md
+[include]: ../tags/include.md
+[layout]: ../tags/layout.md
+[wc]: ./whitespace-control.md
+[intro]: ./intro-to-liquid.md
 [jekyllInclude]: /api/interfaces/LiquidOptions.html#jekyllInclude
-[raw]: ../filters/raw.html
+[raw]: ../filters/raw.md
 [outputEscape]: /api/interfaces/LiquidOptions.html#outputEscape

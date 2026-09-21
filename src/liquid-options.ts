@@ -38,7 +38,7 @@ export interface LiquidOptions {
   strictVariables?: boolean
   /** Catch all errors instead of exit upon one. Please note that render errors won't be reached when parse fails. */
   catchAllErrors?: boolean
-  /** Limit template property reads on plain scope objects to own properties. Defaults to `true`. See https://liquidjs.com/tutorials/security-model.html */
+  /** Limit template property reads on plain scope objects to own properties. Defaults to `true`. See https://github.com/chr33s/liquid/wiki/Tutorials.Document.Security-Model */
   ownPropertyOnly?: boolean
   /** Modifies the behavior of `strictVariables`. If set, a single undefined variable will *not* cause an exception in the context of the `if`/`elsif`/`unless` tag and the `default` filter. Instead, it will evaluate to `false` and `null`, respectively. Irrelevant if `strictVariables` is not set. Defaults to `false`. **/
   lenientIf?: boolean

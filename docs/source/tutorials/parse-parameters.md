@@ -4,7 +4,7 @@ title: Parse Parameters
 
 ## Access Raw Parameters
 
-As covered in [Register Filters/Tags][register-tags], tag parameters are available on `tagToken.args` as a raw string. For example:
+As covered in [Register Filters/Tags](./register-filters-tags.md), tag parameters are available on `tagToken.args` as a raw string. For example:
 
 ```javascript
 // Usage: {% random foo bar coo %}
@@ -35,7 +35,7 @@ The following modified template also contains 3 values to random from, but they'
 {% random "foo" bar obj.coo %}
 ```
 
-It can be tricky to parse all these cases manually, but there's a [Tokenizer][Tokenizer] class in LiquidJS you can make use of.
+It can be tricky to parse all these cases manually, but there's a {@link Tokenizer | Tokenizer} class in LiquidJS you can make use of.
 
 ```javascript
 import { Liquid, Tokenizer, evalToken } from '@chr33s/liquid'
@@ -60,13 +60,13 @@ engine.registerTag('random', {
 
 Calling this tag in scope `{ bar: "bar", obj: { coo: "coo" } }` yields exactly the same result as the first example. See this JSFiddle: <https://jsfiddle.net/ctj364up/3/>
 
-{% note info Async and Promises %}
-Async calls in LiquidJS are implemented by generators directly, for we can call generators in synchronous manner so this tag implementation is also valid for `renderSync()`, `parseAndRenderSync()`, `renderFileSync()`. If you need to await a promise in tag implementation, simply replace `await somePromise` with `yield somePromise` and keep `* render()` instead of `async render()` will do the trick. See <a href="/tutorials/sync-and-async.html">Sync and Async</a> for more details.
-{% endnote %}
+> **Async and Promises**
+>
+> Async calls in LiquidJS are implemented by generators directly, for we can call generators in synchronous manner so this tag implementation is also valid for `renderSync()`, `parseAndRenderSync()`, `renderFileSync()`. If you need to await a promise in tag implementation, simply replace `await somePromise` with `yield somePromise` and keep `* render()` instead of `async render()` will do the trick. See <a href="./sync-and-async.md">Sync and Async</a> for more details.
 
 ## Parse Key-Value Pairs as Named Parameters
 
-Named parameters become very handy when there are optional parameters or lots of parameters, in which case the order of parameters is not important. This is exactly what the [Hash][Hash] class was invented for.
+Named parameters become very handy when there are optional parameters or lots of parameters, in which case the order of parameters is not important. This is exactly what the {@link Hash | Hash} class was invented for.
 
 ```liquid
 {% random from:2, to:max %}
@@ -92,9 +92,4 @@ engine.registerTag('random', {
 })
 ```
 
-Rendering `{% raw %}{% random from:2, to:max %}{% endraw %}` in scope `{ max: 10 }` will generate a random number in the range [2, 10]. See this JSFiddle: <https://jsfiddle.net/ctj364up/4/>
-
-
-[register-tags]: /tutorials/register-filters-tags.html
-[Tokenizer]: /api/classes/Tokenizer.html
-[Hash]: /api/classes/Hash.html
+Rendering `{% random from:2, to:max %}` in scope `{ max: 10 }` will generate a random number in the range [2, 10]. See this JSFiddle: <https://jsfiddle.net/ctj364up/4/>

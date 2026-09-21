@@ -1,7 +1,7 @@
 {
   "name": "@chr33s/liquid",
   "version": "11.0.0",
-  "description": "A simple, expressive, extensible Liquid template engine for JavaScript — Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.",
+  "description": "A simple, expressive, extensible Liquid template engine for JavaScript \u2014 Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.",
   "keywords": [
     "express",
     "jinja",
@@ -58,20 +58,15 @@
     "build:min": "cross-env BUNDLES=min rolldown -c rolldown.config.mjs",
     "build:umd": "cross-env BUNDLES=umd rolldown -c rolldown.config.mjs",
     "build:charmap": "./bin/character-gen.mts > src/util/character.ts && oxfmt src/util/character.ts",
-    "prepare:docs": "run-s build:docs-liquid build:contributors build:apidoc build:changelog",
-    "build:docs": "run-s prepare:docs build:docs-hexo",
-    "build:docs-liquid": "run-s build:min && shx cp dist/liquid.browser.min.js docs/themes/navy/source/js/",
-    "build:contributors": "node bin/build-contributors.mts",
-    "build:apidoc": "shx rm -rf docs/source/api && typedoc --tsconfig tsconfig.build.json --plugin typedoc-plugin-missing-exports ./src --gitRevision master --out docs/source/api",
-    "build:changelog": "node bin/build-changelog.mts",
-    "build:docs-hexo": "cd docs && npm ci && npm run build && shx cp CNAME .nojekyll public/",
-    "serve:docs": "cd docs && npm run start",
-    "dev:docs": "run-s prepare:docs serve:docs",
+    "build:docs": "run-s build:apidoc check:docs",
+    "build:apidoc": "typedoc --options typedoc.json",
     "format": "oxfmt src test bin rolldown.config.mjs vitest.config.mts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "build:types": "shx rm -rf dist && tsc -p tsconfig.build.json && shx cp src/build/liquid.node.cjs dist/liquid.node.cjs && shx cp src/build/dist-package.json dist/package.json",
     "build:bundles": "rolldown -c rolldown.config.mjs",
-    "build:cli": "cross-env BUNDLES=cli rolldown -c rolldown.config.mjs"
+    "build:cli": "cross-env BUNDLES=cli rolldown -c rolldown.config.mjs",
+    "check:docs": "node bin/check-docs.mts",
+    "publish:docs": "node bin/publish-wiki.mts"
   },
   "dependencies": {
     "commander": "^15.0.0"
@@ -97,6 +92,8 @@
     "shx": "^0.4.0",
     "supertest": "^7.2.2",
     "typedoc": "^0.28.20",
+    "typedoc-github-wiki-theme": "2.1.1",
+    "typedoc-plugin-markdown": "4.13.1",
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "^6.0.3",
     "vitest": "^5.0.1"

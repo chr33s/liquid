@@ -2,7 +2,7 @@
 title: layout
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 ## Using a Layout
 
@@ -24,15 +24,15 @@ My page content
 Footer
 ```
 
-If [extname][extname] option is set, the `.liquid` extension becomes optional:
+If {@link LiquidOptions.extname | extname} option is set, the `.liquid` extension becomes optional:
 
 ```liquid
 {% layout 'default-layout' %}
 ```
 
-{% note info Scoping %}
-When a partial template is rendered by the `layout` tag, its template has access to its caller's variables but not vice versa. Variables defined in `layout` will be popped out before control returns to its caller.
-{% endnote %}
+> **Scoping**
+>
+> When a partial template is rendered by the `layout` tag, its template has access to its caller's variables but not vice versa. Variables defined in `layout` will be popped out before control returns to its caller.
 
 ## Multiple Blocks
 
@@ -83,9 +83,11 @@ When filename is specified as literal string, it supports Liquid output and filt
 {% layout "prefix/{{name | append: \".html\"}}" %}
 ```
 
-{% note info Escaping %}
+**Escaping**
+
+
 In LiquidJS, `"` within quoted string literals need to be escaped. Adding a slash before the quote, e.g. `\"`. Using Jekyll-like filenames can make this easier, see below.
-{% endnote %}
+
 
 ## Jekyll-like Filenames
 

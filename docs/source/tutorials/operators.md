@@ -7,7 +7,7 @@ LiquidJS operators are very simple and different. There are 2 types of operators
 * Comparison operators: `==`, `!=`, `>`, `<`, `>=`, `<=`
 * Logical operators: `not`, `or`, `and`, `contains`
 
-Thus arithmetic operators are not supported and you cannot add two numbers like this `{% raw %}{{a + b}}{% endraw %}`. Instead, use a filter: `{% raw %}{{ a | plus: b}}{% endraw %}`. Actually `+` is a valid variable name in LiquidJS.
+Thus arithmetic operators are not supported and you cannot add two numbers like this `{{a + b}}`. Instead, use a filter: `{{ a | plus: b}}`. Actually `+` is a valid variable name in LiquidJS.
 
 ## Logical Operators
 

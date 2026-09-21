@@ -1,5 +1,5 @@
 ---
-title: Use in Express.js
+title: Use in Express
 ---
 
 LiquidJS is compatible with [Express template engines](https://expressjs.com/en/resources/template-engines.html). You can set the LiquidJS instance as the [view engine][express-views] option:
@@ -14,11 +14,13 @@ app.set('views', './views');            // specify the views directory
 app.set('view engine', 'liquid');       // set liquid to default
 ```
 
-{% note info Working Demo %} Here's a working demo for LiquidJS usage in Express.js: <a href="https://github.com/harttle/liquidjs/blob/master/demo/express/" target="_blank">liquidjs/demo/express/</a>.{% endnote %}
+> **Working Demo**
+>
+> Here's a working demo for LiquidJS usage in Express.js: <a href="https://github.com/chr33s/liquid/tree/main/demo/express/" target="_blank">demo/express/</a>.
 
 ## Template Lookup
 
-The [root][root] option will continue to work as templates root, as you can see in [Render A Template File][render-a-file]. Additionally, the [`views`][express-views] option in express.js (as shown above) will also be respected. Say you have a template directory like:
+The {@link LiquidOptions.root | root} option will continue to work as templates root, as you can see in [Render A Template File](./render-file.md). Additionally, the [`views`][express-views] option in express.js (as shown above) will also be respected. Say you have a template directory like:
 
 ```
 .
@@ -50,7 +52,7 @@ res.render('world')
 
 ## Caching
 
-Simply setting the [cache option][cache] to true will enable template caching, as explained in [Caching][Caching]. It's recommended to enable cache in a production environment, which can be done by:
+Simply setting the {@link LiquidOptions.cache | cache option} to true will enable template caching, as explained in [Caching](./caching.md). It's recommended to enable cache in a production environment, which can be done by:
 
 ```javascript
 import { Liquid } from '@chr33s/liquid'
@@ -59,12 +61,6 @@ var engine = new Liquid({
 });
 ```
 
-[cache]: /api/interfaces/LiquidOptions.html#cache
 [express-views]: https://expressjs.com/en/guide/using-template-engines.html
-[parseFile]: /api/classes/Liquid.html#parseFile
-[parseFileSync]: /api/classes/Liquid.html#parseFileSync
 [layout]: https://help.shopify.com/en/themes/liquid/tags/theme-tags#layout
 [include]: https://help.shopify.com/themes/liquid/tags/theme-tags#include
-[root]: /api/interfaces/LiquidOptions.html#root
-[render-a-file]: ./render-a-file.html
-[Caching]: ./caching.html

@@ -2,7 +2,7 @@
 title: cycle
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Loops through a group of strings and prints them in the order that they were passed as arguments. Each time `cycle` is called, the next string argument is printed.
 

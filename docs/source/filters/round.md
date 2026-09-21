@@ -2,7 +2,7 @@
 title: round
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Rounds a number to the nearest integer or, if a number is passed as an argument, to that number of decimal places.
 

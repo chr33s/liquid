@@ -4,9 +4,9 @@ title: Liquid Drops
 
 LiquidJS also provides a mechanism similar to [Shopify Drops][shopify-drops], allowing template authors to incorporate custom functionality in resolving variable values.
 
-{% note info Drop for JavaScript %}
-<em>Drop</em> interface is implemented differently in LiquidJS compared to built-in filters and other template functionalities. Since LiquidJS runs in JavaScript, custom Drops need to be reimplemented in JavaScript anyway. There's no compatibility between JavaScript classes and Ruby classes.
-{% endnote %}
+> **Drop for JavaScript**
+>
+> <em>Drop</em> interface is implemented differently in LiquidJS compared to built-in filters and other template functionalities. Since LiquidJS runs in JavaScript, custom Drops need to be reimplemented in JavaScript anyway. There's no compatibility between JavaScript classes and Ruby classes.
 
 ## Basic Usage
 
@@ -34,9 +34,9 @@ engine.parseAndRender(template, context).then(html => console.log(html))
 
 As shown above, besides reading properties from context scopes, you can also call methods. You only need to create a custom class inherited from `Drop`.
 
-{% note tip Async Methods %}
-LiquidJS is fully async-friendly. You can safely return a Promise in your Drop methods or define your methods in Drop as `async`.
-{% endnote %}
+> **Async Methods**
+>
+> LiquidJS is fully async-friendly. You can safely return a Promise in your Drop methods or define your methods in Drop as `async`.
 
 ## liquidMethodMissing
 
@@ -148,13 +148,13 @@ const engine = new Liquid()
 engine.parseAndRender("{{person.name}}", context).then(html => console.log(html))
 ```
 
-{% note info <code>toLiquid()</code> vs. <code>valueOf()</code> Difference %}
-<ul>
-  <li><code>valueOf()</code> is typically used to define how the current variable should be rendered, while <code>toLiquid()</code> is often used to convert an object into a Drop or another scope provided to the template.</li>
-  <li><code>valueOf()</code> is a method exclusive to Drops; whereas <code>toLiquid()</code> can be used on any scope object.</li>
-  <li><code>valueOf()</code> is called when the variable itself is about to be rendered, replacing itself; whereas <code>toLiquid()</code> is called when its properties are about to be read.</li>
-</ul>
-{% endnote %}
+> **<code>toLiquid()</code> vs. <code>valueOf()</code> Difference**
+>
+> <ul>
+>   <li><code>valueOf()</code> is typically used to define how the current variable should be rendered, while <code>toLiquid()</code> is often used to convert an object into a Drop or another scope provided to the template.</li>
+>   <li><code>valueOf()</code> is a method exclusive to Drops; whereas <code>toLiquid()</code> can be used on any scope object.</li>
+>   <li><code>valueOf()</code> is called when the variable itself is about to be rendered, replacing itself; whereas <code>toLiquid()</code> is called when its properties are about to be read.</li>
+> </ul>
 
 ## Special Drops
 
@@ -180,9 +180,9 @@ Useful to check if an array, string, or object is empty.
 {% endif %}
 ```
 
-{% note info <code>empty</code> implementation %}
-For arrays and strings, LiquidJS checks their `.length` property. For objects, LiquidJS calls `Object.keys()` to check whether they have keys.
-{% endnote %}
+> **<code>empty</code> implementation**
+>
+> For arrays and strings, LiquidJS checks their `.length` property. For objects, LiquidJS calls `Object.keys()` to check whether they have keys.
 
 ### nil
 

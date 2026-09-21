@@ -2,7 +2,7 @@
 title: Access Scope in Filters
 ---
 
-As covered in [Register Filters/Tags][register-filters], we can access filter arguments directly in a filter function like:
+As covered in [Register Filters/Tags](./register-filters-tags.md), we can access filter arguments directly in a filter function like:
 
 ```javascript
 // Usage: {{ 1 | add: 2, 3 }}
@@ -25,8 +25,7 @@ engine.registerFilter('fullURL', function (path) {
 
 See this JSFiddle: <https://jsfiddle.net/ctj364up/1/>
 
-{% note warn Arrow Functions %}
-<code>this</code> in arrow functions is bound to current JavaScript context, you'll need to use <code>function(){}</code> instead of <code>()=>{}</code> syntax to access <code>this.context</code> correctly.
-{% endnote %}
+> **Arrow Functions**
+>
+> <code>this</code> in arrow functions is bound to current JavaScript context, you'll need to use <code>function(){}</code> instead of <code>()=>{}</code> syntax to access <code>this.context</code> correctly.
 
-[register-filters]: /tutorials/register-filters-tags.html

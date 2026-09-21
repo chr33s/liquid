@@ -2,7 +2,7 @@
 title: concat
 ---
 
-{% since %}v2.0.0{% endsince %}
+**Since:** v2.0.0
 
 Concatenates (joins together) multiple arrays. The resulting array contains all the items from the input arrays.
 

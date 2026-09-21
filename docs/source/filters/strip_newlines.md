@@ -2,7 +2,7 @@
 title: strip_newlines
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Removes any newline characters (line breaks) from a string.
 

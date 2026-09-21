@@ -2,9 +2,9 @@
 title: default
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
-Allows you to specify a fallback in case a value doesn't exist. `default` will show its value if the left side is [falsy][falsy] or empty (`string` or `Array`).
+Allows you to specify a fallback in case a value doesn't exist. `default` will show its value if the left side is [falsy](../tutorials/truthy-and-falsy.md) or empty (`string` or `Array`).
 
 In this example, `product_price` is not defined, so the default value is used.
 
@@ -46,7 +46,7 @@ Output
 
 ## Allowing `false`
 
-{% since %}v9.32.0{% endsince %}
+**Since:** v9.32.0
 
 To allow variables to return `false` instead of the default value, you can use the `allow_false` parameter.
 
@@ -63,4 +63,3 @@ Output
 false
 ```
 
-[falsy]: ../tutorials/truthy-and-falsy.html

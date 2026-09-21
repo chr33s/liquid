@@ -2,7 +2,7 @@
 title: plus
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Adds a number to another number.
 

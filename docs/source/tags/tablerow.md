@@ -2,7 +2,7 @@
 title: tablerow
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Generates an HTML table. Must be wrapped in opening `<table>` and closing `</table>` HTML tags.
 

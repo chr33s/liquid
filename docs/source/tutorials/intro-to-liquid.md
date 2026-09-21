@@ -3,16 +3,16 @@ title: The Liquid Template Language
 describe: A short introduction to the Liquid template language and some simple demos.
 ---
 
-Liquid is a template language originally implemented in Ruby and used by Shopify, Jekyll, and GitHub Pages. LiquidJS implements it in JavaScript; see [Differences with Shopify/liquid][diff] for compatibility notes.
+Liquid is a template language originally implemented in Ruby and used by Shopify, Jekyll, and GitHub Pages. LiquidJS implements it in JavaScript; see [Differences with Shopify/liquid](./differences.md) for compatibility notes.
 
 There are 2 types of markups in LiquidJS:
 
-- **Tags**. A tag consists of a tag name and optional arguments wrapped between `{%raw%}{%{%endraw%}` and `%}`.
-- **Outputs**. An output consists of a value and a list of filters, which is optional, wrapped between `{%raw%}{{{%endraw%}` and `}}`.
+- **Tags**. A tag consists of a tag name and optional arguments wrapped between `{%` and `%}`.
+- **Outputs**. An output consists of a value and a list of filters, which is optional, wrapped between `{{` and `}}`.
 
-{% note info Live Demo %}
-Before going into the details, here's a live demo to play around: <https://liquidjs.com/playground.html>.
-{% endnote %}
+> **Live Demo**
+>
+> Before going into the details, here are runnable demos to play around with: <https://github.com/chr33s/liquid/tree/main/demo>.
 
 ## Outputs
 
@@ -34,7 +34,7 @@ Filters can be chained:
 {{ username | append: ", welcome to LiquidJS!" | capitalize }}
 ```
 
-A complete list of filters supported by LiquidJS can be found [here](../filters/overview.html).
+A complete list of filters supported by LiquidJS can be found [here](../filters/overview.md).
 
 ## Tags
 
@@ -54,6 +54,5 @@ Typically tags appear in pairs with a start tag and a corresponding end tag. For
 {% endif %}
 ```
 
-A complete list of tags supported by LiquidJS can be found [here](../tags/overview.html).
+A complete list of tags supported by LiquidJS can be found [here](../tags/overview.md).
 
-[diff]: ./differences.html

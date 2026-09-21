@@ -2,7 +2,7 @@
 title: first
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Returns the first item of an array.
 

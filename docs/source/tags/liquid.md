@@ -2,7 +2,7 @@
 title: liquid
 ---
 
-{% since %}v9.31.0{% endsince %}
+**Since:** v9.31.0
 
 Encloses multiple tags within one set of delimiters, to allow writing Liquid logic more concisely.
 

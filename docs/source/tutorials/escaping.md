@@ -9,7 +9,7 @@ Escaping is important in all languages, including LiquidJS. Escaping has two dif
 
 ## HTML Escape
 
-By default output is not escaped. While you can use [escape][escape] filter for this:
+By default output is not escaped. While you can use [escape](../filters/escape.md) filter for this:
 
 Input
 ```liquid
@@ -21,9 +21,9 @@ Output
 1 &lt; 2
 ```
 
-There's also [escape_once][escape_once], [newline_to_br][newline_to_br], [strip_html][strip_html] filters for you to fine tune your output.
+There's also [escape_once](../filters/escape.md), [newline_to_br](../filters/newline_to_br.md), [strip_html](../filters/strip_html.md) filters for you to fine tune your output.
 
-In cases where variables are mostly not trusted, [outputEscape][outputEscape] can be set to `"escape"` to apply escape by default. In this case, when you need some output not to be escaped, [raw][raw] filter can be used:
+In cases where variables are mostly not trusted, [outputEscape](./options.md) can be set to `"escape"` to apply escape by default. In this case, when you need some output not to be escaped, [raw](../tags/raw.md) filter can be used:
 
 Input
 ```liquid
@@ -39,7 +39,7 @@ Output
 
 ## Liquid Escape
 
-To disable Liquid language and output strings like `{{` and `{%`, the [raw][raw] tag can be used.
+To disable Liquid language and output strings like `{{` and `{%`, the [raw](../tags/raw.md) tag can be used.
 
 Input
 ```liquid
@@ -67,10 +67,3 @@ Output
 "
 ```
 
-[outputEscape]: ./options.html#outputEscape
-[escape]: ../filters/escape.html
-[raw]: ../filters/raw.html
-[escape_once]: ../filters/escape.html
-[strip_html]: ../filters/strip_html.html
-[newline_to_br]: ../filters/newline_to_br.html
-[raw]: ../tags/raw.html

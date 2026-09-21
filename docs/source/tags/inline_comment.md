@@ -1,8 +1,8 @@
 ---
-title: "# (inline comment)"
+title: inline comment
 ---
 
-{% since %}v9.38.0{% endsince %}
+**Since:** v9.38.0
 
 Add comments to a Liquid template using an inline tag. Text enclosed in an inline comment tag will not be printed.
 
@@ -23,7 +23,7 @@ Anything inside an inline comment tag will not be printed.
 But every line must start with a '#'.
 ```
 
-Inline comments are useful inside <a href="./liquid.html">`liquid`</a> tags too.
+Inline comments are useful inside <a href="./liquid.md">`liquid`</a> tags too.
 
 ```liquid
 {% liquid
@@ -36,7 +36,7 @@ Inline comments are useful inside <a href="./liquid.html">`liquid`</a> tags too.
 %}
 ```
 
-But they don't work well for commenting out blocks of Liquid code. The <a href="./comment.html">`comment`</a> block tag is the better option when you need to temporarily stop other tags from being executed.
+But they don't work well for commenting out blocks of Liquid code. The <a href="./comment.md">`comment`</a> block tag is the better option when you need to temporarily stop other tags from being executed.
 
 Input
 ```liquid

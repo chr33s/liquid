@@ -2,7 +2,7 @@
 title: sort_natural
 ---
 
-{% since %}v8.4.0{% endsince %}
+**Since:** v8.4.0
 
 Sorts items in an array in case-insensitive order.
 

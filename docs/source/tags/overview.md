@@ -1,6 +1,25 @@
 ---
 title: Tags
 description: Description and demo for each Liquid tag
+children:
+  - ./assign.md
+  - ./capture.md
+  - ./case.md
+  - ./comment.md
+  - ./cycle.md
+  - ./decrement.md
+  - ./echo.md
+  - ./for.md
+  - ./if.md
+  - ./include.md
+  - ./increment.md
+  - ./inline_comment.md
+  - ./layout.md
+  - ./liquid.md
+  - ./raw.md
+  - ./render.md
+  - ./tablerow.md
+  - ./unless.md
 ---
 
 LiquidJS implements business-logic independent tags that are typically implemented in [shopify/liquid][shopify/liquid]. This section contains the specification and demos for all the tags implemented by LiquidJS.

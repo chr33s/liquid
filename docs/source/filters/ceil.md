@@ -2,7 +2,7 @@
 title: ceil
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Rounds the input up to the nearest whole number. LiquidJS tries to convert the input to a number before the filter is applied.
 

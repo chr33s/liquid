@@ -2,7 +2,7 @@
 title: decrement
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Creates a new number variable, and decreases its value by one every time it is called. The first value is `-1`.
 
@@ -20,8 +20,5 @@ Output
 -3
 ```
 
-Like [increment][increment], variables declared inside `decrement` are independent from variables created through [assign][assign] or [capture][capture].
+Like [increment](./increment.md), variables declared inside `decrement` are independent from variables created through [assign](./assign.md) or [capture](./capture.md).
 
-[increment]: ./increment.html
-[assign]: ./assign.html
-[capture]: ./capture.html

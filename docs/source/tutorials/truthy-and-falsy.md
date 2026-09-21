@@ -10,11 +10,11 @@ According to [Shopify document](https://shopify.github.io/liquid/basics/truthy-a
 
 value          | truthy | falsy
 ---            | ---    | ---
-`true`         | ✔️      | 
+`true`         | ✔️      |
 `false`        |        | ✔️
 `null`         |        | ✔️
 `undefined`    |        | ✔️
-`string`       | ✔️      |	 
+`string`       | ✔️      |
 `empty string` | ✔️      |
 `0`            | ✔️      |
 `integer`      | ✔️      |
@@ -28,11 +28,11 @@ Note that LiquidJS uses Shopify's truthiness by default. It can be toggled to us
 
 value          | truthy | falsy
 ---            | ---    | ---
-`true`         | ✔️      | 
+`true`         | ✔️      |
 `false`        |        | ✔️
 `null`         |        | ✔️
 `undefined`    |        | ✔️
-`string`       | ✔️      |	 
+`string`       | ✔️      |
 `empty string` |        | ✔️
 `0`            |        | ✔️
 `integer`      | ✔️      |

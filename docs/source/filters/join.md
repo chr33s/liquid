@@ -2,7 +2,7 @@
 title: join
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Combines the items in an array into a single string using the argument as a separator.
 

@@ -2,9 +2,9 @@
 title: where
 ---
 
-{% since %}v8.1.0{% endsince %}
+**Since:** v8.1.0
 
-Creates an array including only the objects with a given property value, or any [truthy][truthy] value by default.
+Creates an array including only the objects with a given property value, or any [truthy](../tutorials/truthy-and-falsy.md) value by default.
 
 In this example, assume you have a list of products and you want to show your kitchen products separately. Using `where`, you can create an array containing only the products that have a `"type"` of `"kitchen"`.
 
@@ -36,7 +36,7 @@ Kitchen products:
 - Garlic press
 ```
 
-Say instead you have a list of products and you only want to show those that are available to buy. You can `where` with a property name but no target value to include all products with a [truthy][truthy] `"available"` value.
+Say instead you have a list of products and you only want to show those that are available to buy. You can `where` with a property name but no target value to include all products with a [truthy](../tutorials/truthy-and-falsy.md) `"available"` value.
 As a special case, the same will happen if the target value is given but evaluates to `undefined`.
 
 Input
@@ -105,7 +105,7 @@ Output
 
 ## Jekyll style
 
-{% since %}v10.21.0{% endsince %}
+**Since:** v10.21.0
 
 For Liquid users migrating from Jekyll, there's a `jekyllWhere` option to mimic the behavior of Jekyll's `where` filter. This option is set to `false` by default. When enabled, if `property` is an array, the target value is matched using `Array.includes` instead of `==`, which is particularly useful for filtering tags. Additionally, a target value of `undefined` is treated normally, entries matched are exactly those which are themselves `undefined`.
 
@@ -131,4 +131,3 @@ Output
 Cat Food
 ```
 
-[truthy]: ../tutorials/truthy-and-falsy.html

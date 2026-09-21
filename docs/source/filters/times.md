@@ -2,7 +2,7 @@
 title: times
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Multiplies a number by another number.
 

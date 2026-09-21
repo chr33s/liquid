@@ -2,7 +2,7 @@
 title: size
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Returns the number of characters in a string or the number of items in an array.
 

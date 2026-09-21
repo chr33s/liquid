@@ -2,7 +2,7 @@
 title: json
 ---
 
-{% since %}v9.10.0{% endsince %}
+**Since:** v9.10.0
 
 Convert values to string via `JSON.stringify()`, for debugging purposes.
 
@@ -19,7 +19,7 @@ Output
 
 ## Space
 
-{% since %}v10.11.0{% endsince %}
+**Since:** v10.11.0
 
 An additional `space` parameter can be specified to format the JSON.
 

@@ -2,7 +2,7 @@
 title: find
 ---
 
-{% since %}v10.11.0{% endsince %}
+**Since:** v10.11.0
 
 Return the first object in an array for which the queried attribute has the given value or return `nil` if no item in the array satisfies the given criteria. For the following `members` array:
 

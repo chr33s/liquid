@@ -11,7 +11,7 @@ export class Value {
   public readonly initial: Expression
 
   /**
-   * @param str the value to be valuated, eg.: "foobar" | truncate: 3
+   * @param input the value to be valuated, eg.: "foobar" | truncate: 3
    */
   public constructor(input: string | FilteredValueToken, liquid: Liquid) {
     const token: FilteredValueToken =

@@ -6,7 +6,7 @@ LiquidJS supports both synchronous and asynchronous evaluation, and can be used 
 
 ## Sync and Async API
 
-All major methods on [Liquid][Liquid] support both sync and async. These methods return Promises:
+All major methods on {@link Liquid | Liquid} support both sync and async. These methods return Promises:
 
 - `render()`
 - `renderFile()`
@@ -64,13 +64,13 @@ But LiquidJS is Promise-friendly, right? You can still call Promise-based functi
 
 Now that this `* render()` calls an API that returns a Promise, so it's no longer *sync-compatible*.
 
-{% note info Non Sync-Compatible Tags %}
-Non <em>sync-compatible</em> tags are also valid tags, will work just fine for asynchronous API calls. When called synchronously, tags that return a <code>Promise</code> will be rendered as <code>[object Promise]</code>.
-{% endnote %}
+> **Non Sync-Compatible Tags**
+>
+> Non <em>sync-compatible</em> tags are also valid tags, will work just fine for asynchronous API calls. When called synchronously, tags that return a <code>Promise</code> will be rendered as <code>[object Promise]</code>.
 
 ## Convert LiquidJS async Generator to Promise
 
-You can convert a Generator to Promise by [toPromise][toPromise], for example:
+You can convert a Generator to Promise by {@link toPromise | toPromise}, for example:
 
 ```typescript
 import { TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid, toPromise } from '@chr33s/liquid'
@@ -112,5 +112,3 @@ engine.registerTag('upper', class UpperTag extends Tag {
 })
 ```
 
-[Liquid]: /api/classes/Liquid.html
-[toPromise]: /api/functions/toPromise.html

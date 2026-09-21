@@ -2,7 +2,7 @@
 title: sum
 ---
 
-{% since %}v10.10.0{% endsince %}
+**Since:** v10.10.0
 
 Computes the sum of all the numbers in an array.
 An optional argument specifies which property of the array's items to sum up.

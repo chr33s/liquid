@@ -2,7 +2,7 @@
 title: minus
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Subtracts a number from another number.
 

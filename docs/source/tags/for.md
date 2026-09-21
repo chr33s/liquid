@@ -2,7 +2,7 @@
 title: for
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Iteration tags run blocks of code repeatedly.
 
@@ -10,7 +10,7 @@ Iteration tags run blocks of code repeatedly.
 
 ### for...in
 
-Repeatedly executes a block of code. For a full list of attributes available within a `for` loop, see [forloop](#forloop).
+Repeatedly executes a block of code. For a full list of attributes available within a `for` loop, see <a href="#forloop">forloop</a>.
 
 Input
 ```liquid
@@ -24,7 +24,7 @@ Output
 hat shirt pants
 ```
 
-For loops can iterate over arrays, hashes, and [ranges of integers](#range).
+For loops can iterate over arrays, hashes, and <a href="#range">ranges of integers</a>.
 
 When iterating a hash, item[0] contains the key, and item[1] contains the value:
 
@@ -182,7 +182,7 @@ Output
 
 #### offset:continue
 
-{% since %}v9.33.0{% endsince %}
+**Since:** v9.33.0
 
 Offset value can be `continue` to continue previous loop. For example:
 

@@ -6,7 +6,7 @@ A number of tags and filters can be encapsulated into a **plugin**, which will b
 
 ## Write a Plugin
 
-A LiquidJS plugin is a simple function that takes the [Liquid class][liquid] as the first parameter and uses the Liquid instance for `this`. We can call LiquidJS APIs on `this` to make certain changes, especially [register filters and tags][register].
+A LiquidJS plugin is a simple function that takes the {@link Liquid | Liquid class} as the first parameter and uses the Liquid instance for `this`. We can call LiquidJS APIs on `this` to make certain changes, especially [register filters and tags](./register-filters-tags.md).
 
 Now we'll make a plugin to uppercase every letter of the input. Save the following snippet to `upup.js`:
 
@@ -36,13 +36,9 @@ engine
 
 ## Plugin List
 
-Since this library excludes certain features that are available on the Shopify platform but not on the [Shopify/liquid](https://github.com/Shopify/liquid/) repo, see [Differences with Shopify/liquid][differences].
+Since this library excludes certain features that are available on the Shopify platform but not on the [Shopify/liquid](https://github.com/Shopify/liquid/) repo, see [Differences with Shopify/liquid](./differences.md).
 
 Here's a list of plugins that backfill those features. Feel free to add yours, this file is publicly editable.
 
 * Sections Tags (WIP): https://github.com/harttle/liquidjs-section-tags
 * Color Filters: https://github.com/harttle/liquidjs-color-filters
-
-[liquid]: /api/classes/Liquid.html
-[register]: /harttle/liquidjs/wiki/Register-Filters-Tags
-[differences]: /tutorials/differences.html

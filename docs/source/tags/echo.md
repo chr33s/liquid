@@ -2,7 +2,7 @@
 title: echo
 ---
 
-{% since %}v9.31.0{% endsince %}
+**Since:** v9.31.0
 
 Outputs an expression in the rendered HTML. This is identical to wrapping an expression in <code>{{</code> and <code>}}</code>, but works inside liquid tags and supports filters.
 

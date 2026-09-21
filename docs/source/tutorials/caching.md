@@ -8,7 +8,7 @@ LiquidJS provides multiple ways to cache the parsed templates to improve perform
 
 ## Programmatically
 
-The [.parse()][parse], [.parseFile()][parseFile], [.parseFileSync()][parseFileSync] APIs are used to parse templates from strings or files. The resulting template can then be rendered multiple times with different context.
+The {@link Liquid.parse | .parse()}, {@link Liquid.parseFile | .parseFile()}, {@link Liquid.parseFileSync | .parseFileSync()} APIs are used to parse templates from strings or files. The resulting template can then be rendered multiple times with different context.
 
 Parse from string:
 
@@ -32,7 +32,7 @@ The template string/file is parsed only once and rendered multiple times using d
 
 ## The `cache` Option
 
-The [cache option][cache] can be set to instruct liquidjs to use cached parsed templates each time you call [renderFile][renderFile] or [renderFileSync][renderFileSync].
+The {@link LiquidOptions.cache | cache option} can be set to instruct liquidjs to use cached parsed templates each time you call {@link Liquid.renderFile | renderFile} or {@link Liquid.renderFileSync | renderFileSync}.
 
 ```javascript
 import { Liquid } from '@chr33s/liquid'
@@ -47,9 +47,3 @@ engine.renderFileSync('hello', {name: 'alice'})
 engine.renderFileSync('hello', {name: 'bob'})
 ```
 
-[parse]: /api/classes/Liquid.html#parse
-[cache]: /api/interfaces/LiquidOptions.html#cache
-[parseFile]: /api/classes/Liquid.html#parseFile
-[parseFileSync]: /api/classes/Liquid.html#parseFileSync
-[renderFile]: /api/classes/Liquid.html#renderFile
-[renderFileSync]: /api/classes/Liquid.html#renderFileSync

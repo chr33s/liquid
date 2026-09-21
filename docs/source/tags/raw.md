@@ -2,7 +2,7 @@
 title: raw
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Raw temporarily disables tag processing. This is useful for generating content
 (eg, Mustache, Handlebars) which uses conflicting syntax.

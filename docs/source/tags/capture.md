@@ -2,7 +2,7 @@
 title: capture
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Captures the string inside of the opening and closing tags and assigns it to a variable. Variables created through `capture` are strings.
 

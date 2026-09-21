@@ -1,7 +1,7 @@
 ---
 title: date
 ---
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 The `date` filter is used to convert a timestamp into the specified format.
 
@@ -11,10 +11,10 @@ The `date` filter is used to convert a timestamp into the specified format.
 * Date literals are first converted to a `Date` object via [new Date()][jsDate], which means literal values are considered in the runtime's time zone by default.
 * The format filter argument is optional:
     * If not provided, it defaults to `%A, %B %-e, %Y at %-l:%M %P %z`.
-    * The above default can be overridden by [`dateFormat`](/api/interfaces/LiquidOptions.html#dateFormat) LiquidJS option.
+    * The above default can be overridden by {@link LiquidOptions.dateFormat | `dateFormat`} LiquidJS option.
 * LiquidJS `date` supports locale specific weekdays and month names, which will fallback to English where `Intl` is not supported.
     * Ordinals (`%q`) and Jekyll specific date filters are English-only.
-    * [`locale`](/api/interfaces/LiquidOptions.html#locale) can be set when creating a Liquid instance. Defaults to `Intl.DateTimeFormat().resolvedOptions().locale`.
+    * {@link LiquidOptions.locale | `locale`} can be set when creating a Liquid instance. Defaults to `Intl.DateTimeFormat().resolvedOptions().locale`.
 
 ### Examples
 ```liquid
@@ -28,7 +28,7 @@ The `date` filter is used to convert a timestamp into the specified format.
 # TimeZone
 * During output, LiquidJS uses the local timezone, which can be overridden by:
     * setting a timezone in-place when calling `date` filter, or
-    * setting the [`timezoneOffset`](/api/interfaces/LiquidOptions.html#timezoneOffset) LiquidJS option
+    * setting the {@link LiquidOptions.timezoneOffset | `timezoneOffset`} LiquidJS option
         * It defaults to the runtime's timezone.
         * Offset can be set as,
             * minutes: `-360` means `'+06:00'` and `360` means `'-06:00'`

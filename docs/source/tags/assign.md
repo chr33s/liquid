@@ -2,7 +2,7 @@
 title: assign
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Creates a new variable.
 

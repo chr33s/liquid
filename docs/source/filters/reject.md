@@ -2,9 +2,9 @@
 title: reject
 ---
 
-{% since %}v10.21.0{% endsince %}
+**Since:** v10.21.0
 
-Creates an array excluding the objects with a given property value, or excluding [truthy][truthy] values by default when a property is not given.
+Creates an array excluding the objects with a given property value, or excluding [truthy](../tutorials/truthy-and-falsy.md) values by default when a property is not given.
 
 In this example, assume you have a list of products and you want to filter out kitchen products. Using `reject`, you can create an array excluding only the products that have a `"type"` of `"kitchen"`.
 
@@ -36,7 +36,7 @@ Kitchen products:
 - Television
 ```
 
-Say instead you have a list of products and you want to exclude taxable products. You can `reject` with a property name but no target value to reject all products with a [truthy][truthy] `"taxable"` value.
+Say instead you have a list of products and you want to exclude taxable products. You can `reject` with a property name but no target value to reject all products with a [truthy](../tutorials/truthy-and-falsy.md) `"taxable"` value.
 
 Input
 ```liquid
@@ -91,7 +91,7 @@ Output
 
 ## Jekyll style
 
-{% since %}v10.21.0{% endsince %}
+**Since:** v10.21.0
 
 For Liquid users migrating from Jekyll, there's a `jekyllWhere` option to mimic the behavior of Jekyll's `where` filter. This option is set to `false` by default. When enabled, if `property` is an array, the target value is matched using `Array.includes` instead of `==`, which is particularly useful for excluding tags.
 
@@ -115,4 +115,3 @@ Output
 Dog Food
 ```
 
-[truthy]: ../tutorials/truthy-and-falsy.html

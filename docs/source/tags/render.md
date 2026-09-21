@@ -2,7 +2,7 @@
 title: render
 ---
 
-{% since %}v9.2.0{% endsince %}
+**Since:** v9.2.0
 
 ## Render a Template
 
@@ -27,8 +27,9 @@ If [extname][extname] option is set, the above `.liquid` extension becomes optio
 {% render 'footer' %}
 ```
 
-{% note info Variable Scope %}
-When a partial template is rendered, the code inside it can't access its parent's variables and its variables won't be accessible by its parent. This encapsulation makes partials easier to understand and maintain.{% endnote %}
+> **Variable Scope**
+>
+> When a partial template is rendered, the code inside it can't access its parent's variables and its variables won't be accessible by its parent. This encapsulation makes partials easier to understand and maintain.
 
 ## Passing Variables
 
@@ -49,9 +50,9 @@ When filename is specified as literal string, it supports Liquid output and filt
 {% render "prefix/{{name | append: \".html\"}}" %}
 ```
 
-{% note info Escaping %}
-In LiquidJS, `"` within quoted string literals need to be escaped. Adding a slash before the quote, e.g. `\"`. Using Jekyll-like filenames can make this easier, see below.
-{% endnote %}
+> **Escaping**
+>
+> In LiquidJS, `"` within quoted string literals need to be escaped. Adding a slash before the quote, e.g. `\"`. Using Jekyll-like filenames can make this easier, see below.
 
 ## Jekyll-like Filenames
 

@@ -2,7 +2,7 @@
 title: remove_last
 ---
 
-{% since %}v10.2.0{% endsince %}
+**Since:** v10.2.0
 
 Removes only the last occurrence of the specified substring from a string.
 

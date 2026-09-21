@@ -2,7 +2,7 @@
 title: compact
 ---
 
-{% since %}v9.22.0{% endsince %}
+**Since:** v9.22.0
 
 Removes any `nil` values from an array.
 

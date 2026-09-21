@@ -1,5 +1,5 @@
 ---
-title: Register Filters/Tags
+title: Register Filters and Tags
 ---
 
 ## Register Tags
@@ -42,7 +42,7 @@ engine.registerTag('upper', class UpperTag extends Tag {
 ```
 
 See existing tag implementations here: <https://github.com/harttle/liquidjs/tree/master/src/tags>
-See demo example here: https://github.com/harttle/liquidjs/blob/master/demo/typescript/index.ts
+See demo example here: https://github.com/chr33s/liquid/blob/main/demo/typescript/index.ts
 
 ## Register Filters
 
@@ -68,7 +68,7 @@ Filters can be unregistered by name:
 engine.unregisterFilter('plus')
 ```
 
-With [`strictFilters`][strict-filters] enabled, using an unregistered filter will throw an error. Otherwise, the filter will be skipped.
+With [`strictFilters`](./options.md) enabled, using an unregistered filter will throw an error. Otherwise, the filter will be skipped.
 
 Built-in filters can be registered again using the exported `filters` object:
 
@@ -98,4 +98,3 @@ function disabledFilter(name) {
 engine.registerFilter('plus', disabledFilter('plus'));
 ```
 
-[strict-filters]: /tutorials/options.html#strict

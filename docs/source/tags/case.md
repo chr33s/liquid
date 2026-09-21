@@ -2,7 +2,7 @@
 title: case
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Creates a switch statement to compare a variable with different values. `case` initializes the switch statement, and `when` tags compare values.
 

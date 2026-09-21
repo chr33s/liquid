@@ -26,3 +26,7 @@ jobs:
       os: ubuntu-latest
   docs:
     uses: ./.github/workflows/docs.yml
+    permissions:
+      contents: write
+    with:
+      publish: ${{ github.ref == 'refs/heads/main' }}

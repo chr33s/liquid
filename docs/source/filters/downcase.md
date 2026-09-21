@@ -2,7 +2,7 @@
 title: downcase
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Makes each character in a string lowercase. It has no effect on strings which are already all lowercase.
 

@@ -91,22 +91,29 @@ export class Liquid {
     file: string,
     sync?: boolean,
     lookupType?: LookupType,
-    currentFile?: string
+    currentFile?: string,
+    tenant?: string
   ): Generator<unknown, Template[]> {
-    return new Parser(this).parseFile(file, sync, lookupType, currentFile)
+    return new Parser(this).parseFile(file, sync, lookupType, currentFile, tenant)
   }
-  public async parseFile(file: string, lookupType?: LookupType): Promise<Template[]> {
-    return toPromise<Template[]>(new Parser(this).parseFile(file, false, lookupType))
+  public async parseFile(file: string, lookupType?: LookupType, tenant?: string): Promise<Template[]> {
+    return toPromise<Template[]>(new Parser(this).parseFile(file, false, lookupType, undefined, tenant))
   }
-  public parseFileSync(file: string, lookupType?: LookupType): Template[] {
-    return toValueSync<Template[]>(new Parser(this).parseFile(file, true, lookupType))
+  public parseFileSync(file: string, lookupType?: LookupType, tenant?: string): Template[] {
+    return toValueSync<Template[]>(new Parser(this).parseFile(file, true, lookupType, undefined, tenant))
   }
   public *_renderFile(
     file: string,
     ctx: Context | object | undefined,
     renderFileOptions: RenderFileOptions
   ): Generator<any> {
-    const templates = (yield this._parseFile(file, renderFileOptions.sync, renderFileOptions.lookupType)) as Template[]
+    const templates = (yield this._parseFile(
+      file,
+      renderFileOptions.sync,
+      renderFileOptions.lookupType,
+      undefined,
+      renderFileOptions.theme?.tenant
+    )) as Template[]
     return yield this._render(templates, ctx, renderFileOptions)
   }
   public async renderFile(file: string, ctx?: Context | object, renderFileOptions?: RenderFileOptions) {
@@ -116,7 +123,7 @@ export class Liquid {
     return toValueSync(this._renderFile(file, ctx, { ...renderFileOptions, sync: true }))
   }
   public async renderFileToNodeStream(file: string, scope?: object, renderOptions?: RenderOptions) {
-    const templates = await this.parseFile(file)
+    const templates = await this.parseFile(file, undefined, renderOptions?.theme?.tenant)
     return this.renderToNodeStream(templates, scope, renderOptions)
   }
 

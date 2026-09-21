@@ -2,7 +2,7 @@
 title: append
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Concatenates two strings and returns the concatenated value.
 

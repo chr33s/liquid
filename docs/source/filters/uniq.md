@@ -2,7 +2,7 @@
 title: uniq
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Removes any duplicate elements in an array.
 

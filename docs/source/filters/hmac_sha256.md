@@ -2,7 +2,7 @@
 title: hmac_sha256
 ---
 
-{% since %}vNEXT{% endsince %}
+**Since:** vNEXT
 
 Converts a string into an SHA-256 hash using a hash message authentication code (HMAC). The secret key is passed as the filter argument. The output is a lowercase hexadecimal string.
 

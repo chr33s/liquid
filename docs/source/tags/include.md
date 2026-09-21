@@ -2,11 +2,11 @@
 title: include
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
-{% note warn Deprecated %}
-This tag is deprecated, use <a href="./render.html">render</a> tag instead, which contains all the features of `include` and provides better encapsulation.
-{% endnote %}
+> **Deprecated**
+>
+> This tag is deprecated, use <a href="./render.md">render</a> tag instead, which contains all the features of `include` and provides better encapsulation.
 
 ## Include a Template
 
@@ -52,9 +52,9 @@ When filename is specified as literal string, it supports Liquid output and filt
 {% include "prefix/{{name | append: \".html\"}}" %}
 ```
 
-{% note info Escaping %}
-In LiquidJS, `"` within quoted string literals need to be escaped by adding a slash before the quote, e.g. `\"`. Using Jekyll-like filenames can make this easier, see below.
-{% endnote %}
+> **Escaping**
+>
+> In LiquidJS, `"` within quoted string literals need to be escaped by adding a slash before the quote, e.g. `\"`. Using Jekyll-like filenames can make this easier, see below.
 
 ## Jekyll-like filenames
 

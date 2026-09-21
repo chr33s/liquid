@@ -1,0 +1,31 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "@chr33s/liquid",
+  "entryPoints": [
+    "src/index.ts"
+  ],
+  "entryPointStrategy": "resolve",
+  "tsconfig": "tsconfig.build.json",
+  "plugin": [
+    "typedoc-plugin-missing-exports",
+    "typedoc-plugin-markdown",
+    "typedoc-github-wiki-theme"
+  ],
+  "out": ".local/wiki",
+  "readme": "docs/Home.md",
+  "projectDocuments": [
+    "docs/source/tutorials/index.md",
+    "docs/source/tags/overview.md",
+    "docs/source/filters/overview.md",
+    "CHANGELOG.md"
+  ],
+  "sortEntryPoints": false,
+  "sidebar": {
+    "autoConfiguration": true,
+    "heading": "Documentation"
+  },
+  "internalModule": "Internal",
+  "alwaysCreateEntryPointModule": false,
+  "treatWarningsAsErrors": true,
+  "excludeExternals": true
+}

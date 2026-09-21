@@ -2,7 +2,7 @@
 title: newline_to_br
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Replaces every newline (`\n`) in a string with an HTML line break (`<br />`).
 

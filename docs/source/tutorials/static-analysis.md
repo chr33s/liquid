@@ -2,15 +2,15 @@
 title: Static Template Analysis
 ---
 
-{% since %}v10.20.0{% endsince %}
+**Since:** v10.20.0
 
-{% note warn Experimental %}  
-Note that this is an experimental feature and future APIs are subject to change. Internal structures returned can be changed without a major version bump.
-{% endnote %}
+> **Experimental**
+>
+> Note that this is an experimental feature and future APIs are subject to change. Internal structures returned can be changed without a major version bump.
 
-{% note info Sync and Async %}
-There are synchronous and asynchronous versions of each of the methods demonstrated on this page. See the [Liquid API][liquid-api] for a complete reference.
-{% endnote %}
+> **Sync and Async**
+>
+> There are synchronous and asynchronous versions of each of the methods demonstrated on this page. See the {@link Liquid | Liquid API} for a complete reference.
 
 ## Variables
 
@@ -175,9 +175,9 @@ If an `{% include %}` tag uses a dynamic template name (one that can't be determ
 
 ### Advanced Usage
 
-The examples so far all use convenience methods of the `Liquid` class, intended to cover the most common use cases. Instead, you can work with [analysis results][static-analysis-interface] directly, which expose the row, column and file name for every occurrence of each variable.
+The examples so far all use convenience methods of the `Liquid` class, intended to cover the most common use cases. Instead, you can work with {@link StaticAnalysis | analysis results} directly, which expose the row, column and file name for every occurrence of each variable.
 
-This is an example of an object returned from `Liquid.analyze()`, passing it the template from the [Partial Template](#partial-templates) section above.
+This is an example of an object returned from `Liquid.analyze()`, passing it the template from the <a href="#partial-templates">Partial Template</a> section above.
 
 ```javascript
 {
@@ -234,13 +234,13 @@ This is an example of an object returned from `Liquid.analyze()`, passing it the
 
 ### Analyzing Custom Tags
 
-For static analysis to include results from custom tags, those tags must implement some additional methods defined on the [Template interface](/api/interfaces/Template.html). LiquidJS will use the information returned from these methods to traverse the template and report variable usage.
+For static analysis to include results from custom tags, those tags must implement some additional methods defined on the {@link Template | Template interface}. LiquidJS will use the information returned from these methods to traverse the template and report variable usage.
 
-Not all methods are required, depending on the kind of tag. If it's a block with a start tag, end tag and any amount of Liquid markup in between, it will need to implement the [`children()`](/api/interfaces/Template.html#children) method. `children()` is defined as a generator, so that we can use it in synchronous and asynchronous contexts, just like `render()`. It should return HTML content, output statements and tags that are child nodes of the current tag.
+Not all methods are required, depending on the kind of tag. If it's a block with a start tag, end tag and any amount of Liquid markup in between, it will need to implement the {@link Template.children | `children()`} method. `children()` is defined as a generator, so that we can use it in synchronous and asynchronous contexts, just like `render()`. It should return HTML content, output statements and tags that are child nodes of the current tag.
 
-The [`blockScope()`](/api/interfaces/Template.html#blockScope) method is responsible for telling LiquidJS which names will be in scope for the duration of the tag's block. Some of these names could depend on the tag's arguments, and some will be fixed, like `forloop` from the `{% for %}` tag.
+The {@link Template.blockScope | `blockScope()`} method is responsible for telling LiquidJS which names will be in scope for the duration of the tag's block. Some of these names could depend on the tag's arguments, and some will be fixed, like `forloop` from the `{% for %}` tag.
 
-Whether a tag is an inline tag or a block tag, if it accepts arguments it should implement [`arguments()`](/api/interfaces/Template.html#arguments), which is responsible for returning the tag's arguments as a sequence of [`Value`](/api/classes/Value.html) instances or tokens of type [`ValueToken`](/api/types/ValueToken.html).
+Whether a tag is an inline tag or a block tag, if it accepts arguments it should implement {@link Template.arguments | `arguments()`}, which is responsible for returning the tag's arguments as a sequence of {@link Value | `Value`} instances or tokens of type {@link ValueToken | `ValueToken`}.
 
 This example demonstrates these methods for a block tag. See LiquidJS's [built-in tags][built-in] for more examples.
 
@@ -285,6 +285,4 @@ class ExampleTag extends Tag {
 }
 ```
 
-[liquid-api]: /api/classes/Liquid.html
-[static-analysis-interface]: /api/interfaces/StaticAnalysis.html
 [built-in]: https://github.com/harttle/liquidjs/tree/master/src/tags

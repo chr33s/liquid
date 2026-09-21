@@ -2,7 +2,7 @@
 title: replace_last
 ---
 
-{% since %}v10.2.0{% endsince %}
+**Since:** v10.2.0
 
 Replaces only the last occurrence of the first argument in a string with the second argument.
 

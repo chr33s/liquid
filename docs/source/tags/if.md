@@ -2,7 +2,7 @@
 title: if
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Executes a block of code only if a certain condition is `true`.
 

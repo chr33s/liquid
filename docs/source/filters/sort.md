@@ -2,7 +2,7 @@
 title: sort
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Sorts items in an array in case-sensitive order.
 

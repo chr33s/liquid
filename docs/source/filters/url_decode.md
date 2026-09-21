@@ -2,7 +2,7 @@
 title: url_decode
 ---
 
-{% since %}v6.1.0{% endsince %}
+**Since:** v6.1.0
 
 Decodes a string that has been encoded as a URL.
 

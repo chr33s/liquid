@@ -29,17 +29,16 @@ Node.js >= 22.12.
   - `git push`
   - Go to GitHub and find your fork, open a PR against the upstream from it
 
-## Playground
+## Documentation
 
-The Playground runs off the `docs` directory.
-`npm run build:docs` is used to build it.
+Authored Markdown lives in `docs/Home.md` and `docs/source/`. `npm run build:docs`
+renders it together with the TypeScript API into `.local/wiki` and validates the
+result; read the rendered pages there. A new page needs an entry in the
+`children:` list of its section root (`docs/source/tutorials/index.md`,
+`docs/source/tags/overview.md` or `docs/source/filters/overview.md`).
 
-Then, to start the site locally, go to `docs` and run `npm start`, then visit
-http://localhost:4000/playground.html.
-
-The Playground uses a local built LiquidJS, which is created during `npm run build:docs`.
-To update that, you'll need to run `./bin/build-docs-liquid.sh` each time after making changes.
-Then refresh the Playground site for the changes to take effect.
+The rendered pages are published to https://github.com/chr33s/liquid/wiki from
+`main`; `npm run publish:docs` does the push using your git credentials (or `GITHUB_TOKEN` when set, as in CI).
 
 ## Performance
 

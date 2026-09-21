@@ -2,7 +2,7 @@
 title: squish
 ---
 
-{% since %}v11.1.0{% endsince %}
+**Since:** v11.1.0
 
 Removes leading and trailing whitespace from a string, and replaces every run of whitespace inside it with a single space.
 

@@ -20,7 +20,7 @@ Outputs (note the blank line):
 harttle
 ```
 
-You can include hyphens in tag syntax (`{% raw %}{{-{% endraw %}`, `-}}`, `{% raw %}{%-{% endraw %}`, `-%}`) to strip whitespace from the left or right. For example:
+You can include hyphens in tag syntax (`{{-`, `-}}`, `{%-`, `-%}`) to strip whitespace from the left or right. For example:
 
 ```liquid
 {% assign author = "harttle" -%}
@@ -44,13 +44,11 @@ Alternatively, LiquidJS provides these per engine options to enable whitespace c
 * `trimOutputLeft`
 * `trimOutputRight`
 
-[LiquidJS][liquidjs] will **NOT** trim any whitespace by default, aka. above options all default to `false`. For details of these options, see the [options][options].
+[LiquidJS][liquidjs] will **NOT** trim any whitespace by default, aka. above options all default to `false`. For details of these options, see the {@link LiquidOptions | options}.
 
 ## Greedy Mode
 
-In greedy mode (enabled by the [greedy option][greedy]), all consecutive whitespace chars (including `\n`) will be trimmed. Greedy mode is enabled by default to be compliant with [shopify/liquid][shopify/liquid].
+In greedy mode (enabled by the {@link LiquidOptions.greedy | greedy option}), all consecutive whitespace chars (including `\n`) will be trimmed. Greedy mode is enabled by default to be compliant with [shopify/liquid][shopify/liquid].
 
 [shopify/liquid]: https://github.com/Shopify/liquid
 [liquidjs]: https://github.com/harttle/liquidjs
-[options]: /api/interfaces/LiquidOptions.html
-[greedy]: /api/interfaces/LiquidOptions.html#greedy

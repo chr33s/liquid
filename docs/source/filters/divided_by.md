@@ -2,7 +2,7 @@
 title: divided_by
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Divides a number by another number. The result is the string obtained by JavaScript `.toString()` of the result number.
 
@@ -45,4 +45,4 @@ Output
 1
 ```
 
-[floor]: ./floor.html
+[floor]: ./floor.md

@@ -1,5 +1,5 @@
 ---
-title: Differences with Shopify/liquid
+title: Differences with Shopify Liquid
 ---
 
 ## Compatibility
@@ -9,7 +9,7 @@ Being compatible with the Ruby version is one of our priorities. Liquid language
 So "being compatible" means serving developers from Shopify and Jekyll well:
 
 - **Well-formed Liquid template should work just fine in LiquidJS**. For example, `forloop.index` should be 1-indexed, `nil` should be rendered as empty string rather than `undefined`, etc. Although some features (e.g. [#236][#236]) are not feasible in JavaScript, at least we're trying to implement all the semantics of Liquid language.
-- **All filters and tags in [shopify/liquid][ruby-liquid] are supposed to be built in LiquidJS**. But not those business-logic specific tags/filters typically defined by Shopify platform. Those features should be maintained as [plugins][plugins]. For filters/tags that are not business-logic specific, like `{% layout %}`, and extremely useful, feel free to file an issue.
+- **All filters and tags in [shopify/liquid][ruby-liquid] are supposed to be built in LiquidJS**. But not those business-logic specific tags/filters typically defined by Shopify platform. Those features should be maintained as [plugins](./plugins.md). For filters/tags that are not business-logic specific, like `{% layout %}`, and extremely useful, feel free to file an issue.
 
 In the meantime, it's now implemented in JavaScript, that means it has to be more powerful:
 
@@ -29,17 +29,17 @@ Though we're trying to be compatible with the Ruby version, there are still some
 * [.to_s()](https://www.rubydoc.info/gems/liquid/Liquid/Drop) is replaced by JavaScript `.toString()`
 * Iteration order for objects. The iteration order of JavaScript objects, and thus LiquidJS objects, is a combination of the insertion order for string keys, and ascending order for number-like keys, while the iteration order of Ruby Hash is simply the insertion order.
 * Sort stability. The [sort][sort] stability is also not defined in both shopify/liquid and LiquidJS, but it's [considered stable][stable-sort] for LiquidJS in Node.js 12+ and Google Chrome 70+.
-* Trailing unmatched characters inside filters are allowed in shopify/liquid but not in LiquidJS. It means filter arguments without a colon like `{%raw%}{{ "a b" | split " "}}{%endraw%}` will throw an error in LiquidJS. This is intended to improve Liquid usability, see [#208][#208] and [#212][#212].
+* Trailing unmatched characters inside filters are allowed in shopify/liquid but not in LiquidJS. It means filter arguments without a colon like `{{ "a b" | split " "}}` will throw an error in LiquidJS. This is intended to improve Liquid usability, see [#208][#208] and [#212][#212].
 * LiquidJS has more tags/filters than [the Liquid language][liquid]:
     * LiquidJS-defined tags: [layout][layout], [render][render] and corresponding `block` tag.
     * LiquidJS-defined filters: [json][json], group_by, group_by_exp, where_exp, jsonify, inspect, etc.
     * Tags/filters that don't depend on Shopify platform are borrowed from [Shopify][shopify-tags].
     * Tags/filters that don't depend on Jekyll framework are borrowed from [Jekyll][jekyll-filters].
-* Some tags/filters behave differently: [date][date] filter, malformed tags (like duplicated `else`, extra args for `endif`) throw errors in LiquidJS. 
+* Some tags/filters behave differently: [date][date] filter, malformed tags (like duplicated `else`, extra args for `endif`) throw errors in LiquidJS.
 
 [date]: https://liquidjs.com/filters/date.html
-[layout]: ../tags/layout.html
-[render]: ../tags/render.html
+[layout]: ../tags/layout.md
+[render]: ../tags/render.md
 [json]: https://liquidjs.com/filters/json.html
 [#26]: https://github.com/harttle/liquidjs/pull/26
 [#59]: https://github.com/harttle/liquidjs/issues/59
@@ -49,11 +49,8 @@ Though we're trying to be compatible with the Ruby version, there are still some
 [#414]: https://github.com/harttle/liquidjs/discussions/414
 [#485]: https://github.com/harttle/liquidjs/discussions/485
 [#852]: https://github.com/harttle/liquidjs/discussions/852
-[sort]: https://liquidjs.com/filters/sort.html
 [stable-sort]: https://v8.dev/features/stable-sort
-[plugins]: ./plugins.html#Plugin-List
 [ruby-liquid]: https://github.com/Shopify/liquid
-[afs]: https://liquidjs.com/tutorials/render-file.html#Abstract-File-System
 [liquid]: https://shopify.github.io/liquid/basics/introduction/
 [shopify-tags]: https://shopify.dev/docs/api/liquid/tags
 [jekyll-filters]: https://jekyllrb.com/docs/liquid/filters/

@@ -2,7 +2,7 @@
 title: replace_first
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Replaces only the first occurrence of the first argument in a string with the second argument.
 

@@ -8,13 +8,13 @@ A simple, expressive, extensible Liquid template engine for JavaScript — Shopi
 [![Coverage](https://img.shields.io/coveralls/chr33s/liquid.svg?style=flat-square)](https://coveralls.io/github/chr33s/liquid?branch=main)
 [![License: MIT](https://img.shields.io/github/license/chr33s/liquid?style=flat-square)](https://github.com/chr33s/liquid/blob/main/LICENSE)
 
-[Documentation][doc] · [Playground](https://liquidjs.com/playground.html) · [Setup guide][setup] · [Contributing][contribution]
+[Documentation][doc] · [Demos](https://github.com/chr33s/liquid/tree/main/demo) · [Setup guide][setup] · [Contributing][contribution]
 
-<a href="https://liquidjs.com/playground.html">
+<a href="https://github.com/chr33s/liquid/tree/main/demo">
   <img src="docs/source/playground-demo.gif" alt="LiquidJS playground: edit a template and context, see live HTML output" width="980" style="display: block; margin: 0 auto;" />
 </a>
 
-<p align="center"><sub>Try the <a href="https://liquidjs.com/playground.html">online playground</a>.</sub></p>
+<p align="center"><sub>Try the <a href="https://github.com/chr33s/liquid/tree/main/demo">runnable demos</a>.</sub></p>
 
 ## Quick start
 
@@ -255,8 +255,8 @@ Want to contribute? see [Contribution Guidelines][contribution]. Thanks goes to 
 
 [MIT](LICENSE) © [Jun Yang](https://github.com/harttle)
 
-[setup]: https://liquidjs.com/tutorials/setup.html
-[doc]: https://liquidjs.com
+[setup]: https://github.com/chr33s/liquid/wiki/Tutorials.Document.Setup
+[doc]: https://github.com/chr33s/liquid/wiki
 [github]: https://github.com/harttle/liquidjs
 [oc]: https://opencollective.com/liquidjs/
-[contribution]: https://liquidjs.com/tutorials/contribution-guidelines.html
+[contribution]: https://github.com/chr33s/liquid/wiki/Tutorials.Document.Contribution-Guideline

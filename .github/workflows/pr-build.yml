@@ -20,3 +20,5 @@ jobs:
     uses: ./.github/workflows/performance.yml
     with:
       os: ubuntu-latest
+  docs:
+    uses: ./.github/workflows/docs.yml

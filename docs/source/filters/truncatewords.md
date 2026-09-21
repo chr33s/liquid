@@ -2,7 +2,7 @@
 title: truncatewords
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Shortens a string down to the number of words passed as an argument. If the specified number of words is less than the number of words in the string, an ellipsis (...) is appended to the string.
 

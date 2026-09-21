@@ -2,7 +2,7 @@
 title: url_encode
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Converts any URL-unsafe characters in a string into percent-encoded characters.
 

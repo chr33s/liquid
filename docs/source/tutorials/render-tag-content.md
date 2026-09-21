@@ -22,10 +22,10 @@ Expected output:
 </div>
 ```
 
-Firstly, [register][register-tags] a tag named `wrap` and parse the content into `this.tpls`. In the tag `constructor(tagToken, remainTokens, liquid)`:
+Firstly, [register](./register-filters-tags.md) a tag named `wrap` and parse the content into `this.tpls`. In the tag `constructor(tagToken, remainTokens, liquid)`:
 
-- `tagToken` is current token `{%raw%}{% wrap %}{%endraw%}`, and
-- `remainTokens` is an array of all tokens following `{%raw%}{% wrap %}{%endraw%}` until the end of this template file.
+- `tagToken` is current token `{% wrap %}`, and
+- `remainTokens` is an array of all tokens following `{% wrap %}` until the end of this template file.
 
 Basically, what we need to do is take/`.shift()` enough tags from `remainTokens` until we get an `endwrap` token (the name can be arbitrary, but by convention it should be `endwrap`). And if there's no `endwrap` until the end of the template file, we need to throw a tag-not-closed `Error`.
 
@@ -60,11 +60,11 @@ engine.registerTag('wrap', class WrapTag extends Tag {
 })
 ```
 
-`.renderTemplates()` can be async; we need `yield` to wait for it to complete. For more details on async in LiquidJS, see [Sync and Async][async]. Here's a JSFiddle version: <https://jsfiddle.net/por0zcn1/3/>
+`.renderTemplates()` can be async; we need `yield` to wait for it to complete. For more details on async in LiquidJS, see [Sync and Async](./sync-and-async.md). Here's a JSFiddle version: <https://jsfiddle.net/por0zcn1/3/>
 
 ## Using ParseStream
 
-For more complex tags such as [for][for] and [if][if], constructor parsing can get unwieldy. [ParseStream][ParseStream] offers an event-based API for this. The constructor below is equivalent to the example above:
+For more complex tags such as [for](../tags/for.md) and [if](../tags/if.md), constructor parsing can get unwieldy. {@link ParseStream | ParseStream} offers an event-based API for this. The constructor below is equivalent to the example above:
 
 ```javascript
 tpls = []
@@ -83,7 +83,7 @@ Here's a JSFiddle version: <https://jsfiddle.net/por0zcn1/4/>. For simplicity, t
 
 ## Manipulate the Context
 
-The `wrap` tag above doesn't seem very useful; even without using that tag, we can render the content anyway. Now we're going to implement a `repeat` tag to render the content 2 times (we can also add a [parameter][parameter] to render an arbitrary number of times).
+The `wrap` tag above doesn't seem very useful; even without using that tag, we can render the content anyway. Now we're going to implement a `repeat` tag to render the content 2 times (we can also add a [parameter](./parse-parameters.md) to render an arbitrary number of times).
 
 ```liquid
 {% repeat %}
@@ -100,9 +100,9 @@ Expected outputs:
 
 As you've noticed, there's an additional `repeat.i` in the context of `repeat`. That is implemented by manipulating the *Context*.
 
-{% note info Context %}
-<em>Context</em> defines the value of each variable in Liquid template. In LiquidJS, a `Context` consists of a stack of `Scope`s. A *Scope* is a plain object like the one specified in `engine.render(tpl, scope)`.
-{% endnote %}
+> **Context**
+>
+> <em>Context</em> defines the value of each variable in Liquid template. In LiquidJS, a `Context` consists of a stack of `Scope`s. A *Scope* is a plain object like the one specified in `engine.render(tpl, scope)`.
 
 Each time we enter a new *Context*, we need to push a new *Scope*. And when we finish rendering and exit the *Context*, we pop the *Scope* from the *Context*. As you can see in the following implementation:
 
@@ -132,13 +132,7 @@ engine.registerTag('repeat', class RepeatTag extends Tag {
 
 The constructor is the same as in the `wrap` tag; we repeat the content by calling `.renderTemplates(this.tpls)` twice during `render()`. Here's the JSFiddle: <https://jsfiddle.net/por0zcn1/2/>
 
-{% note warn Use Push & Pop in Pairs %}
-`context.push()` and `context.pop()` have to be used in pairs. Failing to `pop()` the *Scope* you pushed will leak the *Scope* to latter templates and may corrupt the *Context* stack.
-{% endnote %}
+> **Use Push & Pop in Pairs**
+>
+> `context.push()` and `context.pop()` have to be used in pairs. Failing to `pop()` the *Scope* you pushed will leak the *Scope* to latter templates and may corrupt the *Context* stack.
 
-[register-tags]: ./register-filters-tags.html
-[async]: ./sync-and-async.html
-[for]: ../tags/for.html
-[if]: ../tags/if.html
-[ParseStream]: /api/classes/ParseStream.html
-[parameter]: ./parse-parameters.html

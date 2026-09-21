@@ -2,7 +2,7 @@
 title: map
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Creates an array of values by extracting the values of a named property from another object.
 

@@ -2,7 +2,7 @@
 title: remove
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Removes every occurrence of the specified substring from a string.
 

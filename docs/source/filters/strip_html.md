@@ -2,13 +2,13 @@
 title: strip_html
 ---
 
-{% since %}v1.9.1{% endsince %}
+**Since:** v1.9.1
 
 Removes any HTML tags from a string.
 
-{% note warn Not safe for HTML output %}
-This filter removes tags by string scanning; it does not parse HTML5 the way a browser does, and it is not a sanitizer. The result may still be unsafe when inserted into HTML. Use [escape][escape], [escape_once][escape_once], or [`outputEscape: "escape"`][outputEscape] for untrusted output.
-{% endnote %}
+> **Not safe for HTML output**
+>
+> This filter removes tags by string scanning; it does not parse HTML5 the way a browser does, and it is not a sanitizer. The result may still be unsafe when inserted into HTML. Use [escape](./escape.md), [escape_once](./escape.md), or [`outputEscape: "escape"`](../tutorials/options.md) for untrusted output.
 
 Input
 ```liquid
@@ -20,6 +20,3 @@ Output
 Have you read Ulysses?
 ```
 
-[escape]: ./escape.html
-[escape_once]: ./escape.html
-[outputEscape]: ../tutorials/options.html#outputEscape
