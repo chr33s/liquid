@@ -1,8 +1,7 @@
 import * as fs from './fs-impl'
 import { resolve } from 'path'
 import { Loader, LookupType } from './loader'
-import { toValueSync } from '../util/async'
-
+import { toPromise } from '../util/async'
 describe('fs/loader', function () {
   describe('.candidates()', function () {
     it('should resolve relatively', function () {
@@ -12,36 +11,34 @@ describe('fs/loader', function () {
     })
   })
   describe('.lookup()', function () {
-    it('should not include out of root candidates', function () {
-      const mockFs = { ...fs, existsSync: () => true, exists: async () => true }
+    it('should not include out of root candidates', async function () {
+      const mockFs = { ...fs, exists: async () => true }
       const loader = new Loader({ relativeReference: true, fs: mockFs, extname: '', partials: ['/root'] } as any)
-      expect(() => toValueSync(loader.lookup('../foo/bar', LookupType.Partials, true, '/root/current'))).toThrow(
-        /ENOENT/
-      )
+      await expect(
+        async () => await toPromise(loader.lookup('../foo/bar', LookupType.Partials, '/root/current'))
+      ).rejects.toThrow(/ENOENT/)
     })
-    it('should treat root as a terminated path', function () {
-      const mockFs = { ...fs, existsSync: () => true, exists: async () => true }
+    it('should treat root as a terminated path', async function () {
+      const mockFs = { ...fs, exists: async () => true }
       const loader = new Loader({ relativeReference: true, fs: mockFs, extname: '', partials: ['/root'] } as any)
-      expect(() => toValueSync(loader.lookup('../root-dir/bar', LookupType.Partials, true, '/root/current'))).toThrow(
-        /ENOENT/
-      )
+      await expect(
+        async () => await toPromise(loader.lookup('../root-dir/bar', LookupType.Partials, '/root/current'))
+      ).rejects.toThrow(/ENOENT/)
     })
-    it('should use permissive contains when fs.contains is omitted', function () {
+    it('should use permissive contains when fs.contains is omitted', async function () {
       const mockFs = {
         ...fs,
-        existsSync: () => true,
         exists: async () => true,
-        contains: undefined,
-        containsSync: undefined
+        contains: undefined
       }
       const loader = new Loader({ relativeReference: true, fs: mockFs, extname: '', partials: ['/root'] } as any)
-      const result = toValueSync(loader.lookup('./foo/bar', LookupType.Partials, true, '/root/current'))
+      const result = await toPromise(loader.lookup('./foo/bar', LookupType.Partials, '/root/current'))
       expect(result).toBe(resolve('/root/foo/bar'))
     })
-    it('should enforce containment for LookupType.Root', function () {
-      const mockFs = { ...fs, existsSync: () => true, exists: async () => true }
+    it('should enforce containment for LookupType.Root', async function () {
+      const mockFs = { ...fs, exists: async () => true }
       const loader = new Loader({ relativeReference: false, fs: mockFs, extname: '', root: ['/safe'] } as any)
-      expect(() => toValueSync(loader.lookup('/etc/hosts', LookupType.Root, true))).toThrow(/ENOENT/)
+      await expect(async () => await toPromise(loader.lookup('/etc/hosts', LookupType.Root))).rejects.toThrow(/ENOENT/)
     })
   })
 })

@@ -10,7 +10,7 @@ function createEngine (pkg) {
   liquid.registerFilter('url', path => `https://example.com${path}`)
   return {
     load: path => liquid.parse(readFileSync(path + '.liquid', 'utf8')),
-    render: (tpl, data) => liquid.renderSync(tpl, data)
+    render: (tpl, data) => liquid.render(tpl, data)
   }
 }
 

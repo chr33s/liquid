@@ -1,4 +1,4 @@
-import { execSync } from 'child_process'
+import { execSync, execFileSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 
@@ -35,18 +35,24 @@ function download(version: string) {
   return ''
 }
 
-const version = publishedVersion()
-if (!version) {
-  console.log(`No published release of ${name} to compare against, skipping.`)
-  process.exit(0)
+const explicit = process.env.LIQUID_PERF_BASELINE
+let fileLatest: string
+if (explicit !== undefined) {
+  fileLatest = path.resolve(explicit)
+  if (!explicit || !fs.statSync(fileLatest).isFile()) throw new Error('Invalid LIQUID_PERF_BASELINE')
+  fs.accessSync(fileLatest, fs.constants.R_OK)
+} else {
+  const version = publishedVersion()
+  if (!version) {
+    console.log(`No published release of ${name} to compare against, skipping.`)
+    process.exit(0)
+  }
+  fs.mkdirSync(cacheDir, { recursive: true })
+  console.log(`Downloading ${name}@${version}...`)
+  fileLatest = download(version)
+  if (!fileLatest) {
+    console.log(`Could not fetch a baseline bundle for ${name}@${version}, skipping.`)
+    process.exit(0)
+  }
 }
-
-fs.mkdirSync(cacheDir, { recursive: true })
-console.log(`Downloading ${name}@${version}...`)
-const fileLatest = download(version)
-if (!fileLatest) {
-  console.log(`Could not fetch a baseline bundle for ${name}@${version}, skipping.`)
-  process.exit(0)
-}
-
-execSync(`node benchmark/diff.js "${fileLocal}" "${fileLatest}"`, { cwd: root, stdio: 'inherit' })
+execFileSync(process.execPath, ['benchmark/diff.js', fileLocal, fileLatest], { cwd: root, stdio: 'inherit' })

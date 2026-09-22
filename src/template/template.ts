@@ -1,3 +1,4 @@
+import type { OperationOptions } from '../util/operation'
 import { Context } from '../context/context'
 import { Token } from '../tokens/token'
 import { Emitter } from '../emitters/emitter'
@@ -33,7 +34,7 @@ export interface PartialScope {
 export interface Template {
   token: Token
   render(ctx: Context, emitter: Emitter): any
-  children?(partials: boolean, sync: boolean): Generator<unknown, Template[]>
+  children?(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]>
   arguments?(): Arguments
   blockScope?(): Iterable<string>
   localScope?(): Iterable<IdentifierToken | QuotedToken>

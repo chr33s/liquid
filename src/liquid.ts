@@ -1,5 +1,8 @@
+import { Operation, associate, operationFor, type OperationOptions } from './util/operation'
+import { drive as execute } from './util/async'
+import { StreamedEmitter, type Emitter } from './emitters'
 import { Context } from './context'
-import { toPromise, toValueSync, forOwn, isString, strictUniq } from './util'
+import { forOwn, isString, strictUniq } from './util'
 import {
   TagClass,
   FilterImplOptions,
@@ -8,7 +11,6 @@ import {
   StaticAnalysisOptions,
   StaticAnalysis,
   analyze,
-  analyzeSync,
   SegmentArray
 } from './template'
 import { LookupType } from './fs/loader'
@@ -26,6 +28,8 @@ import {
 } from './liquid-options'
 
 export class Liquid {
+  /** @internal */
+  readonly pendingLoads = new Map<string, Promise<Template[]>>()
   public readonly options: NormalizedFullOptions
   public readonly renderer = new Render()
   /**
@@ -47,23 +51,27 @@ export class Liquid {
     return parser.parse(html, filepath)
   }
 
-  public _render(
+  public *_render(
     tpl: Template[],
     scope: Context | object | undefined,
-    renderOptions: RenderOptions
+    renderOptions: RenderOptions = {},
+    emitter?: Emitter
   ): IterableIterator<any> {
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options, renderOptions)
-    return this.renderer.renderTemplates(tpl, ctx)
+    const previous = ctx.operation
+    const wasActive = ctx.operationActive
+    ctx.operationActive = true
+    ctx.operation = operationFor(renderOptions)
+    try {
+      if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
+      return yield this.renderer.renderTemplates(tpl, ctx, emitter)
+    } finally {
+      ctx.operation = previous
+      ctx.operationActive = wasActive
+    }
   }
   public async render(tpl: Template[], scope?: object, renderOptions?: RenderOptions): Promise<any> {
-    return toPromise(this._render(tpl, scope, { ...renderOptions, sync: false }))
-  }
-  public renderSync(tpl: Template[], scope?: object, renderOptions?: RenderOptions): any {
-    return toValueSync(this._render(tpl, scope, { ...renderOptions, sync: true }))
-  }
-  public renderToNodeStream(tpl: Template[], scope?: object, renderOptions: RenderOptions = {}): NodeJS.ReadableStream {
-    const ctx = new Context(scope, this.options, renderOptions)
-    return this.renderer.renderTemplatesToNodeStream(tpl, ctx)
+    return this.run(renderOptions, options => this._render(tpl, scope, options))
   }
 
   public _parseAndRender(
@@ -75,32 +83,20 @@ export class Liquid {
     return this._render(tpl, scope, renderOptions)
   }
   public async parseAndRender(html: string, scope?: Context | object, renderOptions?: RenderOptions): Promise<any> {
-    return toPromise(this._parseAndRender(html, scope, { ...renderOptions, sync: false }))
-  }
-  public parseAndRenderSync(html: string, scope?: Context | object, renderOptions?: RenderOptions): any {
-    return toValueSync(this._parseAndRender(html, scope, { ...renderOptions, sync: true }))
+    return this.run(renderOptions, options => this._parseAndRender(html, scope, options))
   }
 
-  public _parsePartialFile(file: string, sync?: boolean, currentFile?: string) {
-    return new Parser(this).parseFile(file, sync, LookupType.Partials, currentFile)
+  public _parsePartialFile(file: string, currentFile?: string, options?: OperationOptions) {
+    return new Parser(this).parseFile(file, LookupType.Partials, currentFile, options)
   }
-  public _parseLayoutFile(file: string, sync?: boolean, currentFile?: string) {
-    return new Parser(this).parseFile(file, sync, LookupType.Layouts, currentFile)
+  public _parseLayoutFile(file: string, currentFile?: string, options?: OperationOptions) {
+    return new Parser(this).parseFile(file, LookupType.Layouts, currentFile, options)
   }
-  public _parseFile(
-    file: string,
-    sync?: boolean,
-    lookupType?: LookupType,
-    currentFile?: string,
-    tenant?: string
-  ): Generator<unknown, Template[]> {
-    return new Parser(this).parseFile(file, sync, lookupType, currentFile, tenant)
+  public _parseFile(file: string, lookupType?: LookupType, currentFile?: string, options?: OperationOptions) {
+    return new Parser(this).parseFile(file, lookupType, currentFile, options)
   }
-  public async parseFile(file: string, lookupType?: LookupType, tenant?: string): Promise<Template[]> {
-    return toPromise<Template[]>(new Parser(this).parseFile(file, false, lookupType, undefined, tenant))
-  }
-  public parseFileSync(file: string, lookupType?: LookupType, tenant?: string): Template[] {
-    return toValueSync<Template[]>(new Parser(this).parseFile(file, true, lookupType, undefined, tenant))
+  public async parseFile(file: string, lookupType?: LookupType, options?: OperationOptions): Promise<Template[]> {
+    return this.run(options, options => this._parseFile(file, lookupType, undefined, options))
   }
   public *_renderFile(
     file: string,
@@ -109,34 +105,108 @@ export class Liquid {
   ): Generator<any> {
     const templates = (yield this._parseFile(
       file,
-      renderFileOptions.sync,
       renderFileOptions.lookupType,
       undefined,
-      renderFileOptions.theme?.tenant
+      renderFileOptions
     )) as Template[]
     return yield this._render(templates, ctx, renderFileOptions)
   }
   public async renderFile(file: string, ctx?: Context | object, renderFileOptions?: RenderFileOptions) {
-    return toPromise(this._renderFile(file, ctx, { ...renderFileOptions, sync: false }))
-  }
-  public renderFileSync(file: string, ctx?: Context | object, renderFileOptions?: RenderFileOptions) {
-    return toValueSync(this._renderFile(file, ctx, { ...renderFileOptions, sync: true }))
-  }
-  public async renderFileToNodeStream(file: string, scope?: object, renderOptions?: RenderOptions) {
-    const templates = await this.parseFile(file, undefined, renderOptions?.theme?.tenant)
-    return this.renderToNodeStream(templates, scope, renderOptions)
+    return this.run(renderFileOptions, options => this._renderFile(file, ctx, options))
   }
 
-  public _evalValue(str: string, scope?: object | Context): IterableIterator<any> {
+  public *_evalValue(str: string, scope?: object | Context, options: OperationOptions = {}): IterableIterator<any> {
     const value = new Value(str, this)
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options)
-    return value.value(ctx)
+    const previous = ctx.operation
+    const wasActive = ctx.operationActive
+    ctx.operationActive = true
+    ctx.operation = operationFor(options)
+    try {
+      return yield value.value(ctx)
+    } finally {
+      ctx.operation = previous
+      ctx.operationActive = wasActive
+    }
   }
-  public async evalValue(str: string, scope?: object | Context): Promise<any> {
-    return toPromise(this._evalValue(str, scope))
+  public async evalValue(str: string, scope?: object | Context, options?: OperationOptions): Promise<any> {
+    return this.run(options, options => this._evalValue(str, scope, options))
   }
-  public evalValueSync(str: string, scope?: object | Context): any {
-    return toValueSync(this._evalValue(str, scope))
+
+  private async run<T, O extends OperationOptions>(
+    options: O | undefined,
+    task: (options: O) => Generator<unknown, T> | IterableIterator<T>
+  ): Promise<T> {
+    const owner = new Operation(options?.signal)
+    const owned = associate({ ...options, signal: owner.signal } as O, owner)
+    try {
+      owner.check()
+      const result = await execute(task(owned) as Generator<unknown, T>, owner)
+      owner.check()
+      return result
+    } finally {
+      owner.finish()
+    }
+  }
+
+  public renderToStream(templates: Template[], scope?: object, options: RenderOptions = {}): ReadableStream<string> {
+    try {
+      return this.stream(templates, scope, options, new Operation(options.signal))
+    } catch (error) {
+      return new ReadableStream({
+        start(controller) {
+          controller.error(error)
+        }
+      })
+    }
+  }
+
+  private stream(
+    templates: Template[],
+    scope: object | undefined,
+    options: RenderOptions,
+    owner: Operation
+  ): ReadableStream<string> {
+    const emitter = new StreamedEmitter(owner)
+    const abort = () => emitter.error(owner.signal.reason)
+    owner.signal.addEventListener('abort', abort, { once: true })
+    if (owner.signal.aborted) abort()
+    emitter.completion = Promise.resolve()
+      .then(async () => {
+        owner.check()
+        await execute(
+          this._render(templates, scope, associate({ ...options, signal: owner.signal }, owner), emitter) as Generator,
+          owner
+        )
+        await emitter.end()
+      })
+      .catch(error => {
+        emitter.error(owner.signal.aborted ? owner.signal.reason : error)
+      })
+      .finally(() => {
+        owner.signal.removeEventListener('abort', abort)
+        owner.finish()
+      })
+    return emitter.stream
+  }
+
+  public async renderFileToStream(
+    file: string,
+    scope?: object,
+    options: RenderFileOptions = {}
+  ): Promise<ReadableStream<string>> {
+    const owner = new Operation(options.signal)
+    try {
+      owner.check()
+      const templates = await execute(
+        this._parseFile(file, options.lookupType, undefined, associate({ ...options, signal: owner.signal }, owner)),
+        owner
+      )
+      return this.stream(templates, scope, options, owner)
+    } catch (error) {
+      owner.finish()
+      throw error
+    }
   }
 
   public registerFilter(name: string, filter: FilterImplOptions) {
@@ -176,103 +246,75 @@ export class Liquid {
     return analyze(template, options)
   }
 
-  public analyzeSync(template: Template[], options: StaticAnalysisOptions = {}): StaticAnalysis {
-    return analyzeSync(template, options)
-  }
-
   public async parseAndAnalyze(
     html: string,
     filename?: string,
     options: StaticAnalysisOptions = {}
   ): Promise<StaticAnalysis> {
+    options.signal?.throwIfAborted()
     return analyze(this.parse(html, filename), options)
-  }
-
-  public parseAndAnalyzeSync(html: string, filename?: string, options: StaticAnalysisOptions = {}): StaticAnalysis {
-    return analyzeSync(this.parse(html, filename), options)
   }
 
   /** Return an array of all variables without their properties. */
   public async variables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
+    options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Object.keys(analysis.variables)
   }
 
   /** Return an array of all variables without their properties. */
-  public variablesSync(template: string | Template[], options: StaticAnalysisOptions = {}): string[] {
-    const analysis = analyzeSync(isString(template) ? this.parse(template) : template, options)
-    return Object.keys(analysis.variables)
-  }
 
   /** Return an array of all variables including their properties/paths. */
   public async fullVariables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
+    options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Array.from(new Set(Object.values(analysis.variables).flatMap(a => a.map(v => String(v)))))
   }
 
   /** Return an array of all variables including their properties/paths. */
-  public fullVariablesSync(template: string | Template[], options: StaticAnalysisOptions = {}): string[] {
-    const analysis = analyzeSync(isString(template) ? this.parse(template) : template, options)
-    return Array.from(new Set(Object.values(analysis.variables).flatMap(a => a.map(v => String(v)))))
-  }
 
   /** Return an array of all variables, each as an array of properties/segments. */
   public async variableSegments(
     template: string | Template[],
     options: StaticAnalysisOptions = {}
   ): Promise<Array<SegmentArray>> {
+    options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Array.from(strictUniq(Object.values(analysis.variables).flatMap(a => a.map(v => v.toArray()))))
   }
 
   /** Return an array of all variables, each as an array of properties/segments. */
-  public variableSegmentsSync(template: string | Template[], options: StaticAnalysisOptions = {}): Array<SegmentArray> {
-    const analysis = analyzeSync(isString(template) ? this.parse(template) : template, options)
-    return Array.from(strictUniq(Object.values(analysis.variables).flatMap(a => a.map(v => v.toArray()))))
-  }
 
   /** Return an array of all expected context variables without their properties. */
   public async globalVariables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
+    options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Object.keys(analysis.globals)
   }
 
   /** Return an array of all expected context variables without their properties. */
-  public globalVariablesSync(template: string | Template[], options: StaticAnalysisOptions = {}): string[] {
-    const analysis = analyzeSync(isString(template) ? this.parse(template) : template, options)
-    return Object.keys(analysis.globals)
-  }
 
   /** Return an array of all expected context variables including their properties/paths. */
   public async globalFullVariables(
     template: string | Template[],
     options: StaticAnalysisOptions = {}
   ): Promise<string[]> {
+    options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Array.from(new Set(Object.values(analysis.globals).flatMap(a => a.map(v => String(v)))))
   }
 
   /** Return an array of all expected context variables including their properties/paths. */
-  public globalFullVariablesSync(template: string | Template[], options: StaticAnalysisOptions = {}): string[] {
-    const analysis = analyzeSync(isString(template) ? this.parse(template) : template, options)
-    return Array.from(new Set(Object.values(analysis.globals).flatMap(a => a.map(v => String(v)))))
-  }
 
   /** Return an array of all expected context variables, each as an array of properties/segments. */
   public async globalVariableSegments(
     template: string | Template[],
     options: StaticAnalysisOptions = {}
   ): Promise<Array<SegmentArray>> {
+    options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Array.from(strictUniq(Object.values(analysis.globals).flatMap(a => a.map(v => v.toArray()))))
   }
 
   /** Return an array of all expected context variables, each as an array of properties/segments. */
-  public globalVariableSegmentsSync(
-    template: string | Template[],
-    options: StaticAnalysisOptions = {}
-  ): Array<SegmentArray> {
-    const analysis = analyzeSync(isString(template) ? this.parse(template) : template, options)
-    return Array.from(strictUniq(Object.values(analysis.globals).flatMap(a => a.map(v => v.toArray()))))
-  }
 }

@@ -1,3 +1,4 @@
+import { Operation, associate, type OperationOptions } from '../util/operation'
 import { Argument, Template, Value } from '.'
 import { isKeyValuePair } from '../parser/filter-arg'
 import { PropertyAccessToken, ValueToken } from '../tokens'
@@ -9,8 +10,7 @@ import {
   isString,
   isValueToken,
   isWordToken,
-  toPromise,
-  toValueSync
+  toPromise
 } from '../util'
 
 /**
@@ -97,7 +97,7 @@ export class VariableMap {
 }
 
 /**
- * The result of calling `analyze()` or `analyzeSync()`.
+ * The result of calling `analyze()`.
  */
 export interface StaticAnalysis {
   /**
@@ -124,7 +124,7 @@ export interface StaticAnalysis {
   locals: Variables
 }
 
-export interface StaticAnalysisOptions {
+export interface StaticAnalysisOptions extends OperationOptions {
   /**
    * When `true` (the default), try to load partial templates and analyze them too.
    */
@@ -135,7 +135,11 @@ export const defaultStaticAnalysisOptions: StaticAnalysisOptions = {
   partials: true
 }
 
-function* _analyze(templates: Template[], partials: boolean, sync: boolean): Generator<unknown, StaticAnalysis> {
+function* _analyze(
+  templates: Template[],
+  partials: boolean,
+  options: OperationOptions
+): Generator<unknown, StaticAnalysis> {
   const variables = new VariableMap()
   const globals = new VariableMap()
   const locals = new VariableMap()
@@ -194,7 +198,7 @@ function* _analyze(templates: Template[], partials: boolean, sync: boolean): Gen
 
         if (partial === undefined) {
           // Layouts, for example, can have children that are not partials.
-          for (const child of (yield template.children(partials, sync)) as Template[]) {
+          for (const child of (yield template.children(partials, options)) as Template[]) {
             yield visit(child, scope)
           }
           return
@@ -218,7 +222,7 @@ function* _analyze(templates: Template[], partials: boolean, sync: boolean): Gen
           }
         }
 
-        for (const child of (yield template.children(partials, sync)) as Template[]) {
+        for (const child of (yield template.children(partials, options)) as Template[]) {
           yield visit(child, partialScope)
           seen.add(partial.name)
         }
@@ -229,7 +233,7 @@ function* _analyze(templates: Template[], partials: boolean, sync: boolean): Gen
           scope.push(new Set(template.blockScope()))
         }
 
-        for (const child of (yield template.children(partials, sync)) as Template[]) {
+        for (const child of (yield template.children(partials, options)) as Template[]) {
           yield visit(child, scope)
         }
 
@@ -254,17 +258,11 @@ function* _analyze(templates: Template[], partials: boolean, sync: boolean): Gen
 /**
  * Statically analyze a template and report variable usage.
  */
-export function analyze(template: Template[], options: StaticAnalysisOptions = {}): Promise<StaticAnalysis> {
+export async function analyze(template: Template[], options: StaticAnalysisOptions = {}): Promise<StaticAnalysis> {
   const opts = { ...defaultStaticAnalysisOptions, ...options } as Required<StaticAnalysisOptions>
-  return toPromise(_analyze(template, opts.partials, false))
-}
-
-/**
- * Statically analyze a template and report variable usage.
- */
-export function analyzeSync(template: Template[], options: StaticAnalysisOptions = {}): StaticAnalysis {
-  const opts = { ...defaultStaticAnalysisOptions, ...options } as Required<StaticAnalysisOptions>
-  return toValueSync(_analyze(template, opts.partials, true))
+  const owner = new Operation(options.signal)
+  const owned = associate({ ...options, signal: owner.signal }, owner)
+  return toPromise(_analyze(template, opts.partials, owned), owned)
 }
 
 interface ScopeStackItem {

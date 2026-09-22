@@ -1,25 +1,100 @@
-import { stringify, Limiter } from '../util'
+import { stringify, Limiter, Operation } from '../util'
 import { Emitter } from './emitter'
-import { PassThrough } from 'stream'
 
 export class StreamedEmitter implements Emitter {
   public buffer = ''
-  public stream: NodeJS.ReadWriteStream = new PassThrough()
-  private outputLengthLimit?: Limiter
+  readonly stream: ReadableStream<string>
+  private controller!: ReadableStreamDefaultController<string>
+  private demand?: () => void
+  private pending?: Promise<void>
+  private terminal = false
+  completion: Promise<unknown> = Promise.resolve()
 
-  constructor(outputLengthLimit?: Limiter) {
-    this.outputLengthLimit = outputLengthLimit
+  constructor(
+    private owner: Operation,
+    public outputLengthLimit?: Limiter
+  ) {
+    this.stream = new ReadableStream<string>(
+      {
+        start: controller => {
+          this.controller = controller
+        },
+        pull: () => {
+          this.demand?.()
+          this.demand = undefined
+        },
+        cancel: reason => {
+          this.terminal = true
+          owner.abort(reason)
+          return this.completion.then(
+            () => {},
+            () => {}
+          )
+        }
+      },
+      { highWaterMark: 65_536, size: chunk => chunk.length }
+    )
   }
 
-  public write(html: any) {
-    const str = stringify(html)
-    this.outputLengthLimit?.use(str.length)
-    this.stream.write(str)
+  write(value: any): Promise<void> {
+    this.owner.check()
+    if (this.pending) {
+      const error = new Error('Overlapping emitter writes: await or yield each write')
+      this.owner.abort(error)
+      throw error
+    }
+    const text = stringify(value)
+    this.outputLengthLimit?.use(text.length)
+    const task = this.accept(text)
+    this.pending = task
+    task.then(
+      () => {
+        this.pending = undefined
+      },
+      () => {
+        this.pending = undefined
+      }
+    )
+    return task
   }
-  public error(err: Error) {
-    this.stream.emit('error', err)
+
+  private async accept(text: string) {
+    for (let offset = 0; offset < text.length; offset += 16_384) {
+      this.owner.check()
+      while (this.controller.desiredSize !== null && this.controller.desiredSize <= 0) {
+        await this.owner.wait(
+          new Promise<void>(resolve => {
+            this.demand = resolve
+          })
+        )
+        this.owner.check()
+      }
+      this.controller.enqueue(text.slice(offset, offset + 16_384))
+      if (this.controller.desiredSize !== null && this.controller.desiredSize <= 0) {
+        await this.owner.wait(
+          new Promise<void>(resolve => {
+            this.demand = resolve
+          })
+        )
+        this.owner.check()
+      }
+    }
   }
-  public end() {
-    this.stream.end()
+
+  async end() {
+    await this.pending
+    this.owner.check()
+    if (!this.terminal) {
+      this.terminal = true
+      this.controller.close()
+    }
+    this.owner.finish()
+  }
+
+  error(reason: unknown) {
+    if (!this.terminal) {
+      this.terminal = true
+      this.controller.error(reason)
+    }
   }
 }

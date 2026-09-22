@@ -62,4 +62,3 @@ Output
 ```text
 false
 ```
-

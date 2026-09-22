@@ -1,5 +1,4 @@
 import { Liquid } from '../../../src/liquid'
-
 describe('filters/object', function () {
   const liquid = new Liquid()
   describe('default', function () {
@@ -35,10 +34,10 @@ describe('filters/object', function () {
       expect(await liquid.parseAndRender('{{obj | json}}', { obj: { foo: 'bar' } })).toBe('{"foo":"bar"}'))
     it('should stringify array', async () =>
       expect(await liquid.parseAndRender('{{arr | json}}', { arr: [-2, 'a'] })).toBe('[-2,"a"]'))
-    it('should support space', () => {
+    it('should support space', async () => {
       const scope = { obj: { foo: 'foo', bar: 'bar' } }
       const result = '{\n    "foo": "foo",\n    "bar": "bar"\n}'
-      expect(liquid.parseAndRenderSync('{{obj | json: 4}}', scope)).toBe(result)
+      expect(await liquid.parseAndRender('{{obj | json: 4}}', scope)).toBe(result)
     })
   })
   describe('jsonify', function () {
@@ -46,29 +45,29 @@ describe('filters/object', function () {
   })
   describe('inspect', function () {
     it('should inspect string', async () => expect(await liquid.parseAndRender('{{"foo" | inspect}}')).toBe('"foo"'))
-    it('should inspect object', () => {
+    it('should inspect object', async () => {
       const text = '{{foo | inspect}}'
       const foo = { bar: 'bar' }
       const expected = '{"bar":"bar"}'
-      return expect(liquid.parseAndRenderSync(text, { foo })).toBe(expected)
+      return expect(await liquid.parseAndRender(text, { foo })).toBe(expected)
     })
-    it('should inspect cyclic object', () => {
+    it('should inspect cyclic object', async () => {
       const text = '{{foo | inspect}}'
       const foo: any = { bar: { coo: 'coo' } }
       foo.foo = foo
       const expected = '{"bar":{"coo":"coo"},"foo":"[Circular]"}'
-      return expect(liquid.parseAndRenderSync(text, { foo })).toBe(expected)
+      return expect(await liquid.parseAndRender(text, { foo })).toBe(expected)
     })
-    it('should support space argument', () => {
+    it('should support space argument', async () => {
       const text = '{{foo | inspect: 4}}'
       const foo: any = { bar: 'bar' }
       foo.foo = foo
       const expected = '{\n    "bar": "bar",\n    "foo": "[Circular]"\n}'
-      return expect(liquid.parseAndRenderSync(text, { foo })).toBe(expected)
+      return expect(await liquid.parseAndRender(text, { foo })).toBe(expected)
     })
   })
   describe('to_integer', function () {
-    it('should stringify string', () =>
-      expect(liquid.parseAndRenderSync('{{ "123" | to_integer | json }}')).toBe('123'))
+    it('should stringify string', async () =>
+      expect(await liquid.parseAndRender('{{ "123" | to_integer | json }}')).toBe('123'))
   })
 })

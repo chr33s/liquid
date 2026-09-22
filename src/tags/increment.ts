@@ -10,14 +10,14 @@ export default class extends Tag {
     this.identifier = this.tokenizer.readIdentifier()
     this.variable = this.identifier.content
   }
-  render(context: Context, emitter: Emitter) {
+  *render(context: Context, emitter: Emitter) {
     const scope = context.environments
     if (!isNumber(scope[this.variable])) {
       scope[this.variable] = 0
     }
     const val = scope[this.variable]
     scope[this.variable]++
-    emitter.write(stringify(val))
+    yield emitter.write(stringify(val))
   }
 
   public *localScope(): Iterable<string | IdentifierToken> {

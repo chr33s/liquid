@@ -1,68 +1,63 @@
-import { last } from '../util'
+import type { FS, FileReadOptions } from '../fs/fs'
+import { SourceReader } from '../fs/source'
 
-function domResolve(root: string, path: string) {
-  const base = document.createElement('base')
-  base.href = root
-
-  const head = document.getElementsByTagName('head')[0]
-  head.insertBefore(base, head.firstChild)
-
-  const a = document.createElement('a')
-  a.href = path
-  const resolved = a.href
-  head.removeChild(base)
-
-  return resolved
-}
-
-export function resolve(root: string, filepath: string, ext: string) {
-  if (root.length && last(root) !== '/') root += '/'
-  const url = domResolve(root, filepath)
-  return url.replace(/^(\w+:\/\/[^/]+)(\/[^?]+)/, (str, origin, path) => {
-    const last = path.split('/').pop()
-    if (/\.\w+$/.test(last)) return str
-    return origin + path + ext
-  })
-}
-
-export async function readFile(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(xhr.responseText as string)
-      } else {
-        reject(new Error(xhr.statusText))
-      }
-    }
-    xhr.onerror = () => {
-      reject(new Error('An error occurred whilst receiving the response.'))
-    }
-    xhr.open('GET', url)
-    xhr.send()
-  })
-}
-
-export function readFileSync(url: string): string {
-  const xhr = new XMLHttpRequest()
-  xhr.open('GET', url, false)
-  xhr.send()
-  if (xhr.status < 200 || xhr.status >= 300) {
-    throw new Error(xhr.statusText)
+export async function readFile(url: string, options: FileReadOptions = {}): Promise<string> {
+  options.signal?.throwIfAborted()
+  const response = await fetch(url, { signal: options.signal, credentials: 'same-origin' })
+  if (!response.ok) {
+    await response.body?.cancel().catch(() => {})
+    throw Object.assign(new Error(`Template request failed with HTTP ${response.status}`), {
+      status: response.status,
+      code: response.status === 404 ? 'ENOENT' : 'HTTP_ERROR'
+    })
   }
-  return xhr.responseText as string
+  const reader = response.body?.getReader()
+  if (!reader) return ''
+  const decoder = new SourceReader(options)
+  let complete = false
+  try {
+    let source = ''
+    while (true) {
+      options.signal?.throwIfAborted()
+      const result = await reader.read()
+      if (result.done) {
+        complete = true
+        return source + decoder.decode()
+      }
+      source += decoder.decode(result.value)
+    }
+  } finally {
+    if (!complete) await reader.cancel().catch(() => {})
+    reader.releaseLock()
+  }
 }
 
-export async function exists(filepath: string) {
-  return true
+export function createFS(baseUrl?: string): FS {
+  const base = baseUrl ?? (typeof document === 'undefined' ? undefined : document.baseURI)
+  return {
+    sep: '/',
+    exists: () => true,
+    readFile,
+    resolve(root, file, ext) {
+      let directory: URL
+      try {
+        directory = new URL(root || '.', base)
+      } catch (error) {
+        try {
+          return extend(new URL(file), ext)
+        } catch {}
+        throw Object.assign(new Error('Relative template URL requires an absolute baseUrl'), { cause: error })
+      }
+      if (!directory.pathname.endsWith('/')) directory.pathname += '/'
+      return extend(new URL(file, directory), ext)
+    },
+    dirname(file) {
+      return new URL('.', file).href
+    }
+  }
 }
 
-export function existsSync(filepath: string) {
-  return true
+function extend(result: URL, ext: string): string {
+  if (!/\.\w+$/.test(result.pathname.split('/').pop()!)) result.pathname += ext
+  return result.href
 }
-
-export function dirname(filepath: string) {
-  return domResolve(filepath, '.')
-}
-
-export const sep = '/'

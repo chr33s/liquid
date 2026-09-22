@@ -1,16 +1,11 @@
-import { fakeXhrServer, FakeXhrServer, FakeXMLHttpRequest } from '../stub/fake-xhr'
+import { fakeFetchServer, type FakeFetchServer } from '../stub/fake-fetch'
 import { JSDOM } from 'jsdom'
-import type { Liquid } from '../../src/liquid'
+import type { Liquid } from '@chr33s/liquid'
 const LiquidUMD = require('../../dist/liquid.browser.umd.js').Liquid
-
-describe('xhr', () => {
-  if (+(process.version.match(/^v(\d+)/) as RegExpMatchArray)[1] < 8) {
-    console.info('jsdom not supported, skipping xhr...')
-    return
-  }
-  let server: FakeXhrServer, engine: Liquid
+describe('fetch', () => {
+  let server: FakeFetchServer, engine: Liquid
   beforeEach(() => {
-    server = fakeXhrServer()
+    server = fakeFetchServer()
     server.respondWith('GET', 'https://example.com/views/hello.html', [
       200,
       { 'Content-Type': 'text/plain' },
@@ -64,16 +59,11 @@ describe('xhr', () => {
       return expect(html).toBe('hello alice5')
     })
     it('should throw 404', () => {
-      return expect(engine.renderFile('/not/exist.html')).rejects.toThrow('Not Found')
+      return expect(engine.renderFile('/not/exist.html')).rejects.toThrow('ENOENT')
     })
-    it('should throw error', function () {
-      const result = expect(engine.renderFile('hello.html')).rejects.toThrow(
-        'An error occurred whilst receiving the response.'
-      )
-      FakeXMLHttpRequest.onCreate = function (request: FakeXMLHttpRequest) {
-        setTimeout(() => request.error())
-      }
-      return result
+    it('should throw network error', async () => {
+      server.fail(new TypeError('Network error'))
+      await expect(engine.renderFile('hello.html')).rejects.toThrow('Network error')
     })
   })
   describe('#renderFile() with root specified', () => {

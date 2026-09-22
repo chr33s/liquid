@@ -4,7 +4,6 @@ import { resolve } from 'path'
 import { mock, restore } from '../../stub/mockfs'
 import { throwIntendedError } from '../../stub/util'
 import { ThrowingTag, RejectingTag, ThrowsOnParseTag } from '../../stub/tags'
-
 const strictEngine = new Liquid({
   strictVariables: true,
   strictFilters: true
@@ -18,10 +17,8 @@ strictEngine.registerTag('throwingTag', ThrowingTag)
 strictEngine.registerFilter('throwingFilter', throwIntendedError)
 strictCatchingEngine.registerTag('throwingTag', ThrowingTag)
 strictCatchingEngine.registerFilter('throwingFilter', throwIntendedError)
-
 describe('error', function () {
   afterEach(restore)
-
   describe('TokenizationError', function () {
     const engine = new Liquid()
     it('should throw TokenizationError when tag illegal', async function () {
@@ -70,7 +67,6 @@ describe('error', function () {
       })
     })
   })
-
   describe('RenderError', function () {
     let engine: Liquid
     beforeEach(function () {
@@ -182,7 +178,6 @@ describe('error', function () {
       })
     })
   })
-
   describe('catchAllErrors', function () {
     it('should catch render errors', async function () {
       const template = '{{foo}}\n{{"hello" | throwingFilter}}\n{% throwingTag %}'
@@ -236,7 +231,6 @@ describe('error', function () {
       })
     })
   })
-
   describe('ParseError', function () {
     let engine: Liquid
     beforeEach(function () {
@@ -280,7 +274,6 @@ describe('error', function () {
         message: expect.stringContaining('tag "a" not found')
       })
     })
-
     it('should contain template context in err.stack', async function () {
       const html = ['1st', '2nd', '3rd', 'X{% a %} {% enda %} Y', '5th', '6th', '7th']
       const message = [
@@ -299,7 +292,6 @@ describe('error', function () {
         stack: expect.stringContaining(message.join('\n'))
       })
     })
-
     it('should handle err.message when context not enough', async function () {
       const html = ['1st', 'X{% a %} {% enda %} Y', '3rd', '4th']
       const message = [
@@ -315,7 +307,6 @@ describe('error', function () {
         stack: expect.stringContaining(message.join('\n'))
       })
     })
-
     it('should contain stack in err.stack', async function () {
       await expect(engine.parseAndRender('{% -a %}')).rejects.toMatchObject({
         stack: expect.stringContaining('ParseError: tag "-a" not found')
@@ -325,7 +316,7 @@ describe('error', function () {
       })
     })
   })
-  describe('sync support', function () {
+  describe('Promise execution', function () {
     let engine: Liquid
     beforeEach(function () {
       engine = new Liquid({
@@ -333,12 +324,12 @@ describe('error', function () {
       })
       engine.registerTag('throwingTag', ThrowingTag)
     })
-    it('should throw RenderError when tag throws', function () {
+    it('should throw RenderError when tag throws', async function () {
       const src = '{%throwingTag%}'
-      expect(() => engine.parseAndRenderSync(src)).toThrow(RenderError)
-      expect(() => engine.parseAndRenderSync(src)).toThrow(/intended error/)
+      await expect(async () => await engine.parseAndRender(src)).rejects.toThrow(RenderError)
+      await expect(async () => await engine.parseAndRender(src)).rejects.toThrow(/intended error/)
     })
-    it('should contain original error info for {% include %}', function () {
+    it('should contain original error info for {% include %}', async function () {
       mock({
         '/throwing-tag.html': ['1st', '2nd', '3rd', 'X{%throwingTag%} Y', '5th', '6th', '7th'].join('\n')
       })
@@ -354,7 +345,7 @@ describe('error', function () {
         'RenderError'
       ]
       try {
-        engine.parseAndRenderSync(html)
+        await engine.parseAndRender(html)
         throw new Error('expected throw')
       } catch (err) {
         expect(err).toHaveProperty('name', 'RenderError')

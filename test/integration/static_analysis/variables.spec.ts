@@ -1,11 +1,11 @@
-import { Liquid, Variable, analyze, analyzeSync } from '../../../src'
+import { Liquid, Variable, analyze } from '../../../src'
 
 describe('Variable analysis', () => {
   const engine = new Liquid()
 
-  it('should report variables in output statements', () => {
+  it('should report variables in output statements', async () => {
     const template = engine.parse('{{ a }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = new Variable(['a'], { row: 1, col: 4, file: undefined })
 
@@ -16,9 +16,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report all locations of a variable', () => {
+  it('should report all locations of a variable', async () => {
     const template = engine.parse('{{ a }}\n{{ a }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const as = [
       new Variable(['a'], { row: 1, col: 4, file: undefined }),
@@ -32,10 +32,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should include the template name if available', () => {
+  it('should include the template name if available', async () => {
     const engine = new Liquid({ templates: { a: '{{ b }}' } })
-    const template = engine.parseFileSync('a')
-    const analysis = analyzeSync(template)
+    const template = await engine.parseFile('a')
+    const analysis = await analyze(template)
 
     const b = [new Variable(['b'], { row: 1, col: 4, file: 'a' })]
 
@@ -46,9 +46,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables in filter arguments', () => {
+  it('should report variables in filter arguments', async () => {
     const template = engine.parse('{{ a | join: b }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = new Variable(['a'], { row: 1, col: 4, file: undefined })
     const b = new Variable(['b'], { row: 1, col: 14, file: undefined })
@@ -60,9 +60,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables in filter keyword arguments', () => {
+  it('should report variables in filter keyword arguments', async () => {
     const template = engine.parse('{{ a | default: b, allow_false: c }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = new Variable(['a'], { row: 1, col: 4, file: undefined })
     const b = new Variable(['b'], { row: 1, col: 17, file: undefined })
@@ -75,9 +75,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report dotted properties', () => {
+  it('should report dotted properties', async () => {
     const template = engine.parse('{{ a.b }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a', 'b'], { row: 1, col: 4, file: undefined })]
 
@@ -88,9 +88,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle quoted properties using bracket notation', () => {
+  it('should handle quoted properties using bracket notation', async () => {
     const template = engine.parse('{{ a["b c"] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a', 'b c'], { row: 1, col: 4, file: undefined })]
 
@@ -101,9 +101,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle bracketed variable root', () => {
+  it('should handle bracketed variable root', async () => {
     const template = engine.parse('{{ ["a b"] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a b'], { row: 1, col: 4, file: undefined })]
 
@@ -114,9 +114,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle paths containing array indices', () => {
+  it('should handle paths containing array indices', async () => {
     const template = engine.parse('{{ a[1] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a', 1], { row: 1, col: 4, file: undefined })]
 
@@ -127,9 +127,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle paths that start with a nested path', () => {
+  it('should handle paths that start with a nested path', async () => {
     const template = engine.parse('{{ [a.b] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a', 'b'], { row: 1, col: 4, file: undefined })]
 
@@ -140,9 +140,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle paths that start with bracketed notation', () => {
+  it('should handle paths that start with bracketed notation', async () => {
     const template = engine.parse('{{ ["a.b"] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const ab = [new Variable(['a.b'], { row: 1, col: 4, file: undefined })]
 
@@ -153,9 +153,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report nested variables', () => {
+  it('should report nested variables', async () => {
     const template = engine.parse('{{ a[b.c] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const bc = new Variable(['b', 'c'], { row: 1, col: 6, file: undefined })
     const a = new Variable(['a', bc], { row: 1, col: 4, file: undefined })
@@ -167,9 +167,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report deeply nested variables', () => {
+  it('should report deeply nested variables', async () => {
     const template = engine.parse('{{ d[a[b.c]] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const bc = new Variable(['b', 'c'], { row: 1, col: 8, file: undefined })
     const a = new Variable(['a', bc], { row: 1, col: 6, file: undefined })
@@ -182,9 +182,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report deeply nested global and local variables', () => {
+  it('should report deeply nested global and local variables', async () => {
     const template = engine.parse('{% assign b = null %}{{ d[a[b.c]] }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const bc = new Variable(['b', 'c'], { row: 1, col: 29, file: undefined })
     const a = new Variable(['a', bc], { row: 1, col: 27, file: undefined })
@@ -197,9 +197,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should group variables by their root value', () => {
+  it('should group variables by their root value', async () => {
     const template = engine.parse('{{ a.b }} {{ a.c }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [
       new Variable(['a', 'b'], { row: 1, col: 4, file: undefined }),
@@ -213,9 +213,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should detect local variables', () => {
+  it('should detect local variables', async () => {
     const template = engine.parse('{% assign a = "foo" %}{{ a }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     expect(analysis).toStrictEqual({
       variables: { a: [new Variable(['a'], { row: 1, col: 26, file: undefined })] },
@@ -224,9 +224,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should detect when a variable is in scope', () => {
+  it('should detect when a variable is in scope', async () => {
     const template = engine.parse('{{ a }}{% assign a = "foo" %}{{ a }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const as = [
       new Variable(['a'], { row: 1, col: 4, file: undefined }),
@@ -240,9 +240,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables in if tags', () => {
+  it('should report variables in if tags', async () => {
     const template = engine.parse('{% if a %}b{% endif %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a'], { row: 1, col: 7, file: undefined })]
 
@@ -253,9 +253,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables in nested blocks', () => {
+  it('should report variables in nested blocks', async () => {
     const template = engine.parse('{% if true %}{% if false %}{{ a }}{% endif %}{% endif %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a'], { row: 1, col: 31, file: undefined })]
 
@@ -266,9 +266,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from assign tags', () => {
+  it('should report variables from assign tags', async () => {
     const template = engine.parse('{% assign a = b %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = new Variable(['a'], { row: 1, col: 11, file: undefined })
     const b = new Variable(['b'], { row: 1, col: 15, file: undefined })
@@ -280,9 +280,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from capture tags', () => {
+  it('should report variables from capture tags', async () => {
     const template = engine.parse('{% capture a %}{% if b %}c{% endif %}{% endcapture %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = new Variable(['a'], { row: 1, col: 12, file: undefined })
     const b = new Variable(['b'], { row: 1, col: 22, file: undefined })
@@ -294,7 +294,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from case tags', () => {
+  it('should report variables from case tags', async () => {
     const source = [
       '{% case x %}',
       '{% when y %}',
@@ -307,7 +307,7 @@ describe('Variable analysis', () => {
     ].join('\n')
 
     const template = engine.parse(source)
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const refs = {
       x: [new Variable(['x'], { row: 1, col: 9, file: undefined })],
@@ -325,9 +325,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from cycle tags', () => {
+  it('should report variables from cycle tags', async () => {
     const template = engine.parse('{% cycle x: a, b %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const refs = {
       x: [new Variable(['x'], { row: 1, col: 10, file: undefined })],
@@ -342,9 +342,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from decrement tags', () => {
+  it('should report variables from decrement tags', async () => {
     const template = engine.parse('{% decrement a %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     expect(analysis).toStrictEqual({
       variables: {},
@@ -353,9 +353,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from echo tags', () => {
+  it('should report variables from echo tags', async () => {
     const template = engine.parse('{% echo x | default: y, allow_false: z %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const refs = {
       x: [new Variable(['x'], { row: 1, col: 9, file: undefined })],
@@ -370,7 +370,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from for tags', () => {
+  it('should report variables from for tags', async () => {
     const source = [
       '{% for x in (1..y) limit: a %}',
       '  {{ x }} {{ forloop.index }} {{ forloop.first }}',
@@ -382,7 +382,7 @@ describe('Variable analysis', () => {
     ].join('\n')
 
     const template = engine.parse(source)
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a'], { row: 1, col: 27, file: undefined })]
     const x = [new Variable(['x'], { row: 2, col: 6, file: undefined })]
@@ -405,7 +405,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from if tags', () => {
+  it('should report variables from if tags', async () => {
     const source = [
       '{% if x %}',
       '  {{ a }}',
@@ -417,7 +417,7 @@ describe('Variable analysis', () => {
     ].join('\n')
 
     const template = engine.parse(source)
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const refs = {
       a: [new Variable(['a'], { row: 2, col: 6, file: undefined })],
@@ -434,9 +434,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from increment tags', () => {
+  it('should report variables from increment tags', async () => {
     const template = engine.parse('{% increment a %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     expect(analysis).toStrictEqual({
       variables: {},
@@ -445,7 +445,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from liquid tags', () => {
+  it('should report variables from liquid tags', async () => {
     const source = [
       '{% liquid',
       '  if product.title',
@@ -460,7 +460,7 @@ describe('Variable analysis', () => {
     ].join('\n')
 
     const template = engine.parse(source)
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const globals = {
       product: [new Variable(['product', 'title'], { row: 2, col: 6, file: undefined })],
@@ -476,9 +476,9 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from tablerow tags', () => {
+  it('should report variables from tablerow tags', async () => {
     const template = engine.parse('{% tablerow x in y.z cols:2 %}{{ x | append: a }}{% endtablerow %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const globals = {
       y: [new Variable(['y', 'z'], { row: 1, col: 18, file: undefined })],
@@ -494,7 +494,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from unless tags', () => {
+  it('should report variables from unless tags', async () => {
     const source = [
       '{% unless x %}',
       '  {{ a }}',
@@ -506,7 +506,7 @@ describe('Variable analysis', () => {
     ].join('\n')
 
     const template = engine.parse(source)
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const refs = {
       a: [new Variable(['a'], { row: 2, col: 6, file: undefined })],
@@ -523,7 +523,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from nested tags', () => {
+  it('should report variables from nested tags', async () => {
     const source = [
       '{% if a %}',
       '  {% for x in b %}',
@@ -537,7 +537,7 @@ describe('Variable analysis', () => {
     ].join('\n')
 
     const template = engine.parse(source)
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const refs = {
       a: [
@@ -561,10 +561,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from included templates with a string name', () => {
+  it('should report variables from included templates with a string name', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "a" %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
 
@@ -575,10 +575,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should ignore included templates when partials is set to false', () => {
+  it('should ignore included templates when partials is set to false', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "a" %}')
-    const analysis = analyzeSync(template, { partials: false })
+    const analysis = await analyze(template, { partials: false })
 
     expect(analysis).toStrictEqual({
       variables: {},
@@ -591,13 +591,13 @@ describe('Variable analysis', () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "b" %}')
 
-    expect(() => analyzeSync(template)).toThrow('Failed to lookup "b"')
+    return expect(analyze(template)).rejects.toThrow('Failed to lookup "b"')
   })
 
-  it('should ignore templates included with a dynamic variable name', () => {
+  it('should ignore templates included with a dynamic variable name', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include a %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a'], { row: 1, col: 12, file: undefined })]
 
@@ -608,10 +608,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report local variables from included templates', () => {
+  it('should report local variables from included templates', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}{% assign y = 42 %}' } })
     const template = engine.parse('{% include "a" %}{{ y }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
 
@@ -622,10 +622,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should analyze included templates only once', () => {
+  it('should analyze included templates only once', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "a" %}{% include "a" %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
 
@@ -636,10 +636,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle templates that are included recursively', () => {
+  it('should handle templates that are included recursively', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}{% include "a" %}' } })
     const template = engine.parse('{% include "a" %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
 
@@ -650,10 +650,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from included templates with a bound variable', () => {
+  it('should report variables from included templates with a bound variable', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y }}{{ a.foo }}' } })
     const template = engine.parse('{% include "a" with z %}') // z is aliased as a
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a', 'foo'], { row: 1, col: 23, file: 'a' })]
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
@@ -671,10 +671,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from included templates with keyword arguments', () => {
+  it('should report variables from included templates with keyword arguments', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% include "a" x:y z:42 %}{{ x }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [
       new Variable(['x'], { row: 1, col: 4, file: 'a' }),
@@ -693,10 +693,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle jekyll style includes', () => {
+  it('should handle jekyll style includes', async () => {
     const engine = new Liquid({ templates: { a: '{{ include.x | append: y }}' }, jekyllInclude: true })
     const template = engine.parse('{% include a x=y z=42 %}{{ x }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const include = [new Variable(['include', 'x'], { row: 1, col: 4, file: 'a' })]
     const x = [new Variable(['x'], { row: 1, col: 28, file: undefined })]
@@ -713,10 +713,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from rendered templates', () => {
+  it('should report variables from rendered templates', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "a" %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
 
@@ -731,13 +731,13 @@ describe('Variable analysis', () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "b" %}')
 
-    expect(() => analyzeSync(template)).toThrow('Failed to lookup "b"')
+    return expect(analyze(template)).rejects.toThrow('Failed to lookup "b"')
   })
 
-  it('should ignore rendered templates when partials is set to false', () => {
+  it('should ignore rendered templates when partials is set to false', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "a" %}')
-    const analysis = analyzeSync(template, { partials: false })
+    const analysis = await analyze(template, { partials: false })
 
     expect(analysis).toStrictEqual({
       variables: {},
@@ -746,10 +746,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report local variables from rendered templates', () => {
+  it('should report local variables from rendered templates', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}{% assign y = 42 %}' } })
     const template = engine.parse('{% render "a" %}{{ y }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
     const y = [new Variable(['y'], { row: 1, col: 20, file: undefined })]
@@ -761,10 +761,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should analyze rendered templates only once', () => {
+  it('should analyze rendered templates only once', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "a" %}{% render "a" %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
 
@@ -775,10 +775,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle templates that are rendered recursively', () => {
+  it('should handle templates that are rendered recursively', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}{% render "a" %}' } })
     const template = engine.parse('{% render "a" %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
 
@@ -789,10 +789,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from rendered templates with a bound variable', () => {
+  it('should report variables from rendered templates with a bound variable', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y }}{{ a.foo }}' } })
     const template = engine.parse('{% render "a" with z %}') // z is aliased as a
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a', 'foo'], { row: 1, col: 23, file: 'a' })]
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
@@ -810,10 +810,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from rendered templates with a bound variable and alias', () => {
+  it('should report variables from rendered templates with a bound variable and alias', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y.foo }}' } })
     const template = engine.parse('{% render "a" with z as y %}') // z is aliased as y
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
     const y = [new Variable(['y', 'foo'], { row: 1, col: 16, file: 'a' })]
@@ -830,10 +830,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from rendered templates using _for_ syntax', () => {
+  it('should report variables from rendered templates using _for_ syntax', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% render "a" for z %}') // z is aliased as a
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
     const y = [new Variable(['y'], { row: 1, col: 16, file: 'a' })]
@@ -846,10 +846,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from rendered templates using _for_ syntax and an alias', () => {
+  it('should report variables from rendered templates using _for_ syntax and an alias', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% render "a" for z as y %}') // z is aliased as y
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
     const y = [new Variable(['y'], { row: 1, col: 16, file: 'a' })]
@@ -866,10 +866,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from rendered templates with keyword arguments', () => {
+  it('should report variables from rendered templates with keyword arguments', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y }}' } })
     const template = engine.parse('{% render "a" x:y z:42 %}{{ x }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [
       new Variable(['x'], { row: 1, col: 4, file: 'a' }),
@@ -888,10 +888,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should analyze rendered templates in an isolated scope', () => {
+  it('should analyze rendered templates in an isolated scope', async () => {
     const engine = new Liquid({ templates: { a: '{{ foo }}' } })
     const template = engine.parse('{% assign foo = "bar" %}{% render "a" %}{{ foo }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     expect(analysis).toStrictEqual({
       variables: {
@@ -905,10 +905,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from layout templates', () => {
+  it('should report variables from layout templates', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{% endblock %}{{ y }}' } })
     const template = engine.parse('{% layout "a" %}{% block %}{{ z }}{% endblock %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
     const y = [new Variable(['y'], { row: 1, col: 36, file: 'a' })]
@@ -921,10 +921,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables outside block tags', () => {
+  it('should report variables outside block tags', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{% endblock %}{{ y }}' } })
     const template = engine.parse('{% layout "a" %}{{ b }}{% block %}{{ z }}{% endblock %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const b = [new Variable(['b'], { row: 1, col: 20, file: undefined })]
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
@@ -938,10 +938,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle layout is none', () => {
+  it('should handle layout is none', async () => {
     const engine = new Liquid()
     const template = engine.parse('{% layout none %}{% block %}{{ z }}{% endblock %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const z = [new Variable(['z'], { row: 1, col: 32, file: undefined })]
 
@@ -952,10 +952,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle block.super', () => {
+  it('should handle block.super', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{{ b }}{% endblock %}{{ y }}' } })
     const template = engine.parse('{% layout "a" %}{% block %}{{ z }}{{ block.super }}{% endblock %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const b = [new Variable(['b'], { row: 1, col: 22, file: 'a' })]
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
@@ -970,7 +970,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle recursive layout', () => {
+  it('should handle recursive layout', async () => {
     const engine = new Liquid({
       templates: {
         a: '{% layout "b" %}{% block %}{{ a }}{% endblock %}',
@@ -978,7 +978,7 @@ describe('Variable analysis', () => {
       }
     })
     const template = engine.parse('{% layout "a" %}{{ c }}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a'], { row: 1, col: 31, file: 'a' })]
     // const b = [new Variable(['b'], { row: 1, col: 31, file: 'b' })]
@@ -991,10 +991,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should ignore layouts with a dynamic name', () => {
+  it('should ignore layouts with a dynamic name', async () => {
     const engine = new Liquid()
     const template = engine.parse('{% layout a %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const a = [new Variable(['a'], { row: 1, col: 11, file: undefined })]
 
@@ -1005,10 +1005,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should report variables from layout keyword arguments', () => {
+  it('should report variables from layout keyword arguments', async () => {
     const engine = new Liquid({ templates: { a: '{% block %}{{ x }}{% endblock %}' } })
     const template = engine.parse('{% layout "a" x:y %}')
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 15, file: 'a' })]
     const y = [new Variable(['y'], { row: 1, col: 17, file: undefined })]
@@ -1058,10 +1058,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should not treat aliased variables as globals if they are in scope', () => {
+  it('should not treat aliased variables as globals if they are in scope', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y.foo }}' } })
     const template = engine.parse('{% assign z = 42 %}{% render "a" with z as y %}') // z is aliased as y
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
     const y = [new Variable(['y', 'foo'], { row: 1, col: 16, file: 'a' })]
@@ -1074,10 +1074,10 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should recognize when an alias has been redefined', () => {
+  it('should recognize when an alias has been redefined', async () => {
     const engine = new Liquid({ templates: { a: '{% assign y = 42 %}{{ x | append: y.foo }}' } })
     const template = engine.parse('{% render "a" with z as y %}') // z is aliased as y
-    const analysis = analyzeSync(template)
+    const analysis = await analyze(template)
 
     const x = [new Variable(['x'], { row: 1, col: 23, file: 'a' })]
     const y = [new Variable(['y', 'foo'], { row: 1, col: 35, file: 'a' })]

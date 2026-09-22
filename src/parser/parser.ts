@@ -1,42 +1,35 @@
-import { Limiter, toPromise, assert, isTagToken, isOutputToken, ParseError, toLiquidAsync, LiquidAsync } from '../util'
+import { Operation, associate, existingOperation, type OperationOptions } from '../util/operation'
+import { Limiter, drive, assert, isTagToken, isOutputToken, ParseError } from '../util'
 import { Tokenizer } from './tokenizer'
 import { ParseStream } from './parse-stream'
 import { TopLevelToken, OutputToken } from '../tokens'
 import { Template, Output, HTML } from '../template'
 import { LiquidCache } from '../cache'
-import { FS, Loader, LookupType } from '../fs'
+import { Loader, LookupType } from '../fs'
 import { LiquidError, LiquidErrors } from '../util/error'
 import type { Liquid } from '../liquid'
 
 export class Parser {
   public parseFile: (
     file: string,
-    sync?: boolean,
     type?: LookupType,
-    currentFile?: string
+    currentFile?: string,
+    options?: OperationOptions
   ) => Generator<unknown, Template[], Template[] | string>
 
   private liquid: Liquid
-  private fs: FS
   private cache?: LiquidCache
   private loader: Loader
   private parseLimit: Limiter
-  private readFile: LiquidAsync<FS['readFileSync']>
 
   public constructor(liquid: Liquid) {
     this.liquid = liquid
     this.cache = this.liquid.options.cache
-    this.fs = this.liquid.options.fs
-    this.parseFile = this.cache ? this._parseFileCached : this._parseFile
+    this.parseFile = this.cache
+      ? this._parseFileCached
+      : (file, type, currentFile, options) => this._parseFile(file, type, currentFile, options)
     this.loader = new Loader(this.liquid.options)
     this.parseLimit = new Limiter('parse length', liquid.options.parseLimit)
-    this.readFile = toLiquidAsync(
-      this.fs.readFile?.bind(this.fs) ||
-        (async () => {
-          throw new Error('readFile not implemented')
-        }),
-      this.fs.readFileSync?.bind(this.fs)
-    )
   }
   public parse(html: string, filepath?: string): Template[] {
     html = String(html)
@@ -81,35 +74,89 @@ export class Parser {
   }
   private *_parseFileCached(
     file: string,
-    sync?: boolean,
     type: LookupType = LookupType.Root,
-    currentFile?: string
+    currentFile?: string,
+    options?: OperationOptions
   ): Generator<unknown, Template[], Template[]> {
     const cache = this.cache!
     const key = this.loader.shouldLoadRelative(file) ? currentFile + ',' + file : type + ':' + file
-    const tpls = yield cache.read(key)
-    if (tpls) return tpls
-
-    const task = this._parseFile(file, sync, type, currentFile)
-    // sync mode: exec the task and cache the result
-    // async mode: cache the task before exec
-    const taskOrTpl = sync ? yield task : toPromise(task)
-    cache.write(key, taskOrTpl as any)
-    // note: concurrent tasks will be reused, cache for failed task is removed until its end
+    let task = this.liquid.pendingLoads.get(key)
+    if (task) return yield task
+    let resolve!: (templates: Template[] | PromiseLike<Template[]>) => void
+    let reject!: (error: unknown) => void
+    task = new Promise<Template[]>((yes, no) => {
+      resolve = yes
+      reject = no
+    })
+    this.liquid.pendingLoads.set(key, task)
+    const owned = task
+    const clear = () => {
+      if (this.liquid.pendingLoads.get(key) === owned) this.liquid.pendingLoads.delete(key)
+    }
+    task.then(clear, clear)
     try {
-      return yield taskOrTpl
-    } catch (err) {
-      cache.remove(key)
-      throw err
+      const cached = cache.read(key)
+      if (Array.isArray(cached)) {
+        resolve(cached)
+        clear()
+        return cached
+      }
+      this.loadCached(key, cached, file, type, currentFile).then(resolve, reject)
+    } catch (error) {
+      this.removeFailed(key, error).then(resolve, reject)
+    }
+    return yield task
+  }
+
+  private async removeFailed(key: string, error: unknown): Promise<never> {
+    try {
+      await this.cache!.remove(key)
+    } catch {}
+    throw error
+  }
+
+  private async loadCached(
+    key: string,
+    cached: ReturnType<LiquidCache['read']>,
+    file: string,
+    type: LookupType,
+    currentFile?: string
+  ): Promise<Template[]> {
+    let owner: Operation | undefined
+    let task: Promise<Template[]> | undefined
+    try {
+      const templates = await cached
+      if (templates) return templates
+      owner = new Operation()
+      const options = associate({ signal: owner.signal }, owner)
+      task = drive(this._parseFile(file, type, currentFile, options), owner)
+      task.catch(() => {})
+      await this.cache!.write(key, task)
+      const parsed = await task
+      await this.cache!.write(key, parsed)
+      return parsed
+    } catch (error) {
+      owner?.abort(error)
+      if (task) await task.catch(() => {})
+      return await this.removeFailed(key, error)
+    } finally {
+      owner?.finish()
     }
   }
   private *_parseFile(
     file: string,
-    sync?: boolean,
     type: LookupType = LookupType.Root,
-    currentFile?: string
-  ): Generator<unknown, Template[], string> {
-    const filepath = yield this.loader.lookup(file, type, sync, currentFile)
-    return this.parse(yield this.readFile(!!sync, filepath), filepath)
+    currentFile?: string,
+    options: OperationOptions = {}
+  ): Generator<unknown, Template[], any> {
+    const readOptions = {
+      ...options,
+      sourceByteLimit: this.liquid.options.sourceByteLimit,
+      sourceCodeUnitLimit: this.parseLimit.remaining
+    }
+    const owner = existingOperation(options)
+    if (owner) associate(readOptions, owner)
+    const { filepath, source } = yield this.loader.load(file, type, currentFile, readOptions)
+    return this.parse(source, filepath)
   }
 }

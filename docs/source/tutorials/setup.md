@@ -109,4 +109,3 @@ Most of the [options available through the JavaScript API](./options.md) are als
 ## Miscellaneous
 
 A ReactJS demo is also added by [@stevenanthonyrevo](https://github.com/stevenanthonyrevo), see [demo/reactjs/](https://github.com/chr33s/liquid/tree/main/demo/reactjs/).
-

@@ -289,7 +289,7 @@ describe('tags/render', function () {
       const tpl = 'Direct:[{{ user.passwordHash }}] Render:[{% render "_user.liquid", user: user %}]'
       const html = await engine.parseAndRender(tpl, { user: u }, { ownPropertyOnly: true })
       expect(html).toBe('Direct:[] Render:[]')
-      expect(engine.parseAndRenderSync(tpl, { user: u }, { ownPropertyOnly: true })).toBe('Direct:[] Render:[]')
+      expect(await engine.parseAndRender(tpl, { user: u }, { ownPropertyOnly: true })).toBe('Direct:[] Render:[]')
     })
   })
 
@@ -353,45 +353,45 @@ describe('tags/render', function () {
     })
   })
   describe('sync support', function () {
-    it('should support quoted string', function () {
+    it('should support quoted string', async function () {
       mock({
         '/current.html': 'bar{% render "bar/foo.html" %}bar',
         '/bar/foo.html': 'foo'
       })
-      const html = liquid.renderFileSync('/current.html')
+      const html = await liquid.renderFile('/current.html')
       expect(html).toBe('barfoobar')
     })
-    it('should support value string', function () {
+    it('should support value string', async function () {
       mock({
         '/current.html': 'bar{% render name %}bar',
         '/bar/foo.html': 'foo'
       })
-      const html = liquid.renderFileSync('/current.html', { name: '/bar/foo.html' })
+      const html = await liquid.renderFile('/current.html', { name: '/bar/foo.html' })
       expect(html).toBe('barfoobar')
     })
-    it('should support template string', function () {
+    it('should support template string', async function () {
       mock({
         '/current.html': 'bar{% render "/bar/{{name}}" %}bar',
         '/bar/foo.html': 'foo'
       })
-      const html = liquid.renderFileSync('/current.html', { name: '/foo.html' })
+      const html = await liquid.renderFile('/current.html', { name: '/foo.html' })
       expect(html).toBe('barfoobar')
     })
-    it('should support with', function () {
+    it('should support with', async function () {
       mock({
         '/with.html': '{% render "color" with "red", shape: "rect" %}',
         '/color.html': 'color:{{color}}, shape:{{shape}}'
       })
-      const html = liquid.renderFileSync('with.html')
+      const html = await liquid.renderFile('with.html')
       expect(html).toBe('color:red, shape:rect')
     })
-    it('should support filename with extension', function () {
+    it('should support filename with extension', async function () {
       mock({
         '/parent.html': 'X{% render child.html color:"red" %}Y',
         '/child.html': 'child with {{color}}'
       })
       const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = staticLiquid.renderFileSync('parent.html')
+      const html = await staticLiquid.renderFile('parent.html')
       expect(html).toBe('Xchild with redY')
     })
   })

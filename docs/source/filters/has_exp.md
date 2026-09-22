@@ -2,7 +2,7 @@
 title: has_exp
 ---
 
-{% since %}v10.21.0{% endsince %}
+Since v10.21.0.
 
 Return `true` if an item exists in an array for which the given expression evaluates to true or return `false` if no item in the array satisfies the evaluated expression.
 

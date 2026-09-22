@@ -130,4 +130,3 @@ Output
 ```text
 Cat Food
 ```
-

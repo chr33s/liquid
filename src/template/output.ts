@@ -23,7 +23,7 @@ export class Output extends TemplateImpl<OutputToken> implements Template {
   }
   public *render(ctx: Context, emitter: Emitter): IterableIterator<unknown> {
     const val = yield this.value.value(ctx, false)
-    emitter.write(val)
+    yield emitter.write(val)
   }
 
   public *arguments(): Arguments {

@@ -49,15 +49,7 @@ const browserCrypto = {
     './crypto-impl': '../build/crypto-impl-browser'
   }
 }
-const browserStream = {
-  include: './src/emitters/index.ts',
-  delimiters: ['', ''],
-  preventAssignment: true,
-  values: {
-    './streamed-emitter': '../build/streamed-emitter-browser'
-  }
-}
-const browserShims = [replace(browserFS), replace(browserBase64), replace(browserCrypto), replace(browserStream)]
+const browserShims = [replace(browserFS), replace(browserBase64), replace(browserCrypto)]
 
 const nodeEsm = {
   output: {
@@ -65,7 +57,7 @@ const nodeEsm = {
     format: 'esm',
     banner
   },
-  external: ['path', 'fs', 'stream', 'crypto', 'module'],
+  external: ['path', 'fs', 'fs/promises', 'crypto', 'module'],
   plugins: [versionInjection],
   transform,
   treeshake,

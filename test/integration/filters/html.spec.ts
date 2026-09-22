@@ -1,6 +1,5 @@
 import { test } from '../../stub/render'
 import { Liquid } from '../../../src/liquid'
-
 describe('filters/html', function () {
   let liquid: Liquid
   beforeEach(() => {
@@ -46,9 +45,9 @@ describe('filters/html', function () {
     })
   })
   describe('strip_html', function () {
-    it('should remove raw-text blocks before surrounding markup', function () {
+    it('should remove raw-text blocks before surrounding markup', async function () {
       for (const value of ['< <script>x</script> >', '< <style>x</style> >', '< <!--x--> >']) {
-        expect(liquid.parseAndRenderSync('{{ value | strip_html }}', { value })).toBe('')
+        expect(await liquid.parseAndRender('{{ value | strip_html }}', { value })).toBe('')
       }
     })
     it('should strip all tags', function () {
@@ -60,18 +59,18 @@ describe('filters/html', function () {
     it('should strip all comment tags', function () {
       return test('{{ "<!--Have you read-->Ulysses?" | strip_html }}', 'Ulysses?')
     })
-    it('should strip multiline comments', function () {
-      expect(liquid.parseAndRenderSync('{{"<!--foo\r\nbar \ncoo\t  \r\n  -->"|strip_html}}')).toBe('')
+    it('should strip multiline comments', async function () {
+      expect(await liquid.parseAndRender('{{"<!--foo\r\nbar \ncoo\t  \r\n  -->"|strip_html}}')).toBe('')
     })
-    it('should treat > inside comments as comment content (not a tag end)', function () {
-      expect(liquid.parseAndRenderSync('{{ "<!-- a > b -->after" | strip_html }}')).toBe('after')
+    it('should treat > inside comments as comment content (not a tag end)', async function () {
+      expect(await liquid.parseAndRender('{{ "<!-- a > b -->after" | strip_html }}')).toBe('after')
     })
     it('should strip all style tags and their contents', function () {
       return test('{{ "<style>cite { font-style: italic; }</style><cite>Ulysses<cite>?" | strip_html }}', 'Ulysses?')
     })
-    it('should strip multiline styles', function () {
+    it('should strip multiline styles', async function () {
       expect(
-        liquid.parseAndRenderSync('{{"<style> \n.header {\r\n  color: black;\r\n}\n</style>" | strip_html}}')
+        await liquid.parseAndRender('{{"<style> \n.header {\r\n  color: black;\r\n}\n</style>" | strip_html}}')
       ).toBe('')
     })
     it('should strip all scripts tags and their contents', function () {
@@ -80,23 +79,23 @@ describe('filters/html', function () {
         'Ulysses?'
       )
     })
-    it('should strip multiline scripts', function () {
-      expect(liquid.parseAndRenderSync('{{ "<script> \nfoo\r\nbar\n</script>" | strip_html }}')).toBe('')
+    it('should strip multiline scripts', async function () {
+      expect(await liquid.parseAndRender('{{ "<script> \nfoo\r\nbar\n</script>" | strip_html }}')).toBe('')
     })
-    it('should not strip non-matched <script>', function () {
-      expect(liquid.parseAndRenderSync('{{ "<script></script>text<script></script>" | strip_html }}')).toBe('text')
+    it('should not strip non-matched <script>', async function () {
+      expect(await liquid.parseAndRender('{{ "<script></script>text<script></script>" | strip_html }}')).toBe('text')
     })
     it('should strip until empty', function () {
       return test('{{"<br/><br />< p ></p></ p >" | strip_html }}', '')
     })
-    it('should strip generic tags spanning ASCII newlines inside the tag', function () {
-      expect(liquid.parseAndRenderSync('{{"<img\nsrc=x\nonerror=alert(1)>" | strip_html}}')).toBe('')
-      expect(liquid.parseAndRenderSync('{{"<img\rsrc=x\ronerror=alert(1)>" | strip_html}}')).toBe('')
-      expect(liquid.parseAndRenderSync('{{"<svg\nonload=alert(1)>" | strip_html}}')).toBe('')
+    it('should strip generic tags spanning ASCII newlines inside the tag', async function () {
+      expect(await liquid.parseAndRender('{{"<img\nsrc=x\nonerror=alert(1)>" | strip_html}}')).toBe('')
+      expect(await liquid.parseAndRender('{{"<img\rsrc=x\ronerror=alert(1)>" | strip_html}}')).toBe('')
+      expect(await liquid.parseAndRender('{{"<svg\nonload=alert(1)>" | strip_html}}')).toBe('')
     })
-    it('should not loop on unclosed openers (GHSA-m7fp-h3p4-hr49)', function () {
-      expect(liquid.parseAndRenderSync('{{ "a<" | strip_html }}')).toBe('a<')
-      expect(liquid.parseAndRenderSync('{{ "hello<world<again" | strip_html }}')).toBe('hello<world<again')
+    it('should not loop on unclosed openers (GHSA-m7fp-h3p4-hr49)', async function () {
+      expect(await liquid.parseAndRender('{{ "a<" | strip_html }}')).toBe('a<')
+      expect(await liquid.parseAndRender('{{ "hello<world<again" | strip_html }}')).toBe('hello<world<again')
     })
   })
 })

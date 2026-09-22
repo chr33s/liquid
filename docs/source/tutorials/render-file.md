@@ -2,7 +2,7 @@
 title: Render Files
 ---
 
-For a typical project there could be a directory of template files, you'll need to set the {@link LiquidOptions.root | template root} and call {@link Liquid.renderFile | renderFile} or {@link Liquid.renderFileSync | renderFileSync} to render a specific file.
+For a typical project there could be a directory of template files, you'll need to set the {@link LiquidOptions.root | template root} and call {@link Liquid.renderFile | renderFile} to render a specific file.
 
 ## Render a File
 
@@ -38,7 +38,7 @@ name: alice
 
 ## Template Lookup
 
-Template file names passed to {@link Liquid.renderFile | renderFile}, {@link Liquid.parseFile | parseFile}, {@link Liquid.renderFileSync | renderFileSync}, {@link Liquid.parseFileSync | parseFileSync} APIs,
+Template file names passed to {@link Liquid.renderFile | renderFile}, {@link Liquid.parseFile | parseFile} APIs,
 and [include][include], [layout][layout] tags are resolved against {@link LiquidOptions.root | the root option}.
 
 It can be a string-typed path (see above example), or a list of root directories, in which case templates will be looked up in that order. e.g.
@@ -71,15 +71,9 @@ The `Liquid` constructor provides a {@link LiquidOptions.fs | fs} option to spec
 ```javascript
 var engine = new Liquid({
     fs: {
-        readFileSync (file) {
-            return db.model('Template').findByIdSync(file).text
-        },
         async readFile (file) {
             const template = await db.model('Template').findById(file)
             return template.text
-        },
-        existsSync () {
-            return true
         },
         async exists () {
             return true
@@ -109,7 +103,7 @@ const engine = new Liquid({
     'partials/footer': 'footer'
   }
 })
-engine.renderFileSync('views/entry'))
+await engine.renderFile('views/entry'))
 // Result: 'header footer'
 ```
 

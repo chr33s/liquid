@@ -2,7 +2,7 @@
 title: shift
 ---
 
-{% since %}v10.11.0{% endsince %}
+Since v10.11.0.
 
 Shift an element from the array. It's NON-DESTRUCTIVE, i.e. it does not mutate the array, but rather make a copy and mutate that.
 

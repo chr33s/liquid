@@ -2,7 +2,7 @@
 title: jsonify
 ---
 
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 See [json][json].
 

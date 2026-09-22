@@ -2,7 +2,7 @@
 title: group_by
 ---
 
-{% since %}v10.11.0{% endsince %}
+Since v10.11.0.
 
 Group an array's items by a given property. For `members` array:
 

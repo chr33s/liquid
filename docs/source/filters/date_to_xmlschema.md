@@ -1,7 +1,7 @@
 ---
 title: date_to_xmlschema
 ---
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Convert a Date into XML Schema (ISO 8601) format, same as Jekyll filter `date_to_xmlschema`.
 
@@ -17,4 +17,4 @@ Output
 
 Note that JavaScript `Date` has not timezone information, see [date][date] filter for details.
 
-[date]: ./date.html
+[date]: ./date.md

@@ -22,9 +22,15 @@ async function main () {
 
   console.log('===========Streamed===========')
   const tpls = await engine.parseFile('todolist')
-  engine.renderToNodeStream(tpls, ctx)
-    .on('data', data => process.stdout.write(data))
-    .on('end', () => console.log(''))
+  const reader = engine.renderToStream(tpls, ctx).pipeThrough(new TextEncoderStream()).getReader()
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      process.stdout.write(value)
+    }
+  } finally { reader.releaseLock() }
+  console.log('')
 }
 
 main()

@@ -1,14 +1,14 @@
 import { Liquid } from '../../../src/liquid'
-
 describe('tags/comment', function () {
   const liquid = new Liquid()
   it('should ignore nested comments', async function () {
     const src = 'before{% comment %}a{% comment %}b{% endcomment %}c{% endcomment %}after'
     expect(await liquid.parseAndRender(src)).toBe('beforeafter')
-    expect(liquid.parseAndRenderSync(src)).toBe('beforeafter')
-    expect(() => liquid.parseAndRenderSync('{% comment %}{% comment %}{% endcomment %}')).toThrow('not closed')
+    expect(await liquid.parseAndRender(src)).toBe('beforeafter')
+    await expect(async () => await liquid.parseAndRender('{% comment %}{% comment %}{% endcomment %}')).rejects.toThrow(
+      'not closed'
+    )
   })
-
   it('should support empty content', function () {
     const src = '{% comment %}{% raw%}'
     return expect(liquid.parseAndRender(src)).rejects.toThrow(/{% comment %} not closed/)
@@ -33,10 +33,10 @@ describe('tags/comment', function () {
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('')
   })
-  describe('sync support', function () {
-    it('should ignore plain string', function () {
+  describe('Promise execution', function () {
+    it('should ignore plain string', async function () {
       const src = 'My name is {% comment %}super{% endcomment %} Shopify.'
-      const html = liquid.parseAndRenderSync(src)
+      const html = await liquid.parseAndRender(src)
       return expect(html).toBe('My name is  Shopify.')
     })
   })

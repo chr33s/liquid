@@ -1,3 +1,4 @@
+import type { OperationOptions } from '../util/operation'
 import { ForloopDrop } from '../drop'
 import { isString, isValueToken, toEnumerable } from '../util'
 import {
@@ -71,38 +72,49 @@ export default class extends Tag {
   }
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     ctx.depthLimit.use(1)
-    const { liquid, hash } = this
-    const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
-    assert(filepath, () => `illegal file path "${filepath}"`)
+    try {
+      const { liquid, hash } = this
+      const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
+      assert(filepath, () => `illegal file path "${filepath}"`)
 
-    const childCtx = ctx.spawn()
-    const scope = childCtx.bottom()
-    Object.assign(scope, yield hash.render(ctx))
-    if (this.with) {
-      const { value, alias } = this.with
-      scope[alias || filepath] = yield evalToken(value, ctx)
-    }
-
-    if (this.forBinding) {
-      const { value, alias } = this.forBinding
-      const collection = toEnumerable(yield evalToken(value, ctx))
-      scope['forloop'] = new ForloopDrop(collection.length, value.getText(), alias as string)
-      for (const item of collection) {
-        scope[alias as string] = item
-        const templates = (yield liquid._parsePartialFile(filepath, childCtx.sync, this.currentFile)) as Template[]
-        yield liquid.renderer.renderTemplates(templates, childCtx, emitter)
-        scope['forloop'].next()
+      const childCtx = ctx.spawn()
+      const scope = childCtx.bottom()
+      Object.assign(scope, yield hash.render(ctx))
+      if (this.with) {
+        const { value, alias } = this.with
+        scope[alias || filepath] = yield evalToken(value, ctx)
       }
-    } else {
-      const templates = (yield liquid._parsePartialFile(filepath, childCtx.sync, this.currentFile)) as Template[]
-      yield liquid.renderer.renderTemplates(templates, childCtx, emitter)
+
+      if (this.forBinding) {
+        const { value, alias } = this.forBinding
+        const collection = toEnumerable(yield evalToken(value, ctx))
+        scope['forloop'] = new ForloopDrop(collection.length, value.getText(), alias as string)
+        for (const item of collection) {
+          scope[alias as string] = item
+          const templates = (yield liquid._parsePartialFile(
+            filepath,
+            this.currentFile,
+            ctx.operationOptions
+          )) as Template[]
+          yield liquid.renderer.renderTemplates(templates, childCtx, emitter)
+          scope['forloop'].next()
+        }
+      } else {
+        const templates = (yield liquid._parsePartialFile(
+          filepath,
+          this.currentFile,
+          ctx.operationOptions
+        )) as Template[]
+        yield liquid.renderer.renderTemplates(templates, childCtx, emitter)
+      }
+    } finally {
+      ctx.depthLimit.release(1)
     }
-    ctx.depthLimit.release(1)
   }
 
-  public *children(partials: boolean, sync: boolean): Generator<unknown, Template[]> {
+  public *children(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]> {
     if (partials && isString(this.file)) {
-      return (yield this.liquid._parsePartialFile(this.file, sync, this.currentFile)) as Template[]
+      return (yield this.liquid._parsePartialFile(this.file, this.currentFile, options)) as Template[]
     }
     return []
   }

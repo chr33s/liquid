@@ -1,11 +1,9 @@
 import { Context, Drop, Liquid } from '@chr33s/liquid'
-
 describe('drop', function () {
   let engine: Liquid
   beforeEach(function () {
     engine = new Liquid()
   })
-
   describe('liquidMethodMissing', () => {
     it('should support liquidMethodMissing', async function () {
       class SettingsDrop extends Drop {
@@ -21,11 +19,10 @@ describe('drop', function () {
       const html = await engine.parseAndRender(src, { settings: new SettingsDrop() })
       return expect(html).toBe('FOO,BAR,COO')
     })
-
     it('should expose context', async function () {
       class SettingsDrop extends Drop {
-        public liquidMethodMissing(key: string, context: Context) {
-          return key + ':' + context.getSync([key])
+        public async liquidMethodMissing(key: string, context: Context) {
+          return key + ':' + (await context.get([key]))
         }
       }
       const src = `{{settings.foo}}`
@@ -33,7 +30,6 @@ describe('drop', function () {
       return expect(html).toBe('foo:FOO')
     })
   })
-
   describe('BlandDrop', function () {
     it('should test blank strings', async function () {
       const src = `

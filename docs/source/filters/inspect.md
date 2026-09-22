@@ -2,7 +2,7 @@
 title: inspect
 ---
 
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Similar with `json`, but `inspect` allows cyclic structure. For the scope below:
 

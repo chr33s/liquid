@@ -1,5 +1,4 @@
 import { Liquid, Drop } from '../../../src'
-
 describe('tags/if', function () {
   const liquid = new Liquid()
   const scope = {
@@ -8,13 +7,11 @@ describe('tags/if', function () {
     emptyString: '',
     emptyArray: []
   }
-
   class BooleanDrop extends Drop {
     public valueOf() {
       return false
     }
   }
-
   it('should throw if not closed', function () {
     const src = '{% if false%}yes'
     return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(/tag {% if false%} not closed/)
@@ -24,12 +21,10 @@ describe('tags/if', function () {
     const html = await liquid.parseAndRender(src, scope)
     return expect(html).toBe('')
   })
-
   it('should throw for additional args', function () {
     const src = "{% if foo %} foo {% else foo = 'blah' %} {% endif %}"
     return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(`unexpected "foo = 'blah'", line:1, col:1`)
   })
-
   describe('single value as condition', function () {
     it('should support boolean', async function () {
       const src = '{% if false %}1{%elsif true%}2{%else%}3{%endif%}'
@@ -99,52 +94,45 @@ describe('tags/if', function () {
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
-
     it('should evaluate false for null > 10', async function () {
       const src = '{% if null > 10 %}yes{% else %}no{% endif %}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
-
     it('should evaluate false for null <= 10', async function () {
       const src = '{% if null <= 10 %}yes{% else %}no{% endif %}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
-
     it('should evaluate false for null >= 10', async function () {
       const src = '{% if null >= 10 %}yes{% else %}no{% endif %}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
-
     it('should evaluate false for 10 < null', async function () {
       const src = '{% if 10 < null %}yes{% else %}no{% endif %}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
-
     it('should evaluate false for 10 > null', async function () {
       const src = '{% if 10 > null %}yes{% else %}no{% endif %}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
-
     it('should evaluate false for 10 <= null', async function () {
       const src = '{% if 10 <= null %}yes{% else %}no{% endif %}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
-
     it('should evaluate false for 10 >= null', async function () {
       const src = '{% if 10 >= null %}yes{% else %}no{% endif %}'
       const html = await liquid.parseAndRender(src, scope)
       return expect(html).toBe('no')
     })
   })
-  it('should support sync', function () {
+  it('should support Promise rendering', async function () {
     const src = '{%if true%}true{%else%}false{%endif%}'
-    const html = liquid.parseAndRenderSync(src, scope)
+    const html = await liquid.parseAndRender(src, scope)
     return expect(html).toBe('true')
   })
   it('should support async variables', async () => {
@@ -159,12 +147,14 @@ describe('tags/if', function () {
     const html = await liquid.parseAndRender(src, scope)
     return expect(html).toBe('no')
   })
-  it('should throw for duplicated else', () => {
-    expect(() => liquid.parseAndRenderSync('{% if false %}{% else %}{% else %}{% endif %}')).toThrow(`duplicated else`)
+  it('should throw for duplicated else', async () => {
+    await expect(
+      async () => await liquid.parseAndRender('{% if false %}{% else %}{% else %}{% endif %}')
+    ).rejects.toThrow(`duplicated else`)
   })
-  it('should throw for unexpected elsif', () => {
-    expect(() => liquid.parseAndRenderSync('{% if false %}{% else %}{% elsif true %}{% endif %}')).toThrow(
-      `unexpected elsif after else`
-    )
+  it('should throw for unexpected elsif', async () => {
+    await expect(
+      async () => await liquid.parseAndRender('{% if false %}{% else %}{% elsif true %}{% endif %}')
+    ).rejects.toThrow(`unexpected elsif after else`)
   })
 })

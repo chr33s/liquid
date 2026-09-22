@@ -1,61 +1,85 @@
 import { isPromise, isIterator } from './underscore'
+import { Operation, operationFor, type OperationOptions } from './operation'
 
-export type LiquidAsync<F extends (...args: any[]) => any> = (
-  sync: boolean,
-  ...args: Parameters<F>
-) => ReturnType<F> | Promise<ReturnType<F>>
-
-export function toLiquidAsync<F extends (...args: any[]) => any>(
-  asyncFn: (...args: Parameters<F>) => Promise<ReturnType<F>>,
-  syncFn?: F
-): LiquidAsync<F> {
-  const syncImpl = syncFn || (asyncFn as any)
-  return (sync: boolean, ...args: any[]) => {
-    return sync ? syncImpl(...(args as Parameters<F>)) : asyncFn(...(args as Parameters<F>))
+export async function toPromise<T>(
+  value: Generator<unknown, T, unknown> | Promise<T> | T,
+  options: OperationOptions = {}
+): Promise<T> {
+  const owner = operationFor(options)
+  try {
+    const result = await drive(value, owner)
+    owner.check()
+    return result
+  } finally {
+    owner.finish()
   }
 }
 
-// convert an async iterator to a Promise
-export async function toPromise<T>(val: Generator<unknown, T, unknown> | Promise<T> | T): Promise<T> {
-  if (!isIterator(val)) return val
-  let value: unknown
-  let done = false
-  let next: 'next' | 'throw' = 'next'
-  do {
-    const state = val[next](value)
-    done = !!state.done
-    value = state.value
-    next = 'next'
-    try {
-      if (isIterator(value)) value = toPromise(value)
-      if (isPromise(value)) value = await value
-    } catch (err) {
-      next = 'throw'
-      value = err
-    }
-  } while (!done)
-  return value as T
-}
-
-// convert an async iterator to a value in a synchronous manner
-export function toValueSync<T>(val: Generator<unknown, T, unknown> | T): T {
-  if (!isIterator(val)) return val
-  let value: any
-  let done = false
-  let next: 'next' | 'throw' = 'next'
-  do {
-    const state = val[next](value)
-    done = !!state.done
-    value = state.value
-    next = 'next'
-    if (isIterator(value)) {
+export async function drive<T>(
+  value: Generator<unknown, T, unknown> | Promise<T> | T,
+  owner: Operation,
+  cleanup = false
+): Promise<T> {
+  const stack: Iterator<any, any, any>[] = []
+  let input: any = value
+  let method: 'next' | 'throw' = 'next'
+  try {
+    while (true) {
+      if (method === 'next') {
+        if (isIterator(input)) {
+          stack.push(input)
+          input = undefined
+        } else if (isPromise(input)) {
+          try {
+            input = await (cleanup ? input : owner.wait(input))
+            if (!cleanup) owner.check()
+          } catch (error) {
+            if (!cleanup && owner.signal.aborted) throw owner.signal.reason
+            input = error
+            method = 'throw'
+          }
+        }
+      }
+      if (!cleanup) {
+        const pause = owner.checkpoint()
+        if (pause) await pause
+      }
+      if (!stack.length) {
+        if (method === 'throw') throw input
+        return input as T
+      }
+      const iterator = stack[stack.length - 1]
       try {
-        value = toValueSync(value)
-      } catch (err) {
-        next = 'throw'
-        value = err
+        const state = iterator[method]!(input)
+        input = state.value
+        if (state.done) stack.pop()
+        method = 'next'
+      } catch (error) {
+        stack.pop()
+        method = 'throw'
+        input = error
       }
     }
-  } while (!done)
-  return value
+  } catch (error) {
+    if (!cleanup && owner.signal.aborted) {
+      while (stack.length) {
+        const iterator = stack.pop()!
+        try {
+          let state = iterator.return!(undefined)
+          while (!state.done) {
+            try {
+              state = iterator.next(await drive(state.value, owner, true))
+            } catch (secondary) {
+              owner.secondary.push(secondary)
+              state = iterator.throw!(secondary)
+            }
+          }
+        } catch (secondary) {
+          owner.secondary.push(secondary)
+        }
+      }
+      throw owner.signal.reason
+    }
+    throw error
+  }
 }

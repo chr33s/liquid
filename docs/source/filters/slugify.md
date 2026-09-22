@@ -2,7 +2,7 @@
 title: slugify
 ---
 
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Convert a string into a lowercase URL "slug". The slugify filter accepts 2 options:
 

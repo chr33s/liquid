@@ -1,10 +1,8 @@
 import { Liquid } from '../../../src/liquid'
 import { mock, restore } from '../../stub/mockfs'
 import { Template } from '../../../src/template'
-
 describe('LiquidOptions#cache', function () {
   afterEach(restore)
-
   describe('#renderFile', function () {
     it('should be disabled by default', async function () {
       const engine = new Liquid({
@@ -58,7 +56,6 @@ describe('LiquidOptions#cache', function () {
       await engine.renderFile('files/bar')
       const x = await engine.renderFile('files/foo')
       expect(x).toBe('foo')
-
       await engine.renderFile('files/bar')
       await engine.renderFile('files/coo')
       const y = await engine.renderFile('files/foo')
@@ -85,7 +82,9 @@ describe('LiquidOptions#cache', function () {
       expect(await engine.renderFile('files/coo')).toBe('foo')
     })
     it('should respect cache={ async read, async write } option', async function () {
-      const cached: { [key: string]: Template[] | undefined } = {}
+      const cached: {
+        [key: string]: Template[] | undefined
+      } = {}
       const engine = new Liquid({
         root: '/root/',
         extname: '.html',
@@ -138,37 +137,34 @@ describe('LiquidOptions#cache', function () {
       try {
         await engine.renderFile('foo')
       } catch (err) {}
-
       mock({ '/root/foo.html': 'foo' })
       const html = await engine.renderFile('foo')
       expect(html).toBe('foo')
     })
   })
-
-  describe('#renderFileSync', function () {
-    it('should be disabled by default', function () {
+  describe('#renderFile', function () {
+    it('should be disabled by default', async function () {
       const engine = new Liquid({
         root: '/root/',
         extname: '.html'
       })
       mock({ '/root/foo.html': 'foo' })
-      const x = engine.renderFileSync('foo')
+      const x = await engine.renderFile('foo')
       expect(x).toBe('foo')
-
       mock({ '/root/foo.html': 'bar' })
-      const y = engine.renderFileSync('foo')
+      const y = await engine.renderFile('foo')
       expect(y).toBe('bar')
     })
-    it('should respect cache=true option', function () {
+    it('should respect cache=true option', async function () {
       const engine = new Liquid({
         root: '/root/',
         extname: '.html',
         cache: true
       })
       mock({ '/root/foo.html': 'foo' })
-      expect(engine.renderFileSync('foo')).toBe('foo')
+      expect(await engine.renderFile('foo')).toBe('foo')
       mock({ '/root/foo.html': 'bar' })
-      expect(engine.renderFileSync('foo')).toBe('foo')
+      expect(await engine.renderFile('foo')).toBe('foo')
     })
     it('should not cache not exist file', async function () {
       const engine = new Liquid({
@@ -177,9 +173,8 @@ describe('LiquidOptions#cache', function () {
         cache: true
       })
       try {
-        engine.renderFileSync('foo')
+        await engine.renderFile('foo')
       } catch (err) {}
-
       mock({ '/root/foo.html': 'foo' })
       const y = await engine.renderFile('foo')
       expect(y).toBe('foo')
@@ -198,7 +193,6 @@ describe('LiquidOptions#cache', function () {
       })
       const foo1 = await engine.renderFile('foo')
       expect(foo1).toBe('bar1')
-
       const foo2 = await engine.renderFile('another/foo')
       expect(foo2).toBe('bar2')
     })

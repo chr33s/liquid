@@ -1,10 +1,13 @@
-export function drainStream(stream: NodeJS.ReadableStream) {
-  return new Promise((resolve, reject) => {
-    let html = ''
-    stream.on('data', data => {
-      html += data
-    })
-    stream.on('end', () => resolve(html))
-    stream.on('error', (err: Error) => reject(err))
-  })
+export async function drainStream(stream: ReadableStream<string>): Promise<string> {
+  const reader = stream.getReader()
+  let result = ''
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) return result
+      result += value
+    }
+  } finally {
+    reader.releaseLock()
+  }
 }

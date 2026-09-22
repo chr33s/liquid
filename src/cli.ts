@@ -59,7 +59,7 @@ async function render() {
   const template = await resolveInputOption(templateOption)
   const context = await resolveContext(options.context)
   const liquid = new Liquid(options)
-  const output = liquid.parseAndRenderSync(template, context)
+  const output = await liquid.parseAndRender(template, context)
   if (options.output) {
     await fs.writeFile(options.output, output)
   } else {

@@ -2,113 +2,31 @@
 title: Sync and Async
 ---
 
-LiquidJS supports both synchronous and asynchronous evaluation, and can be used with Promises. To reuse the same set of tag/filter implementations in both sync and async modes, LiquidJS tags are implemented as generators.
+Execution APIs return Promises. Parsing an in-memory string with `engine.parse()` remains synchronous; rendering, file loading, evaluation, and static analysis must be awaited. See [Migrate to LiquidJS 11](./migrate-to-11.md) for removed APIs.
 
-## Sync and Async API
+```javascript
+const templates = engine.parse('Hello {{ name }}')
+const html = await engine.render(templates, { name: 'Ada' })
+```
 
-All major methods on {@link Liquid | Liquid} support both sync and async. These methods return Promises:
+Tags and filters may return values, Promises, or execution generators. One generator evaluator resolves suspension-capable values in order. Pure filters can remain ordinary functions.
 
-- `render()`
-- `renderFile()`
-- `parseFile()`
-- `parseAndRender()`
-- `evalValue()`
+```javascript
+import { Tag, Value } from '@chr33s/liquid'
 
-The synchronous version of methods contains a `Sync` suffix:
-
-- `renderSync()`
-- `renderFileSync()`
-- `parseFileSync()`
-- `parseAndRenderSync()`
-- `evalValueSync()`
-
-## Implement Sync-Compatible Tags 
-
-LiquidJS uses a generator-based async implementation to support both async and sync in one piece of tag implementation. For example, below `UpperTag` can be used in both `engine.renderSync()` and `engine.render()`.
-
-```typescript
-import { TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid } from '@chr33s/liquid'
-
-// Usage: {% upper "alice" %}
-// Output: ALICE
-engine.registerTag('upper', class UpperTag extends Tag {
-  private value: Value
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
-    super(token, remainTokens, liquid)
+class UpperTag extends Tag {
+  constructor(token, tokens, liquid) {
+    super(token, tokens, liquid)
     this.value = new Value(token.args, liquid)
   }
-  * render (ctx: Context, emitter: Emitter) {
-    const title = yield this.value.value(ctx)
-    emitter.write(title.toUpperCase())
+  *render(ctx, emitter) {
+    const value = yield this.value.value(ctx)
+    yield emitter.write(String(value).toUpperCase())
   }
-})
+}
+engine.registerTag('upper', UpperTag)
 ```
 
-All built-in tags are implemented this way and are safe to use in both sync and async modes (I'll call it *sync-compatible*). To make your custom tag *sync-compatible*, you'll need to:
+Direct writers must `yield emitter.write(value)` in generators or `await emitter.write(value)` in async methods. Writes can suspend while a stream is backpressured. Collecting emitters expose accumulated text through `buffer`; streaming emitters keep `buffer` empty. Use a collecting render for captures.
 
-- declare render function as `* render()`, in which
-- do not directly `return <Promise>`, and
-- do not call any APIs that return a Promise.
-
-## Call APIs that return a Promise
-
-But LiquidJS is Promise-friendly, right? You can still call Promise-based functions and wait for that Promise within tag implementations. Just replace `await` with `yield`. e.g. we're calling `fs.readFile()` which returns a `Promise`:
-
-```typescript
-  * render (ctx: Context, emitter: Emitter) {
-    const file = yield this.value.value(ctx)
-    const title = yield fs.readFile(file, 'utf8')
-    emitter.write(title.toUpperCase())
-  }
-```
-
-Now that this `* render()` calls an API that returns a Promise, so it's no longer *sync-compatible*.
-
-> **Non Sync-Compatible Tags**
->
-> Non <em>sync-compatible</em> tags are also valid tags, will work just fine for asynchronous API calls. When called synchronously, tags that return a <code>Promise</code> will be rendered as <code>[object Promise]</code>.
-
-## Convert LiquidJS async Generator to Promise
-
-You can convert a Generator to Promise by {@link toPromise | toPromise}, for example:
-
-```typescript
-import { TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid, toPromise } from '@chr33s/liquid'
-
-// Usage: {% upper "alice" %}
-// Output: ALICE
-engine.registerTag('upper', class UpperTag extends Tag {
-  private value: Value
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
-    super(token, remainTokens, liquid)
-    this.value = new Value(token.args, liquid)
-  }
-  async render (ctx: Context, emitter: Emitter) {
-    const title = await toPromise(this.value.value(ctx))
-    emitter.write(title.toUpperCase())
-  }
-})
-```
-
-## Async only Tags
-
-If your tag is intended to be used only asynchronously, it can be declared as `async render()` so you can use `await` in its implementation directly:
-
-```typescript
-import { toPromise, TagToken, Context, Emitter, TopLevelToken, Value, Tag, Liquid } from '@chr33s/liquid'
-
-// Usage: {% upper "alice" %}
-// Output: ALICE
-engine.registerTag('upper', class UpperTag extends Tag {
-  private value: Value
-  constructor (token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
-    super(token, remainTokens, liquid)
-    this.value = new Value(token.args, liquid)
-  }
-  async render (ctx: Context, emitter: Emitter) {
-    const title = await toPromise(this.value.value(ctx))
-    emitter.write(`<h1>${title}</h1>`)
-  }
-})
-```
-
+Pass `{ signal }` to execution APIs to request cooperative cancellation. Extension providers can use `ctx.signal`; extension code must cooperate to stop its own side effects. Cancellation does not preempt synchronous JavaScript or parsing.

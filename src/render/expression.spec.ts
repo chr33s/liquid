@@ -2,7 +2,7 @@ import { Tokenizer } from '../parser'
 import { Drop } from '../drop'
 import { QuotedToken } from '../tokens'
 import { Context } from '../context'
-import { toPromise, toValueSync } from '../util'
+import { toPromise } from '../util'
 import { evalQuotedToken } from './expression'
 
 describe('Expression', function () {
@@ -244,19 +244,19 @@ describe('Expression', function () {
   })
 
   describe('sync', function () {
-    it('should eval literal', function () {
-      expect(toValueSync(create('2.4').evaluate(ctx, false))).toBe(2.4)
+    it('should eval literal', async function () {
+      expect(await toPromise(create('2.4').evaluate(ctx, false))).toBe(2.4)
     })
-    it('should return false for "1==2"', () => {
-      expect(toValueSync(create('1==2').evaluate(ctx, false))).toBe(false)
+    it('should return false for "1==2"', async () => {
+      expect(await toPromise(create('1==2').evaluate(ctx, false))).toBe(false)
     })
-    it('should escape quote', function () {
+    it('should escape quote', async function () {
       const ctx = new Context({ quote: '"' })
-      expect(toValueSync(create('"\\"" == quote').evaluate(ctx, false))).toBe(true)
+      expect(await toPromise(create('"\\"" == quote').evaluate(ctx, false))).toBe(true)
     })
-    it('should allow nested property access', function () {
+    it('should allow nested property access', async function () {
       const ctx = new Context({ obj: { foo: 'FOO' }, keys: { "what's this": 'foo' } })
-      expect(toValueSync(create('obj[keys["what\'s this"]]').evaluate(ctx, false))).toBe('FOO')
+      expect(await toPromise(create('obj[keys["what\'s this"]]').evaluate(ctx, false))).toBe('FOO')
     })
   })
 })

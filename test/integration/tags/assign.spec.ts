@@ -1,6 +1,5 @@
 import { Liquid } from '../../../src/liquid'
 import { TokenizationError } from '../../../src'
-
 describe('tags/assign', function () {
   const liquid = new Liquid()
   it('should throw when variable name illegal', function () {
@@ -94,9 +93,9 @@ describe('tags/assign', function () {
       return expect(ctx.num).toBe(1)
     })
   })
-  it('should support sync', function () {
+  it('should support Promise rendering', async function () {
     const src = '{% assign foo="bar" %}{{foo}}'
-    const html = liquid.parseAndRenderSync(src)
+    const html = await liquid.parseAndRender(src)
     return expect(html).toBe('bar')
   })
 })

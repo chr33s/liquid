@@ -143,16 +143,16 @@ describe('tags/tablerow', function () {
     })
   })
   describe('sync support', function () {
-    it('should support tablerow', function () {
+    it('should support tablerow', async function () {
       const src = '{% tablerow i in (1..3)%}{{ i }}{% endtablerow %}'
       const dst = '<tr class="row1"><td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>'
-      const html = liquid.parseAndRenderSync(src)
+      const html = await liquid.parseAndRender(src)
       expect(html).toBe(dst)
     })
-    it('should support empty tablerow', function () {
+    it('should support empty tablerow', async function () {
       const src = '{% tablerow i in "" cols:2 %}{{ i }}{% endtablerow %}'
       const dst = ''
-      const html = liquid.parseAndRenderSync(src)
+      const html = await liquid.parseAndRender(src)
       return expect(html).toBe(dst)
     })
   })

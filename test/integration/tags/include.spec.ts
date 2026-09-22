@@ -214,37 +214,37 @@ describe('tags/include', function () {
     })
   })
   describe('sync support', function () {
-    it('should support quoted string', function () {
+    it('should support quoted string', async function () {
       mock({
         '/current.html': 'bar{% include "bar/foo.html" %}bar',
         '/bar/foo.html': 'foo'
       })
-      const html = liquid.renderFileSync('/current.html')
+      const html = await liquid.renderFile('/current.html')
       return expect(html).toBe('barfoobar')
     })
-    it('should support variable', function () {
+    it('should support variable', async function () {
       mock({
         '/current.html': 'bar{% include name %}bar',
         '/bar/foo.html': 'foo'
       })
-      const html = liquid.renderFileSync('/current.html', { name: '/bar/foo.html' })
+      const html = await liquid.renderFile('/current.html', { name: '/bar/foo.html' })
       return expect(html).toBe('barfoobar')
     })
-    it('should support include: with', function () {
+    it('should support include: with', async function () {
       mock({
         '/with.html': '{% include "color" with "red", shape: "rect" %}',
         '/color.html': 'color:{{color}}, shape:{{shape}}'
       })
-      const html = liquid.renderFileSync('with.html')
+      const html = await liquid.renderFile('with.html')
       return expect(html).toBe('color:red, shape:rect')
     })
-    it('should support filename with extension', function () {
+    it('should support filename with extension', async function () {
       mock({
         '/parent.html': 'X{% include child.html color:"red" %}Y',
         '/child.html': 'child with {{color}}'
       })
       const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = staticLiquid.renderFileSync('parent.html')
+      const html = await staticLiquid.renderFile('parent.html')
       return expect(html).toBe('Xchild with redY')
     })
   })
@@ -257,31 +257,31 @@ describe('tags/include', function () {
         jekyllInclude: true
       })
     })
-    it('should support Jekyll style include', function () {
+    it('should support Jekyll style include', async function () {
       mock({
         '/current.html': '{% include bar/foo.html content="FOO" %}',
         '/bar/foo.html': '{{include.content}}-{{content}}'
       })
-      const html = liquid.renderFileSync('/current.html')
+      const html = await liquid.renderFile('/current.html')
       return expect(html).toBe('FOO-')
     })
-    it('should support Jekyll style include with other whitespace before filename', function () {
+    it('should support Jekyll style include with other whitespace before filename', async function () {
       mock({
         '/current.html': '{% include bar/foo.html\r\n\ntitle="TITLE"\tcontent="FOO" %}',
         '/bar/foo.html': '{{include.title}}={{include.content}}-{{content}}'
       })
-      const html = liquid.renderFileSync('/current.html')
+      const html = await liquid.renderFile('/current.html')
       return expect(html).toBe('TITLE=FOO-')
     })
-    it('should support multiple parameters', function () {
+    it('should support multiple parameters', async function () {
       mock({
         '/current.html': '{% include bar/foo.html header="HEADER" content="CONTENT" %}',
         '/bar/foo.html': '<h2>{{include.header}}</h2>{{include.content}}'
       })
-      const html = liquid.renderFileSync('/current.html')
+      const html = await liquid.renderFile('/current.html')
       return expect(html).toBe('<h2>HEADER</h2>CONTENT')
     })
-    it('should support dynamicPartials=true', function () {
+    it('should support dynamicPartials=true', async function () {
       mock({
         '/current.html': '{% include "bar/foo.html" content="FOO" %}',
         '/bar/foo.html': '{{include.content}}-{{content}}'
@@ -292,7 +292,7 @@ describe('tags/include', function () {
         jekyllInclude: true,
         dynamicPartials: true
       })
-      const html = liquid.renderFileSync('/current.html')
+      const html = await liquid.renderFile('/current.html')
       return expect(html).toBe('FOO-')
     })
   })

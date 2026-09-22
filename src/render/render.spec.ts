@@ -1,3 +1,4 @@
+import { Liquid } from '../liquid'
 import { Context } from '../context'
 import { HTMLToken, TagToken } from '../tokens'
 import { Render } from './render'
@@ -5,13 +6,11 @@ import { Tag, HTML } from '../template'
 import { SimpleEmitter } from '../emitters'
 import { toPromise } from '../util'
 import { drainStream } from '../../test/stub/stream'
-
 describe('render', function () {
   let render: Render
   beforeEach(function () {
     render = new Render()
   })
-
   describe('.renderTemplates()', function () {
     it('should render html', async function () {
       const scope = new Context()
@@ -20,15 +19,14 @@ describe('render', function () {
       return expect(html).toBe('<p>')
     })
   })
-
-  describe('.renderTemplatesToNodeStream()', function () {
+  describe('.renderToStream()', function () {
     it('should render to html stream', async function () {
       const scope = new Context()
       const tpls = [
         new HTML({ getContent: () => '<p>' } as HTMLToken),
         new HTML({ getContent: () => '</p>' } as HTMLToken)
       ]
-      const stream = render.renderTemplatesToNodeStream(tpls, scope)
+      const stream = new Liquid().renderToStream(tpls, scope)
       const result = await drainStream(stream)
       expect(result).toBe('<p></p>')
     })
@@ -44,7 +42,7 @@ describe('render', function () {
         new CustomTag({ content: 'foo', args: '', name: 'foo' } as TagToken, [], {} as any),
         new HTML({ getContent: () => '</p>' } as HTMLToken)
       ]
-      const stream = render.renderTemplatesToNodeStream(tpls, scope)
+      const stream = new Liquid().renderToStream(tpls, scope)
       const result = await drainStream(stream)
       expect(result).toBe('<p>async tag</p>')
     })

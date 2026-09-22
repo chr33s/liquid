@@ -2,10 +2,8 @@ import { LiquidOptions } from '../../../src/liquid-options'
 import { Liquid } from '.././../../src/liquid'
 import { test } from '../../stub/render'
 import { disableIntl } from '../../stub/no-intl'
-
 describe('filters/date', function () {
   const liquid = new Liquid({ locale: 'en-US' })
-
   describe('constructor', () => {
     it('should create a new Date when given "now"', function () {
       return test('{{ "now" | date: "%Y"}}', new Date().getFullYear().toString())
@@ -25,57 +23,56 @@ describe('filters/date', function () {
       const time = null
       return test('{{ time | date: "%Y-%m-%dT%H:%M:%S" }}', { time }, '')
     })
-    it('should treat nil as invalid', () => {
-      expect(liquid.parseAndRenderSync('{{ nil | date: "%Y-%m-%dT%H:%M:%S", "Asia/Shanghai" }}')).toEqual('')
+    it('should treat nil as invalid', async () => {
+      expect(await liquid.parseAndRender('{{ nil | date: "%Y-%m-%dT%H:%M:%S", "Asia/Shanghai" }}')).toEqual('')
     })
-    it('should treat undefined as invalid', () => {
+    it('should treat undefined as invalid', async () => {
       expect(
-        liquid.parseAndRenderSync('{{ num | date: "%Y-%m-%dT%H:%M:%S", "Asia/Shanghai" }}', { num: undefined })
+        await liquid.parseAndRender('{{ num | date: "%Y-%m-%dT%H:%M:%S", "Asia/Shanghai" }}', { num: undefined })
       ).toEqual('')
     })
   })
-
   it('should support date: %a %b %d %Y', function () {
     const date = new Date()
     return test('{{ date | date:"%a %b %d %Y"}}', { date }, date.toDateString())
   })
   describe('%a', () => {
-    it('should support short week day', () => {
+    it('should support short week day', async () => {
       const tpl = '{{ "2024-07-21T20:24:00.000Z" | date: "%a", "Asia/Shanghai" }}'
-      expect(liquid.parseAndRenderSync(tpl)).toEqual('Mon')
+      expect(await liquid.parseAndRender(tpl)).toEqual('Mon')
     })
-    it('should support short week day with timezone', () => {
+    it('should support short week day with timezone', async () => {
       const tpl = '{{ "2024-07-21T20:24:00.000Z" | date: "%a", "America/New_York" }}'
-      expect(liquid.parseAndRenderSync(tpl)).toEqual('Sun')
+      expect(await liquid.parseAndRender(tpl)).toEqual('Sun')
     })
-    it('should support short week day with locale', () => {
+    it('should support short week day with locale', async () => {
       const liquid = new Liquid({ locale: 'zh-CN' })
       const tpl = '{{ "2024-07-21T20:24:00.000Z" | date: "%a", "America/New_York" }}'
-      expect(liquid.parseAndRenderSync(tpl)).toEqual('周日')
+      expect(await liquid.parseAndRender(tpl)).toEqual('周日')
     })
   })
   describe('%b', () => {
-    it('should support short month', () => {
+    it('should support short month', async () => {
       const tpl = '{{ "2024-07-31T20:24:00.000Z" | date: "%b", "Asia/Shanghai" }}'
-      expect(liquid.parseAndRenderSync(tpl)).toEqual('Aug')
+      expect(await liquid.parseAndRender(tpl)).toEqual('Aug')
     })
-    it('should support short week day with locale', () => {
+    it('should support short week day with locale', async () => {
       const liquid = new Liquid({ locale: 'zh-CN' })
       const tpl = '{{ "2024-07-31T20:24:00.000Z" | date: "%b", "Asia/Shanghai" }}'
-      expect(liquid.parseAndRenderSync(tpl)).toEqual('8月')
+      expect(await liquid.parseAndRender(tpl)).toEqual('8月')
     })
   })
   describe('Intl compatibility', () => {
     disableIntl()
-    it('should use English if Intl not supported', () => {
+    it('should use English if Intl not supported', async () => {
       const liquid = new Liquid()
       const tpl = '{{ "2024-07-31T20:24:00.000Z" | date: "%b", "Asia/Shanghai" }}'
-      expect(liquid.parseAndRenderSync(tpl)).toEqual('Aug')
+      expect(await liquid.parseAndRender(tpl)).toEqual('Aug')
     })
-    it('should use English if Intl not supported even for other locales', () => {
+    it('should use English if Intl not supported even for other locales', async () => {
       const liquid = new Liquid({ locale: 'zh-CN' })
       const tpl = '{{ "2024-07-31T20:24:00.000Z" | date: "%b", "Asia/Shanghai" }}'
-      expect(liquid.parseAndRenderSync(tpl)).toEqual('Aug')
+      expect(await liquid.parseAndRender(tpl)).toEqual('Aug')
     })
   })
   it('should support "now"', function () {
@@ -87,7 +84,6 @@ describe('filters/date', function () {
   })
   describe('when preserveTimezones is enabled', function () {
     const opts: LiquidOptions = { preserveTimezones: true, locale: 'en-US' }
-
     it('should not change the timezone between input and output', function () {
       return test('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S"}}', '1990-12-31T23:00:00', undefined, opts)
     })
@@ -149,7 +145,6 @@ describe('filters/date', function () {
   describe('timezoneOffset', function () {
     // -06:00
     const opts: LiquidOptions = { timezoneOffset: 360 }
-
     it('should offset UTC date literal', function () {
       return test('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S"}}', '1990-12-31T17:00:00', undefined, opts)
     })
@@ -212,17 +207,19 @@ describe('filters/date', function () {
     })
     it('timezoneOffset should work with `preserveTimezones`', async () => {
       const liquid = new Liquid({ preserveTimezones: true })
-      const html = liquid.parseAndRenderSync('{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S", "Asia/Colombo" }}')
+      const html = await liquid.parseAndRender(
+        '{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S", "Asia/Colombo" }}'
+      )
       expect(html).toEqual('1991-01-01T04:30:00')
     })
     it('should use runtime default timezone when not specified', async () => {
       const liquid = new Liquid()
-      const html = liquid.parseAndRenderSync('{{ "1990-12-31T23:00:00Z" | date: "%Z" }}')
+      const html = await liquid.parseAndRender('{{ "1990-12-31T23:00:00Z" | date: "%Z" }}')
       expect(html).toEqual(Intl.DateTimeFormat().resolvedOptions().timeZone)
     })
     it('should use in-place timezoneOffset as timezone name', async () => {
       const liquid = new Liquid({ preserveTimezones: true })
-      const html = liquid.parseAndRenderSync(
+      const html = await liquid.parseAndRender(
         '{{ "1990-12-31T23:00:00Z" | date: "%Y-%m-%dT%H:%M:%S %Z", "Asia/Colombo" }}'
       )
       expect(html).toEqual('1991-01-01T04:30:00 Asia/Colombo')
@@ -265,7 +262,6 @@ describe('filters/date', function () {
         optsWithoutDateFormat
       )
     })
-
     const optsWithDateFormat: LiquidOptions = { timezoneOffset: -330, dateFormat: '%d%q of %b %Y at %I:%M %P' } // -06:00, 31st of Dec 1990 at 11:00 pm
     it('should use configured `options.dateFormat` for date filters without format argument', function () {
       return test(
@@ -285,76 +281,78 @@ describe('filters/date', function () {
     })
   })
   describe('strftime width', () => {
-    it('should honor numeric strftime pad width', () => {
+    it('should honor numeric strftime pad width', async () => {
       const liquid = new Liquid()
-      const out = liquid.parseAndRenderSync('{{ d | date: f }}', { d: 'now', f: '%5000d' })
+      const out = await liquid.parseAndRender('{{ d | date: f }}', { d: 'now', f: '%5000d' })
       expect(out.length).toBe(5000)
     })
-    it('should honor large numeric strftime pad width up to the cap', () => {
+    it('should honor large numeric strftime pad width up to the cap', async () => {
       const liquid = new Liquid()
-      const out = liquid.parseAndRenderSync('{{ d | date: f }}', { d: 'now', f: '%100000d' })
+      const out = await liquid.parseAndRender('{{ d | date: f }}', { d: 'now', f: '%100000d' })
       expect(out.length).toBe(100000)
     })
-    it('should throw when numeric strftime pad width is too large', () => {
+    it('should throw when numeric strftime pad width is too large', async () => {
       const liquid = new Liquid()
-      expect(() => liquid.parseAndRenderSync('{{ d | date: f }}', { d: 'now', f: '%5000000d' })).toThrow(
-        'strftime pad width limit exceeded'
-      )
+      await expect(
+        async () => await liquid.parseAndRender('{{ d | date: f }}', { d: 'now', f: '%5000000d' })
+      ).rejects.toThrow('strftime pad width limit exceeded')
     })
   })
 })
 describe('filters/date_to_xmlschema', function () {
   const liquid = new Liquid()
-  it('should support literal date', function () {
-    const output = liquid.parseAndRenderSync('{{ "1990-10-15T23:00:00" | date_to_xmlschema }}')
+  it('should support literal date', async function () {
+    const output = await liquid.parseAndRender('{{ "1990-10-15T23:00:00" | date_to_xmlschema }}')
     expect(output).toMatch(/^1990-10-15T23:00:00[+-]\d\d:\d\d$/)
   })
-  it('should timezoned date', function () {
+  it('should timezoned date', async function () {
     const liquid = new Liquid({ preserveTimezones: true })
-    const output = liquid.parseAndRenderSync('{{ "2008-11-07T13:07:54-08:00" | date_to_xmlschema }}')
+    const output = await liquid.parseAndRender('{{ "2008-11-07T13:07:54-08:00" | date_to_xmlschema }}')
     expect(output).toEqual('2008-11-07T13:07:54-08:00')
   })
 })
 describe('filters/date_to_rfc822', function () {
   const liquid = new Liquid()
-  it('should support literal date', function () {
-    const output = liquid.parseAndRenderSync('{{ "1990-10-15T23:00:00" | date_to_rfc822 }}')
+  it('should support literal date', async function () {
+    const output = await liquid.parseAndRender('{{ "1990-10-15T23:00:00" | date_to_rfc822 }}')
     expect(output).toMatch(/^Mon, 15 Oct 1990 23:00:00 [+-]\d{4}$/)
   })
-  it('should timezoned date', function () {
+  it('should timezoned date', async function () {
     const liquid = new Liquid({ preserveTimezones: true })
-    const output = liquid.parseAndRenderSync('{{ "2008-11-07T13:07:54-08:00" | date_to_rfc822 }}')
+    const output = await liquid.parseAndRender('{{ "2008-11-07T13:07:54-08:00" | date_to_rfc822 }}')
     expect(output).toEqual('Fri, 07 Nov 2008 13:07:54 -0800')
   })
 })
 describe('filters/date_to_string', function () {
   const liquid = new Liquid({ preserveTimezones: true })
-  it('should default to non-ordinal, UK', function () {
-    const output = liquid.parseAndRenderSync('{{ "2008-11-07T13:07:54-08:00" | date_to_string }}')
+  it('should default to non-ordinal, UK', async function () {
+    const output = await liquid.parseAndRender('{{ "2008-11-07T13:07:54-08:00" | date_to_string }}')
     expect(output).toEqual('07 Nov 2008')
   })
-  it('should support ordinal, US', function () {
-    const output = liquid.parseAndRenderSync('{{ "2008-11-07T13:07:54-08:00" | date_to_string: "ordinal", "US" }}')
+  it('should support ordinal, US', async function () {
+    const output = await liquid.parseAndRender('{{ "2008-11-07T13:07:54-08:00" | date_to_string: "ordinal", "US" }}')
     expect(output).toEqual('Nov 7th, 2008')
   })
-  it('should render none if not valid', function () {
-    const output = liquid.parseAndRenderSync('{{ "hello" | date_to_string: "ordinal", "US" }}')
+  it('should render none if not valid', async function () {
+    const output = await liquid.parseAndRender('{{ "hello" | date_to_string: "ordinal", "US" }}')
     expect(output).toEqual('hello')
   })
 })
 
 describe('filters/date_to_long_string', function () {
   const liquid = new Liquid({ preserveTimezones: true })
-  it('should default to non-ordinal, UK', function () {
-    const output = liquid.parseAndRenderSync('{{ "2008-11-07T13:07:54-08:00" | date_to_long_string }}')
+  it('should default to non-ordinal, UK', async function () {
+    const output = await liquid.parseAndRender('{{ "2008-11-07T13:07:54-08:00" | date_to_long_string }}')
     expect(output).toEqual('07 November 2008')
   })
-  it('should support ordinal, US', function () {
-    const output = liquid.parseAndRenderSync('{{ "2008-11-07T13:07:54-08:00" | date_to_long_string: "ordinal", "US" }}')
+  it('should support ordinal, US', async function () {
+    const output = await liquid.parseAndRender(
+      '{{ "2008-11-07T13:07:54-08:00" | date_to_long_string: "ordinal", "US" }}'
+    )
     expect(output).toEqual('November 7th, 2008')
   })
-  it('should support ordinal, UK', function () {
-    const output = liquid.parseAndRenderSync('{{ "2008-11-07T13:07:54-08:00" | date_to_long_string: "ordinal" }}')
+  it('should support ordinal, UK', async function () {
+    const output = await liquid.parseAndRender('{{ "2008-11-07T13:07:54-08:00" | date_to_long_string: "ordinal" }}')
     expect(output).toEqual('7th November 2008')
   })
 })

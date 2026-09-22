@@ -260,3 +260,5 @@ Want to contribute? see [Contribution Guidelines][contribution]. Thanks goes to 
 [github]: https://github.com/harttle/liquidjs
 [oc]: https://opencollective.com/liquidjs/
 [contribution]: https://github.com/chr33s/liquid/wiki/Tutorials.Document.Contribution-Guideline
+
+Rendering, file loading, evaluation, and static analysis return Promises; in-memory parsing remains synchronous. Web text streams support backpressure and cooperative cancellation. See the [major migration guide](docs/source/tutorials/migrate-to-11.md).

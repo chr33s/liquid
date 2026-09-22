@@ -1,3 +1,4 @@
+import type { FileReadOptions } from './fs'
 import { isNil } from '../util'
 
 export class MapFS {
@@ -6,20 +7,20 @@ export class MapFS {
   public sep = '/'
 
   async exists(filepath: string) {
-    return this.existsSync(filepath)
-  }
-
-  existsSync(filepath: string) {
     return !isNil(this.mapping[filepath])
   }
 
-  async readFile(filepath: string) {
-    return this.readFileSync(filepath)
-  }
-
-  readFileSync(filepath: string) {
+  async readFile(filepath: string, options: FileReadOptions = {}) {
+    options.signal?.throwIfAborted()
     const content = this.mapping[filepath]
-    if (isNil(content)) throw new Error(`ENOENT: ${filepath}`)
+    if (isNil(content)) throw Object.assign(new Error(`ENOENT: ${filepath}`), { code: 'ENOENT' })
+    if (content.length > (options.sourceCodeUnitLimit ?? Infinity)) throw new Error('parse length limit exceeded')
+    let bytes = 0
+    for (const character of content) {
+      const code = character.codePointAt(0)!
+      bytes += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4
+      if (bytes > (options.sourceByteLimit ?? Infinity)) throw new Error('source byte limit exceeded')
+    }
     return content
   }
 

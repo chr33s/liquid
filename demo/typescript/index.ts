@@ -13,7 +13,7 @@ engine.registerTag('header', class HeaderTag extends Tag {
   }
   * render (ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     const title = yield this.value.value(ctx)
-    emitter.write(`<h1>${title}</h1>`)
+    yield emitter.write(`<h1>${title}</h1>`)
   }
 })
 

@@ -72,7 +72,7 @@ This way, you don't need to escape `"` in the filename expression.
 
 ## Jekyll `include`
 
-{% since %}v9.33.0{% endsince %}
+Since v9.33.0.
 
 [jekyllInclude][jekyllInclude] is used to enable Jekyll-like `include` syntax. Defaults to `false`, when set to `true`:
 

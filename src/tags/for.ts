@@ -65,8 +65,12 @@ export default class extends Tag {
     const r = this.liquid.renderer
     const continueKey = 'continue-' + this.variable + '-' + this.collection.getText()
     ctx.push({ continue: ctx.getRegister(continueKey, {}) })
-    const hash = (yield this.hash.render(ctx)) as Record<string, any>
-    ctx.pop()
+    let hash: Record<string, any>
+    try {
+      hash = (yield this.hash.render(ctx)) as Record<string, any>
+    } finally {
+      ctx.pop()
+    }
 
     const modifiers = this.liquid.options.orderedFilterParameters
       ? Object.keys(hash).filter(x => MODIFIERS.includes(x))
@@ -89,15 +93,18 @@ export default class extends Tag {
     if (!this.templates.length) return
 
     const scope = ctx.push({ forloop: new ForloopDrop(collection.length, this.collection.getText(), this.variable) })
-    for (const item of collection) {
-      scope[this.variable] = item
+    try {
+      for (const item of collection) {
+        scope[this.variable] = item
+        ctx.continueCalled = ctx.breakCalled = false
+        yield r.renderTemplates(this.templates, ctx, emitter)
+        if (ctx.breakCalled) break
+        scope.forloop.next()
+      }
+    } finally {
       ctx.continueCalled = ctx.breakCalled = false
-      yield r.renderTemplates(this.templates, ctx, emitter)
-      if (ctx.breakCalled) break
-      scope.forloop.next()
+      ctx.pop()
     }
-    ctx.continueCalled = ctx.breakCalled = false
-    ctx.pop()
   }
 
   public *children(): Generator<unknown, Template[]> {

@@ -8,7 +8,7 @@ A simple, expressive, extensible Liquid template engine for JavaScript — Shopi
 | --- | --- |
 | `src/parser`, `src/render`, `src/tags`, `src/filters` | Template parse and render |
 | `src/context`, `src/template`, `src/tokens` | Scope, templates, token stream |
-| `src/util/async.ts` | `toPromise`, `toValueSync`, `toLiquidAsync` |
+| `src/util/async.ts` | `toPromise`, lifecycle-aware generator evaluation |
 | `src/cli.ts` | CLI source; bundled to `dist/liquid.cli.mjs` (the published `bin`) |
 | `bin/*.mts` | Repo tooling, run by Node type stripping (needs Node >= 22.18) |
 | `test/` | Vitest |
@@ -40,12 +40,10 @@ Backward-compatible API changes expected unless doing an intentional major break
 
 All core logic is one `function *` per feature. Use `yield` where you'd normally `await` a potentially async value.
 
-- `toPromise(generator)` — async driver; awaits yielded promises
-- `toValueSync(generator)` — sync driver; passes yielded values through as-is
-
-Never duplicate logic into separate async and sync methods. One generator serves both paths.
-
-When wrapping an async+sync pair (e.g. `contains`/`containsSync`, `readFile`/`readFileSync`), use `toLiquidAsync(asyncFn, syncFn?)` — returns a `LiquidAsync<F>` that picks sync or async via a leading `sync: boolean` arg. `yield` the result inside a generator. See `src/util/async.ts`.
+- `toPromise(generator, options?)` — Promise completion using the shared generator driver.
+- Nested evaluation, context lookups, providers, and emitters join the owning operation.
+- Yield or await every direct emitter write. Web streams can suspend writes under backpressure.
+- Execution and provider APIs have no Sync counterparts or execution-mode flags. Pure computation and in-memory parsing remain synchronous.
 
 ## Style
 

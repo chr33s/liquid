@@ -6,7 +6,7 @@ const engine = new Liquid({
   extname: '.liquid'
 })
 
-const templates = engine.parseFileSync('todolist')
+const templates = await engine.parseFile('todolist')
 
 for (const output of getOutputs(templates)) {
   const token = output.token

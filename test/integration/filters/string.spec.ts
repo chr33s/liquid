@@ -287,11 +287,11 @@ describe('filters/string', function () {
     })
   })
   describe('normalize_whitespace', () => {
-    it('should replace " \n " with " "', () => {
-      expect(liquid.parseAndRenderSync('{{ "a \n b" | normalize_whitespace }}')).toEqual('a b')
+    it('should replace " \n " with " "', async () => {
+      expect(await liquid.parseAndRender('{{ "a \n b" | normalize_whitespace }}')).toEqual('a b')
     })
-    it('should replace multiple occurrences', () => {
-      expect(liquid.parseAndRenderSync('{{ "a \n b  c" | normalize_whitespace }}')).toEqual('a b c')
+    it('should replace multiple occurrences', async () => {
+      expect(await liquid.parseAndRender('{{ "a \n b  c" | normalize_whitespace }}')).toEqual('a b c')
     })
   })
   describe('number_of_words', () => {

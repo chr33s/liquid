@@ -92,9 +92,11 @@ A partial template can be rendered once for each value of an enumerable by using
 
 In the example above, the partial template will be rendered once for each `variant` of the `product`, and the `variant` variable will hold a product's variant object within the snippet.
 
-{% note tip The forloop object %} When using the for parameter, the <a href="./for.html#forloop">forloop</a> object is accessible within the snippet.{% endnote %}
+**The forloop object**
 
-[forloop]: ./for.html
+ When using the for parameter, the [forloop](./for.md) object is accessible within the snippet.
+
+[forloop]: ./for.md
 [extname]: /api/interfaces/LiquidOptions.html#extname
 [root]: /api/interfaces/LiquidOptions.html#root
 [partials]: /api/interfaces/LiquidOptions.html#partials

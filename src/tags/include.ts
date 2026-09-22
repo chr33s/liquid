@@ -1,3 +1,4 @@
+import type { OperationOptions } from '../util/operation'
 import {
   Template,
   ValueToken,
@@ -41,27 +42,40 @@ export default class extends Tag {
   }
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     ctx.depthLimit.use(1)
-    const { liquid, hash, withVar } = this
-    const { renderer } = liquid
-    const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
-    assert(filepath, () => `illegal file path "${filepath}"`)
+    try {
+      const { liquid, hash, withVar } = this
+      const { renderer } = liquid
+      const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
+      assert(filepath, () => `illegal file path "${filepath}"`)
 
-    const saved = ctx.saveRegister('blocks', 'blockMode')
-    ctx.setRegister('blocks', {})
-    ctx.setRegister('blockMode', BlockMode.OUTPUT)
-    const scope = (yield hash.render(ctx)) as Scope
-    if (withVar) scope[filepath] = yield evalToken(withVar, ctx)
-    const templates = (yield liquid._parsePartialFile(filepath, ctx.sync, this.currentFile)) as Template[]
-    ctx.push(ctx.opts.jekyllInclude ? { include: scope } : scope)
-    yield renderer.renderTemplates(templates, ctx, emitter)
-    ctx.pop()
-    ctx.restoreRegister(saved)
-    ctx.depthLimit.release(1)
+      const saved = ctx.saveRegister('blocks', 'blockMode')
+      ctx.setRegister('blocks', {})
+      ctx.setRegister('blockMode', BlockMode.OUTPUT)
+      try {
+        const scope = (yield hash.render(ctx)) as Scope
+        if (withVar) scope[filepath] = yield evalToken(withVar, ctx)
+        const templates = (yield liquid._parsePartialFile(
+          filepath,
+          this.currentFile,
+          ctx.operationOptions
+        )) as Template[]
+        ctx.push(ctx.opts.jekyllInclude ? { include: scope } : scope)
+        try {
+          yield renderer.renderTemplates(templates, ctx, emitter)
+        } finally {
+          ctx.pop()
+        }
+      } finally {
+        ctx.restoreRegister(saved)
+      }
+    } finally {
+      ctx.depthLimit.release(1)
+    }
   }
 
-  public *children(partials: boolean, sync: boolean): Generator<unknown, Template[]> {
+  public *children(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]> {
     if (partials && isString(this.file)) {
-      return (yield this.liquid._parsePartialFile(this.file, sync, this.currentFile)) as Template[]
+      return (yield this.liquid._parsePartialFile(this.file, this.currentFile, options)) as Template[]
     }
     return []
   }

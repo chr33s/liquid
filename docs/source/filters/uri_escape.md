@@ -2,7 +2,7 @@
 title: uri_escape
 ---
 
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Percent encodes any special characters in a URI. URI escape normally replaces a space with `%20`. [Reserved characters][reserved] will not be escaped.
 

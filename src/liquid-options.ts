@@ -1,3 +1,4 @@
+import type { OperationOptions } from './util/operation'
 import { assert, isArray, isString, isFunction } from './util'
 import { getDateTimeFormat } from './util/intl'
 import { LRU, LiquidCache } from './cache'
@@ -12,6 +13,8 @@ type OutputEscape = (value: any) => string
 type OutputEscapeOption = 'escape' | 'json' | OutputEscape
 
 export interface LiquidOptions {
+  sourceByteLimit?: number
+  baseUrl?: string
   /** A directory or an array of directories from where to resolve layout and include templates, and the filename passed to `.renderFile()`. If it's an array, the files are looked up in the order they occur in the array. Defaults to `["."]` */
   root?: string | string[]
   /** A directory or an array of directories from where to resolve included templates. If it's an array, the files are looked up in the order they occur in the array. Defaults to `root` */
@@ -92,11 +95,7 @@ export interface LiquidOptions {
   maxDepth?: number
 }
 
-export interface RenderOptions {
-  /**
-   * This call is sync or async? It's used by Liquid internal methods, you'll not need this.
-   */
-  sync?: boolean
+export interface RenderOptions extends OperationOptions {
   /**
    * Same as `globals` on LiquidOptions, but only for current render() call
    */
@@ -171,7 +170,7 @@ export const defaultOptions: NormalizedFullOptions = {
   keyValueSeparator: ':',
   cache: undefined,
   extname: '',
-  fs: fs,
+  fs: undefined as unknown as FS,
   dynamicPartials: true,
   jsTruthy: false,
   dateFormat: '%A, %B %-e, %Y at %-l:%M %P %z',
@@ -199,6 +198,15 @@ export const defaultOptions: NormalizedFullOptions = {
 }
 
 export function normalize(options: LiquidOptions): NormalizedFullOptions {
+  const limit = options.sourceByteLimit ?? Infinity
+  assert(limit === Infinity || (Number.isSafeInteger(limit) && limit >= 0), 'invalid sourceByteLimit')
+  if (options.baseUrl !== undefined) new URL(options.baseUrl)
+  options = {
+    ...options,
+    sourceByteLimit: limit,
+    fs: options.templates ? new MapFS(options.templates) : (options.fs ?? fs.createFS(options.baseUrl))
+  }
+
   if ('root' in options) {
     if (!('partials' in options)) options.partials = options.root
     if (!('layouts' in options)) options.layouts = options.root
@@ -229,6 +237,10 @@ export function normalize(options: LiquidOptions): NormalizedFullOptions {
     options.relativeReference = true
     options.root = options.partials = options.layouts = '.'
   }
+  assert(
+    isFunction(options.fs?.readFile) && isFunction(options.fs?.exists) && isFunction(options.fs?.resolve),
+    'fs requires readFile, exists, and resolve methods'
+  )
   return options as NormalizedFullOptions
 }
 

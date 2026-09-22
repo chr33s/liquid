@@ -1,5 +1,4 @@
 import { MapFS } from './map-fs'
-
 describe('MapFS', () => {
   const fs = new MapFS({})
   describe('#resolve()', () => {
@@ -31,9 +30,9 @@ describe('MapFS', () => {
       expect(fs.resolve('foo/bar', '..//coo', '')).toEqual('foo/coo')
     })
   })
-  describe('#.readFileSync()', () => {
-    it('should throw if not exist', () => {
-      expect(() => fs.readFileSync('foo/bar')).toThrow('NOENT: foo/bar')
+  describe('#.readFile()', () => {
+    it('should throw if not exist', async () => {
+      await expect(async () => await fs.readFile('foo/bar')).rejects.toThrow('NOENT: foo/bar')
     })
   })
 })

@@ -17,9 +17,9 @@ When it comes to stateful filters, for example transforming a URL path to a full
 // Scope: { origin: "https://liquidjs.com" }
 // Output: https://liquidjs.com/index.html
 
-engine.registerFilter('fullURL', function (path) {
-    const origin = this.context.get(['origin'])
-    return new URL(path, origin).toString() 
+engine.registerFilter('fullURL', function* (path) {
+    const origin = yield this.context._get(['origin'])
+    return new URL(path, origin).toString()
 })
 ```
 
@@ -27,5 +27,4 @@ See this JSFiddle: <https://jsfiddle.net/ctj364up/1/>
 
 > **Arrow Functions**
 >
-> <code>this</code> in arrow functions is bound to current JavaScript context, you'll need to use <code>function(){}</code> instead of <code>()=>{}</code> syntax to access <code>this.context</code> correctly.
-
+> <code>this</code> in arrow functions is bound to current JavaScript context, you'll need to use <code>function*(){}</code> instead of <code>()=>{}</code> syntax to access <code>this.context</code> correctly.

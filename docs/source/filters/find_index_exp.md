@@ -2,7 +2,7 @@
 title: find_index_exp
 ---
 
-{% since %}v10.21.0{% endsince %}
+Since v10.21.0.
 
 Return the 0-based index of the first object in an array for which the given expression evaluates to true or return `nil` if no item in the array satisfies the evaluated expression.
 

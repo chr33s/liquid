@@ -283,13 +283,13 @@ describe('tags/layout', function () {
       return expect(html).toBe('blackA')
     })
   })
-  it('should support sync', function () {
+  it('should support sync', async function () {
     mock({
       '/grand.html': 'X{%block a%}G{%endblock%}Y',
       '/parent.html': '{%layout "grand" %}{%block a%}P{%endblock%}',
       '/main.html': '{%layout "parent"%}{%block a%}A{%endblock%}'
     })
-    const html = liquid.renderFileSync('/main.html')
+    const html = await liquid.renderFile('/main.html')
     return expect(html).toBe('XAY')
   })
 })

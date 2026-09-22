@@ -1,6 +1,5 @@
 import { test, render } from '../../stub/render'
 import { Liquid } from '../../../src/liquid'
-
 describe('filters/array', function () {
   const engine = new Liquid()
   describe('index', function () {
@@ -46,12 +45,12 @@ describe('filters/array', function () {
       const post = { category: 'foo' }
       return test('{{post | map: "category"}}', { post }, 'foo')
     })
-    it('should allow nil results in strictVariables mode', function () {
+    it('should allow nil results in strictVariables mode', async function () {
       const engine = new Liquid({ strictVariables: true })
       const ctx = {
         posts: [{ category: 'foo' }, { title: 'bar' }]
       }
-      const result = engine.parseAndRenderSync('{{posts | map: "category" | json}}', ctx)
+      const result = await engine.parseAndRender('{{posts | map: "category" | json}}', ctx)
       expect(result).toEqual('["foo",null]')
     })
     it('should support nested property', function () {
@@ -106,7 +105,6 @@ describe('filters/array', function () {
       return test('{{posts | map: "category" | compact}}', { posts }, 'foobar')
     })
   })
-
   describe('concat', () => {
     it('should concat args value', async () => {
       const scope = { val: ['hey'], arr: ['foo', 'bar'] }
@@ -195,7 +193,6 @@ describe('filters/array', function () {
       await test('{{ notDefined | pop }}', {}, '')
     })
   })
-
   describe('reverse', function () {
     it('should support reverse', () =>
       test('{{ "Ground control to Major Tom." | split: "" | reverse | join: "" }}', '.moT rojaM ot lortnoc dnuorG'))

@@ -21,4 +21,3 @@ Output
 ```
 
 Like [increment](./increment.md), variables declared inside `decrement` are independent from variables created through [assign](./assign.md) or [capture](./capture.md).
-

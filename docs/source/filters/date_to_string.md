@@ -1,7 +1,7 @@
 ---
 title: date_to_string
 ---
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Convert a date to short format. Same with Jekyll `date_to_string` filter.
 
@@ -27,4 +27,4 @@ Nov 7th, 2008
 
 Note that JavaScript `Date` has not timezone information, see [date][date] filter for details.
 
-[date]: ./date.html
+[date]: ./date.md

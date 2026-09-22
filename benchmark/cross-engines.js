@@ -14,12 +14,12 @@ const engines = {
 function crossEngines () {
   console.log('     cross engines')
   console.log('------------------------')
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const suit = new Benchmark.Suite('cross engines')
 
     for (const [name, { load, render }] of Object.entries(engines)) {
       const tpl = load(path.resolve(__dirname, `templates/todolist`))
-      suit.add(name, () => render(tpl, data))
+      suit.add(name, { defer: true, fn: deferred => Promise.resolve().then(() => render(tpl, data)).then(() => deferred.resolve(), error => { suit.abort(); reject(error) }) })
     }
 
     suit.on('cycle', event => console.log(String(event.target)))

@@ -2,7 +2,7 @@
 title: where_exp
 ---
 
-{% since %}v10.12.0{% endsince %}
+Since v10.12.0.
 
 Select all the objects in an array where the expression is true. In this example, assume you have a list of products and you want to show your kitchen products separately. Using `where_exp`, you can create an array containing only the products that have a `"type"` of `"kitchen"`.
 
@@ -34,4 +34,4 @@ Kitchen products:
 - Garlic press
 ```
 
-[truthy]: ../tutorials/truthy-and-falsy.html
+[truthy]: ../tutorials/truthy-and-falsy.md

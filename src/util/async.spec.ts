@@ -1,5 +1,4 @@
-import { toPromise, toValueSync } from './async'
-
+import { toPromise } from './async'
 describe('utils/async', () => {
   describe('#toPromise()', function () {
     it('should return a promise', async () => {
@@ -67,17 +66,17 @@ describe('utils/async', () => {
       expect(ret).toBe('barfoo')
     })
   })
-  describe('#toValueSync()', function () {
-    it('should throw Error if dependency throws synchronously', () => {
+  describe('#toPromise()', function () {
+    it('should throw Error if dependency throws synchronously', async () => {
       function* foo(): Generator<Generator<never>> {
         return yield bar()
       }
       function* bar(): Generator<never> {
         throw new Error('bar')
       }
-      expect(() => toValueSync(foo())).toThrow('bar')
+      await expect(async () => await toPromise(foo())).rejects.toThrow('bar')
     })
-    it('should resume yield after catch', () => {
+    it('should resume yield after catch', async () => {
       function* foo(): Generator<unknown, never, never> {
         try {
           yield bar()
@@ -87,9 +86,9 @@ describe('utils/async', () => {
       function* bar(): Generator<never> {
         throw new Error('bar')
       }
-      expect(toValueSync(foo())).toBe('foo')
+      expect(await toPromise(foo())).toBe('foo')
     })
-    it('should resume return after catch', () => {
+    it('should resume return after catch', async () => {
       function* foo(): Generator<Generator<never>, string> {
         try {
           yield bar()
@@ -99,10 +98,10 @@ describe('utils/async', () => {
       function* bar(): Generator<never> {
         throw new Error('bar')
       }
-      expect(toValueSync(foo())).toBe('foo')
+      expect(await toPromise(foo())).toBe('foo')
     })
-    it('should return non iterator value as it is', () => {
-      expect(toValueSync('foo')).toBe('foo')
+    it('should return non iterator value as it is', async () => {
+      expect(await toPromise('foo')).toBe('foo')
     })
   })
 })

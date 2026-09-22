@@ -1,3 +1,4 @@
+import { Operation, associate, drive, operationFor, existingOperation } from '../util'
 import { Drop } from '../drop/drop'
 import { NormalizedFullOptions, defaultOptions, RenderOptions } from '../liquid-options'
 import { createScope, Scope } from './scope'
@@ -11,7 +12,6 @@ import {
   isNumber,
   toLiquid,
   InternalUndefinedVariableError,
-  toValueSync,
   isObject,
   Limiter,
   toValue,
@@ -39,7 +39,17 @@ export class Context {
    * global scope used as fallback for missing variables
    */
   public globals: Scope
-  public sync: boolean
+  /** @internal */
+  public operation: Operation
+  /** @internal */
+  public operationActive = false
+  private readonly lookupSignal?: AbortSignal
+  public get signal() {
+    return this.operation.signal
+  }
+  public get operationOptions() {
+    return associate({ signal: this.signal }, this.operation)
+  }
   public breakCalled = false
   public continueCalled = false
   /**
@@ -64,7 +74,9 @@ export class Context {
       depthLimit
     }: { templateLimit?: Limiter; outputLengthLimit?: Limiter; depthLimit?: Limiter } = {}
   ) {
-    this.sync = !!renderOptions.sync
+    this.operationActive = !!existingOperation(renderOptions)
+    this.lookupSignal = renderOptions.signal
+    this.operation = this.operationActive ? operationFor(renderOptions) : new Operation()
     this.opts = opts
     this.globals = renderOptions.globals ?? opts.globals
     this.environments = isObject(env) ? env : Object(env)
@@ -90,24 +102,31 @@ export class Context {
   public getAll() {
     return [this.globals, this.environments, ...this.scopes].reduce((ctx, val) => Object.assign(ctx, val), {})
   }
-  /**
-   * @deprecated use `_get()` or `getSync()` instead
-   */
-  public get(paths: PropertyKey[]): unknown {
-    return this.getSync(paths)
+  public get(paths: PropertyKey[]): Promise<unknown> {
+    return this.lookup(this._get(paths))
   }
-  public getSync(paths: PropertyKey[]): unknown {
-    return toValueSync(this._get(paths))
+  private async lookup(value: IterableIterator<unknown>): Promise<unknown> {
+    if (this.operationActive) return drive(value, this.operation)
+    const previous = this.operation
+    const owner = new Operation(this.lookupSignal)
+    this.operation = owner
+    this.operationActive = true
+    try {
+      const result = await drive(value, owner)
+      owner.check()
+      return result
+    } finally {
+      owner.finish()
+      this.operation = previous
+      this.operationActive = false
+    }
   }
   public *_get(paths: (PropertyKey | Drop)[]): IterableIterator<unknown> {
     const scope = this.findScope(paths[0] as string) // first prop should always be a string
     return yield this._getFromScope(scope, paths)
   }
-  /**
-   * @deprecated use `_get()` instead
-   */
-  public getFromScope(scope: unknown, paths: PropertyKey[] | string): IterableIterator<unknown> {
-    return toValueSync(this._getFromScope(scope, paths))
+  public getFromScope(scope: unknown, paths: PropertyKey[] | string): Promise<unknown> {
+    return this.lookup(this._getFromScope(scope, paths))
   }
   public *_getFromScope(
     scope: unknown,
@@ -135,11 +154,10 @@ export class Context {
     return this.scopes[0]
   }
   public spawn(scope = {}) {
-    return new Context(
+    const child = new Context(
       scope,
       this.opts,
       {
-        sync: this.sync,
         globals: this.globals,
         strictVariables: this.strictVariables,
         ownPropertyOnly: this.ownPropertyOnly
@@ -150,6 +168,10 @@ export class Context {
         depthLimit: this.depthLimit
       }
     )
+    child.operation.finish()
+    child.operation = this.operation
+    child.operationActive = this.operationActive
+    return child
   }
   private findScope(key: string | number) {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
@@ -161,6 +183,7 @@ export class Context {
     return this.globals
   }
   readProperty(obj: Scope, key: PropertyKey | Drop) {
+    if (this.operationActive) this.operation.check()
     obj = toLiquid(obj)
     key = toValue(key) as PropertyKey
     if (isNil(obj)) return obj

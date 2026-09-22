@@ -2,14 +2,14 @@
 title: Use in Express
 ---
 
-LiquidJS is compatible with [Express template engines](https://expressjs.com/en/resources/template-engines.html). You can set the LiquidJS instance as the [view engine][express-views] option:
+LiquidJS is compatible with [Express template engines](https://expressjs.com/en/resources/template-engines.md). You can set the LiquidJS instance as the [view engine][express-views] option:
 
 ```javascript
 import { Liquid } from '@chr33s/liquid'
 var engine = new Liquid();
 
 // register liquid engine
-app.engine('liquid', engine.express()); 
+app.engine('liquid', engine.express());
 app.set('views', './views');            // specify the views directory
 app.set('view engine', 'liquid');       // set liquid to default
 ```
@@ -38,7 +38,7 @@ var engine = new Liquid({
     root: './views1/'
 });
 
-app.engine('liquid', engine.express()); 
+app.engine('liquid', engine.express());
 app.set('views', './views2');            // specify the views directory
 app.set('view engine', 'liquid');       // set liquid to default
 ```

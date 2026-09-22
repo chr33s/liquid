@@ -1,5 +1,6 @@
-import { FS } from './fs'
-import { assert, LiquidAsync, toLiquidAsync } from '../util'
+import { FS, FileReadOptions, isMissing } from './fs'
+import type { OperationOptions } from '../util/operation'
+import { assert } from '../util'
 
 export interface LoaderOptions {
   fs: FS
@@ -17,8 +18,6 @@ export enum LookupType {
 export class Loader {
   public shouldLoadRelative: (referencedFile: string) => boolean
   private options: LoaderOptions
-  private contains: LiquidAsync<NonNullable<FS['containsSync']>>
-  private exists: LiquidAsync<FS['existsSync']>
 
   constructor(options: LoaderOptions) {
     this.options = options
@@ -30,31 +29,54 @@ export class Loader {
     } else {
       this.shouldLoadRelative = (_referencedFile: string) => false
     }
-    const fs = options.fs
-    this.contains = toLiquidAsync(
-      fs.contains?.bind(fs) || (async () => true),
-      fs.containsSync?.bind(fs) || (() => true)
-    )
-    this.exists = toLiquidAsync(fs.exists?.bind(fs) || (async () => false), fs.existsSync?.bind(fs))
+  }
+
+  private *allowed(filepath: string, dirs: string[], options: OperationOptions): Generator<unknown, boolean, boolean> {
+    const fs = this.options.fs
+    for (const dir of dirs) {
+      options.signal?.throwIfAborted()
+      if (!fs.contains || (yield fs.contains(dir, filepath, options))) return true
+    }
+    return false
   }
 
   public *lookup(
     file: string,
     type: LookupType,
-    sync?: boolean,
-    currentFile?: string
-  ): Generator<unknown, string, string> {
+    currentFile?: string,
+    options: OperationOptions = {}
+  ): Generator<unknown, string, boolean> {
     const dirs = this.options[type]
     for (const filepath of this.candidates(file, dirs, currentFile)) {
-      let allowed = false
-      for (const dir of dirs) {
-        if (yield this.contains(!!sync, dir, filepath)) {
-          allowed = true
-          break
-        }
+      if (!(yield this.allowed(filepath, dirs, options))) continue
+      options.signal?.throwIfAborted()
+      if (yield this.options.fs.exists(filepath, options)) return filepath
+    }
+    throw this.lookupError(file, dirs)
+  }
+
+  public *load(
+    file: string,
+    type: LookupType,
+    currentFile?: string,
+    options: FileReadOptions = {}
+  ): Generator<unknown, { filepath: string; source: string }, any> {
+    const dirs = this.options[type]
+    const fs = this.options.fs
+    for (const filepath of this.candidates(file, dirs, currentFile)) {
+      try {
+        if (!(yield this.allowed(filepath, dirs, options))) continue
+        options.signal?.throwIfAborted()
+        if (!(yield fs.exists(filepath, options))) continue
+        options.signal?.throwIfAborted()
+        const source = yield fs.readFile(filepath, options)
+        options.signal?.throwIfAborted()
+        if (source.length > (options.sourceCodeUnitLimit ?? Infinity)) throw new Error('parse length limit exceeded')
+        return { filepath, source }
+      } catch (error) {
+        options.signal?.throwIfAborted()
+        if (!isMissing(error)) throw error
       }
-      if (!allowed) continue
-      if (yield this.exists(!!sync, filepath)) return filepath
     }
     throw this.lookupError(file, dirs)
   }

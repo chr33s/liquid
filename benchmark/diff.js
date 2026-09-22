@@ -1,50 +1,31 @@
 #!/usr/bin/env node
 const { performance } = require('perf_hooks')
 const path = require('path')
-
-const FILE_LOCAL = process.argv[2]
-const FILE_LATEST = process.argv[3]
-console.log(`Local:  ${FILE_LOCAL}`)
-console.log(`Latest: ${FILE_LATEST}`)
-
 const { createEngine } = require('./engines/create-liquid')
-const local = createEngine(require(path.resolve(__dirname, '..', FILE_LOCAL)))
-const latest = createEngine(require(path.resolve(__dirname, '..', FILE_LATEST)))
 const data = require('./data/todolist.json')
-const tpl = path.resolve(__dirname, `templates/todolist`)
 
-const begin = performance.now()
-const tplLocal = local.load(tpl)
-const tplLatest = latest.load(tpl)
-const tasks = [
-  {
-    cycles: 0,
-    time: 0,
-    fn: () => latest.render(tplLatest, data)
-  },
-  {
-    cycles: 0,
-    time: 0,
-    fn: () => local.render(tplLocal, data)
+async function main () {
+  const [candidatePath, baselinePath] = process.argv.slice(2)
+  console.log(`Candidate: ${candidatePath}\nBaseline: ${baselinePath}\nRuntime: ${process.version}`)
+  const engines = [baselinePath, candidatePath].map(file => createEngine(require(path.resolve(file))))
+  const templates = engines.map(engine => engine.load(path.resolve(__dirname, 'templates/todolist')))
+  const tasks = engines.map((engine, index) => () => engine.render(templates[index], data))
+  for (const task of tasks) for (let i = 0; i < 100; i++) await task()
+  const differences = []
+  for (let pair = 0; pair < 5; pair++) {
+    const rates = []
+    for (const index of pair % 2 ? [1, 0] : [0, 1]) {
+      let completed = 0
+      const start = performance.now()
+      do { await tasks[index](); completed++ } while (performance.now() - start < 2000)
+      rates[index] = completed * 1000 / (performance.now() - start)
+    }
+    const diff = (rates[1] / rates[0] - 1) * 100
+    differences.push(diff)
+    console.log(`Pair ${pair + 1}: baseline ${rates[0].toFixed(3)}, candidate ${rates[1].toFixed(3)} ops/s; ${diff.toFixed(3)}%`)
   }
-]
-while (performance.now() - begin < 20e3) {
-  const task = tasks[Math.floor(Math.random() * 2)]
-  task.time -= performance.now()
-  task.fn()
-  task.time += performance.now()
-  task.cycles++
+  const median = differences.sort((a, b) => a - b)[2]
+  console.log(`Median relative throughput: ${median.toFixed(3)}%; gate: -3%`)
+  process.exitCode = median < -3 ? 1 : 0
 }
-
-const [ latestResult, localResult ] = tasks.map(task => {
-  task.perf = task.cycles * 1000 / task.time
-  return task
-})
-const diff = (localResult.perf - latestResult.perf) / latestResult.perf
-
-console.log(`Local: ${localResult.perf.toFixed(3)} ops/s (${localResult.cycles} cycles)`)
-console.log(`Latest: ${latestResult.perf.toFixed(3)} ops/s (${latestResult.cycles} cycles)`)
-console.log(`Diff: ${(diff * 100).toFixed(3)}%`)
-
-const THRESHOLD_PERCENT = -3
-process.exit(diff * 100 < THRESHOLD_PERCENT ? 1 : 0)
+main().catch(error => { console.error(error); process.exitCode = 1 })

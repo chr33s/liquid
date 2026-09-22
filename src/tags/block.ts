@@ -25,7 +25,7 @@ export default class extends Tag {
     if (ctx.getRegister('blockMode') === BlockMode.STORE) {
       ctx.getRegister('blocks', {} as Record<string, any>)[this.block] = blockRender
     } else {
-      yield blockRender(new BlockDrop(), emitter)
+      yield blockRender(new BlockDrop(undefined, ctx), emitter)
     }
   }
 
@@ -39,13 +39,16 @@ export default class extends Tag {
 
       stack.push(self)
       ctx.push({ block: superBlock })
-      yield liquid.renderer.renderTemplates(templates, ctx, emitter)
-      ctx.pop()
-      stack.pop()
+      try {
+        yield liquid.renderer.renderTemplates(templates, ctx, emitter)
+      } finally {
+        ctx.pop()
+        stack.pop()
+      }
     }
     return renderChild
       ? (superBlock: BlockDrop, emitter: Emitter) =>
-          renderChild(new BlockDrop((emitter: Emitter) => renderCurrent(superBlock, emitter)), emitter)
+          renderChild(new BlockDrop((emitter: Emitter) => renderCurrent(superBlock, emitter), ctx), emitter)
       : renderCurrent
   }
 

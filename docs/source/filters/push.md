@@ -2,7 +2,7 @@
 title: push
 ---
 
-{% since %}v10.8.0{% endsince %}
+Since v10.8.0.
 
 Push an element into array. It's NON-DESTRUCTIVE, i.e. it does not mutate the array, but rather make a copy and mutate that.
 

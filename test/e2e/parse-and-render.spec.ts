@@ -2,7 +2,6 @@ import { Liquid } from '@chr33s/liquid'
 import { mkdtempSync, writeFileSync, symlinkSync, rmSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
-
 describe('.parseAndRender()', function () {
   let engine: Liquid, strictEngine: Liquid
   beforeEach(function () {
@@ -76,9 +75,9 @@ describe('.parseAndRender()', function () {
       const e = new Liquid({ root: [root], extname: '.liquid', relativeReference: false })
       await expect(e.parseAndRender('{% render "link" %}')).rejects.toThrow(/ENOENT|Failed to lookup/)
     })
-    it('should not render a symlink partial via parseAndRenderSync', function () {
+    it('should not render a symlink partial via parseAndRender', async function () {
       const e = new Liquid({ root: [root], extname: '.liquid', relativeReference: false })
-      expect(() => e.parseAndRenderSync('{% render "link" %}')).toThrow(/ENOENT|Failed to lookup/)
+      await expect(async () => await e.parseAndRender('{% render "link" %}')).rejects.toThrow(/ENOENT|Failed to lookup/)
     })
   })
   describe('layout: nested {% block %} regression', function () {

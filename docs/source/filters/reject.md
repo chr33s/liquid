@@ -114,4 +114,3 @@ Output
 ```text
 Dog Food
 ```
-

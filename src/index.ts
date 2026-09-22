@@ -6,7 +6,6 @@ export {
   createTrie,
   type Trie,
   toPromise,
-  toValueSync,
   assert,
   LiquidError,
   ParseError,
@@ -36,7 +35,6 @@ export {
   type StaticAnalysis,
   type StaticAnalysisOptions,
   analyze,
-  analyzeSync,
   type Arguments,
   type PartialScope
 } from './template'
@@ -50,3 +48,6 @@ export { defaultOptions } from './liquid-options'
 export type { LiquidOptions, RenderOptions, RenderFileOptions } from './liquid-options'
 export { type FS, LookupType } from './fs'
 export { Liquid } from './liquid'
+
+export type { OperationOptions } from './util/operation'
+export type { FileReadOptions } from './fs/fs'

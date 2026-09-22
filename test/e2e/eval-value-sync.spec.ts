@@ -1,12 +1,10 @@
 import { Liquid } from '@chr33s/liquid'
-
-describe('#evalValueSync()', function () {
+describe('#evalValue()', function () {
   let engine: Liquid
   beforeEach(() => {
     engine = new Liquid()
   })
-
   it('should eval value synchronously', async function () {
-    return expect(engine.evalValueSync('true', { opts: {} } as any)).toBe(true)
+    return expect(await engine.evalValue('true', { opts: {} } as any)).toBe(true)
   })
 })

@@ -19,4 +19,3 @@ Output
 ```text
 Have you read Ulysses?
 ```
-

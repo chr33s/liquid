@@ -1,33 +1,41 @@
-import { promisify } from '../util'
-import { sep, resolve as nodeResolve, extname, dirname as nodeDirname } from 'path'
-import { stat, statSync, readFile as nodeReadFile, readFileSync as nodeReadFileSync, realpath, realpathSync } from 'fs'
+import * as implementation from './fs-impl'
+import { sep, resolve as nodeResolve, extname, dirname } from 'path'
+import { stat, readFile as nodeReadFile, realpath, open } from 'fs/promises'
 import { requireResolve } from './node-require'
+import { isMissing, type FileReadOptions, type FS } from './fs'
+import type { OperationOptions } from '../util/operation'
+import { SourceReader } from './source'
 
-type NodeReadFile = (file: string, encoding: string, cb: (err: Error | null, result: string) => void) => void
-const statAsync = promisify(stat)
-const readFileAsync = promisify<string, string, string>(nodeReadFile as NodeReadFile)
-
-export async function exists(filepath: string) {
+export async function exists(filepath: string, options: OperationOptions = {}) {
+  options.signal?.throwIfAborted()
   try {
-    await statAsync(filepath)
+    await stat(filepath)
+    options.signal?.throwIfAborted()
     return true
-  } catch (err) {
-    return false
+  } catch (error) {
+    if (isMissing(error)) return false
+    throw error
   }
 }
-export function readFile(filepath: string) {
-  return readFileAsync(filepath, 'utf8')
-}
-export function existsSync(filepath: string) {
-  try {
-    statSync(filepath)
-    return true
-  } catch (err) {
-    return false
+export async function readFile(filepath: string, options: FileReadOptions = {}) {
+  options.signal?.throwIfAborted()
+  if (!Number.isFinite(options.sourceByteLimit) && !Number.isFinite(options.sourceCodeUnitLimit)) {
+    return nodeReadFile(filepath, { encoding: 'utf8', signal: options.signal })
   }
-}
-export function readFileSync(filepath: string) {
-  return nodeReadFileSync(filepath, 'utf8')
+  const handle = await open(filepath, 'r')
+  try {
+    const decoder = new SourceReader(options, true)
+    const buffer = new Uint8Array(16_384)
+    let result = ''
+    while (true) {
+      options.signal?.throwIfAborted()
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, null)
+      if (!bytesRead) return result + decoder.decode()
+      result += decoder.decode(buffer.subarray(0, bytesRead))
+    }
+  } finally {
+    await handle.close()
+  }
 }
 export function resolve(root: string, file: string, ext: string) {
   if (!extname(file)) file += ext
@@ -36,32 +44,21 @@ export function resolve(root: string, file: string, ext: string) {
 export function fallback(file: string) {
   try {
     return requireResolve(file)
-  } catch (e) {}
+  } catch {}
 }
-export function dirname(filepath: string) {
-  return nodeDirname(filepath)
-}
-const realpathAsync = promisify(realpath)
-
-export async function contains(root: string, file: string) {
+export async function contains(root: string, file: string, options: OperationOptions = {}) {
+  options.signal?.throwIfAborted()
   try {
-    const realRoot = await realpathAsync(root)
-    const realFile = await realpathAsync(file)
-    const prefix = realRoot.endsWith(sep) ? realRoot : realRoot + sep
-    return realFile.startsWith(prefix)
-  } catch {
-    return false
+    const realRoot = await realpath(root)
+    const realFile = await realpath(file)
+    options.signal?.throwIfAborted()
+    return realFile.startsWith(realRoot.endsWith(sep) ? realRoot : realRoot + sep)
+  } catch (error) {
+    if (isMissing(error)) return false
+    throw error
   }
 }
-export function containsSync(root: string, file: string) {
-  try {
-    const realRoot = realpathSync(root)
-    const realFile = realpathSync(file)
-    const prefix = realRoot.endsWith(sep) ? realRoot : realRoot + sep
-    return realFile.startsWith(prefix)
-  } catch {
-    return false
-  }
+export function createFS(_baseUrl?: string): FS {
+  return implementation
 }
-
-export { sep } from 'path'
+export { dirname, sep }

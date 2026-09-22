@@ -2,7 +2,7 @@
 title: group_by_exp
 ---
 
-{% since %}v10.11.0{% endsince %}
+Since v10.11.0.
 
 Group an array's items using a Liquid expression. For `members` array below:
 

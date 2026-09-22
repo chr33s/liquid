@@ -82,8 +82,10 @@ To disable a tag, or to make a disabled filter throw regardless of `strictFilter
 
 ```javascript
 // disable a tag
-const disabledTag = {
-    parse: function(token) {
+import { Tag } from '@chr33s/liquid'
+const disabledTag = class extends Tag {
+    constructor(token, tokens, liquid) {
+        super(token, tokens, liquid)
         throw new Error(`tag "${token.name}" disabled`);
     }
 }
@@ -97,4 +99,3 @@ function disabledFilter(name) {
 }
 engine.registerFilter('plus', disabledFilter('plus'));
 ```
-

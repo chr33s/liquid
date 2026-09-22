@@ -1,5 +1,4 @@
 import { Liquid } from '../../../src/liquid'
-
 describe('tags/inline-comment', function () {
   const liquid = new Liquid()
   it('should ignore plain string', async function () {
@@ -53,10 +52,10 @@ describe('tags/inline-comment', function () {
       /every line of an inline comment must start with a '#' character/
     )
   })
-  describe('sync support', function () {
-    it('should ignore plain string', function () {
+  describe('Promise execution', function () {
+    it('should ignore plain string', async function () {
       const src = 'My name is {% # super %} Shopify.'
-      const html = liquid.parseAndRenderSync(src)
+      const html = await liquid.parseAndRender(src)
       return expect(html).toBe('My name is  Shopify.')
     })
   })

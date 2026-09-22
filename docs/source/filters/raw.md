@@ -2,13 +2,15 @@
 title: raw
 ---
 
-{% since %}v9.37.0{% endsince %}
+Since v9.37.0.
 
-Liquid filter that directly returns the value of the variable. Useful when [outputEscape](/api/interfaces/LiquidOptions.html#outputEscape) is set.
+Liquid filter that directly returns the value of the variable. Useful when {@link LiquidOptions.outputEscape} is set.
 
-{% note info Auto escape %}
+**Auto escape**
+
+
 By default `outputEscape` is not set. That means LiquidJS output is not escaped by default, thus `raw` filter is not useful until `outputEscape` is set.
-{% endnote %}
+
 
 Input (`outputEscape` not set)
 ```liquid

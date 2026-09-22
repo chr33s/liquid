@@ -8,31 +8,31 @@ LiquidJS provides multiple ways to cache the parsed templates to improve perform
 
 ## Programmatically
 
-The {@link Liquid.parse | .parse()}, {@link Liquid.parseFile | .parseFile()}, {@link Liquid.parseFileSync | .parseFileSync()} APIs are used to parse templates from strings or files. The resulting template can then be rendered multiple times with different context.
+The {@link Liquid.parse | .parse()}, {@link Liquid.parseFile | .parseFile()} APIs are used to parse templates from strings or files. The resulting template can then be rendered multiple times with different context.
 
 Parse from string:
 
 ```javascript
 var tpl = engine.parse('{{name | capitalize}}');
 
-engine.renderSync(tpl, {name: 'alice'}) // 'Alice'
-engine.renderSync(tpl, {name: 'bob'}) // 'Bob'
+await engine.render(tpl, {name: 'alice'}) // 'Alice'
+await engine.render(tpl, {name: 'bob'}) // 'Bob'
 ```
 
 Parse from file:
 
 ```javascript
-var tpl = engine.parseFileSync('hello');    // contents of `hello.liquid`: {{name}}
+var tpl = await engine.parseFile('hello');    // contents of `hello.liquid`: {{name}}
 
-engine.renderSync(tpl, {name: 'alice'}) // 'Alice'
-engine.renderSync(tpl, {name: 'bob'}) // 'Bob'
+await engine.render(tpl, {name: 'alice'}) // 'Alice'
+await engine.render(tpl, {name: 'bob'}) // 'Bob'
 ```
 
 The template string/file is parsed only once and rendered multiple times using different context. Templates for different files can be stored into a `Map` and can be retrieved directly for subsequent renders.
 
 ## The `cache` Option
 
-The {@link LiquidOptions.cache | cache option} can be set to instruct liquidjs to use cached parsed templates each time you call {@link Liquid.renderFile | renderFile} or {@link Liquid.renderFileSync | renderFileSync}.
+The {@link LiquidOptions.cache | cache option} can be set to instruct liquidjs to use cached parsed templates each time you call {@link Liquid.renderFile | renderFile}.
 
 ```javascript
 import { Liquid } from '@chr33s/liquid'
@@ -41,9 +41,8 @@ var engine = new Liquid({
 });
 
 // liquidjs parses the hello.liquid, then renders it with {name: 'alice'}
-engine.renderFileSync('hello', {name: 'alice'})
+await engine.renderFile('hello', {name: 'alice'})
 
 // liquidjs finds the cached template, then renders it with {name: 'bob'}
-engine.renderFileSync('hello', {name: 'bob'})
+await engine.renderFile('hello', {name: 'bob'})
 ```
-

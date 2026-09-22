@@ -8,9 +8,7 @@ title: Static Template Analysis
 >
 > Note that this is an experimental feature and future APIs are subject to change. Internal structures returned can be changed without a major version bump.
 
-> **Sync and Async**
->
-> There are synchronous and asynchronous versions of each of the methods demonstrated on this page. See the {@link Liquid | Liquid API} for a complete reference.
+All execution methods on this page return Promises. See the {@link Liquid | Liquid API} for a complete reference.
 
 ## Variables
 
@@ -37,7 +35,7 @@ const template = engine.parse(`
 <p>
 `)
 
-console.log(engine.variablesSync(template))
+console.log(await engine.variables(template))
 ```
 
 **Output**

@@ -67,18 +67,21 @@ export default class extends Tag {
     const tablerowloop = new TablerowloopDrop(collection.length, cols, this.collection.getText(), this.variable)
     const scope = ctx.push({ tablerowloop })
 
-    for (let idx = 0; idx < collection.length; idx++, tablerowloop.next()) {
-      scope[this.variable] = collection[idx]
-      if (tablerowloop.col0() === 0) {
-        if (tablerowloop.row() !== 1) emitter.write('</tr>')
-        emitter.write(`<tr class="row${tablerowloop.row()}">`)
+    try {
+      for (let idx = 0; idx < collection.length; idx++, tablerowloop.next()) {
+        scope[this.variable] = collection[idx]
+        if (tablerowloop.col0() === 0) {
+          if (tablerowloop.row() !== 1) yield emitter.write('</tr>')
+          yield emitter.write(`<tr class="row${tablerowloop.row()}">`)
+        }
+        yield emitter.write(`<td class="col${tablerowloop.col()}">`)
+        yield r.renderTemplates(this.templates, ctx, emitter)
+        yield emitter.write('</td>')
       }
-      emitter.write(`<td class="col${tablerowloop.col()}">`)
-      yield r.renderTemplates(this.templates, ctx, emitter)
-      emitter.write('</td>')
+      if (collection.length) yield emitter.write('</tr>')
+    } finally {
+      ctx.pop()
     }
-    if (collection.length) emitter.write('</tr>')
-    ctx.pop()
   }
 
   public *children(): Generator<unknown, Template[]> {

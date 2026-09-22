@@ -2,7 +2,7 @@
 title: array_to_sentence_string
 ---
 
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Convert an array into a sentence. Useful for listing tags. Optional argument for connector.
 

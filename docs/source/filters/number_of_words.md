@@ -2,7 +2,7 @@
 title: number_of_words
 ---
 
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Count the number of words in some text. This filter takes an optional argument to control the handling of Chinese-Japanese-Korean (CJK) characters in the input string:
 - Passing `'cjk'` as the argument will count every CJK character detected as one word irrespective of being separated by whitespace.

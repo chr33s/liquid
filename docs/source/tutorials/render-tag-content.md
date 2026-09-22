@@ -53,9 +53,9 @@ engine.registerTag('wrap', class WrapTag extends Tag {
     if (!closed) throw new Error(`tag ${tagToken.getText()} not closed`)
   }
   * render(context, emitter) {
-    emitter.write("<div class='wrapper'>")
+    yield emitter.write("<div class='wrapper'>")
     yield this.liquid.renderer.renderTemplates(this.tpls, context, emitter)
-    emitter.write("</div>")
+    yield emitter.write("</div>")
   }
 })
 ```
@@ -135,4 +135,3 @@ The constructor is the same as in the `wrap` tag; we repeat the content by calli
 > **Use Push & Pop in Pairs**
 >
 > `context.push()` and `context.pop()` have to be used in pairs. Failing to `pop()` the *Scope* you pushed will leak the *Scope* to latter templates and may corrupt the *Context* stack.
-

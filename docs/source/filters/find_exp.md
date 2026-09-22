@@ -2,7 +2,7 @@
 title: find_exp
 ---
 
-{% since %}v10.11.0{% endsince %}
+Since v10.11.0.
 
 Return the first object in an array for which the given expression evaluates to true or return `nil` if no item in the array satisfies the evaluated expression.
 

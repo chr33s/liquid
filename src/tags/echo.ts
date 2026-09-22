@@ -14,7 +14,7 @@ export default class extends Tag {
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     if (!this.value) return
     const val = yield this.value.value(ctx, false)
-    emitter.write(val)
+    yield emitter.write(val)
   }
 
   public *arguments(): Arguments {

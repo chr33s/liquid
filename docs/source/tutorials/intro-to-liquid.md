@@ -55,4 +55,3 @@ Typically tags appear in pairs with a start tag and a corresponding end tag. For
 ```
 
 A complete list of tags supported by LiquidJS can be found [here](../tags/overview.md).
-

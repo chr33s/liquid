@@ -1,5 +1,4 @@
 import { Liquid } from '../../../src/liquid'
-
 describe('LiquidOptions#strict*', function () {
   let engine: Liquid
   const ctx = {}
@@ -74,7 +73,7 @@ describe('LiquidOptions#strict*', function () {
     })
     it('should not allow undefined variable even if `lenientIf` set', async function () {
       const tpl = engine.parse('{{notdefined | tolower}}')
-      return expect(() => engine.renderSync(tpl, ctx)).toThrow('undefined variable: notdefined')
+      return await expect(async () => await engine.render(tpl, ctx)).rejects.toThrow('undefined variable: notdefined')
     })
   })
 })

@@ -2,7 +2,7 @@
 title: normalize_whitespace
 ---
 
-{% since %}v10.13.0{% endsince %}
+Since v10.13.0.
 
 Replace any occurrence of whitespace with a single space.
 
