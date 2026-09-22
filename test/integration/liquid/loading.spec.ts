@@ -10,6 +10,27 @@ const fs = (readFile: (file: string, options?: any) => any) => ({
 describe('classified loading and source limits', () => {
   afterEach(() => vi.unstubAllGlobals())
 
+  it('resolves in-memory templates with explicit extensions and relative references', async () => {
+    const engine = new Liquid({
+      extname: '.liquid',
+      templates: {
+        'page.liquid': '{% render "./part.liquid" %}',
+        'part.liquid': 'part'
+      }
+    })
+    await expect(engine.renderFile('page.liquid')).resolves.toBe('part')
+    await expect(engine.renderFile('./page')).resolves.toBe('part')
+  })
+
+  it.each(['render', 'include', 'layout'])('preserves the absolute root for relative %s references', async tag => {
+    const page = `{% ${tag} "./part" %}`
+    const engine = new Liquid({
+      templates: { '/page': page, '/part': 'absolute', page, part: 'relative' }
+    })
+    await expect(engine.renderFile('/page')).resolves.toBe('absolute')
+    await expect(engine.renderFile('page')).resolves.toBe('relative')
+  })
+
   it('tries the next optimistic candidate only for absence', async () => {
     const read = vi.fn((file: string) => {
       if (file === 'first/page') throw Object.assign(new Error('missing'), { code: 'ENOENT' })

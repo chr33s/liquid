@@ -79,7 +79,13 @@ export function evalQuotedToken(token: QuotedToken) {
 function* evalRangeToken(token: RangeToken, ctx: Context) {
   const low: number = yield evalToken(token.lhs, ctx)
   const high: number = yield evalToken(token.rhs, ctx)
-  return range(+low, +high + 1)
+  const start = +low
+  const end = +high
+  assert(
+    !(Math.abs(start) > Number.MAX_SAFE_INTEGER || Math.abs(end) > Number.MAX_SAFE_INTEGER),
+    'invalid range bounds'
+  )
+  return range(start, end + 1)
 }
 
 function* toPostfix(tokens: IterableIterator<Token>): IterableIterator<Token> {

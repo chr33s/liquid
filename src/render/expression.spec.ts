@@ -221,6 +221,21 @@ describe('Expression', function () {
 
   describe('range', function () {
     const ctx = new Context({ two: 2, num: { one: 1, two: 2 } })
+    it.each([
+      [9007199254740992, 9007199254740994],
+      [-9007199254740994, -9007199254740992],
+      [-Infinity, 0],
+      [0, Infinity]
+    ])('should reject non-progressing range bounds %s..%s', async (low, high) => {
+      await expect(toPromise(create('(low..high)').evaluate(new Context({ low, high })))).rejects.toThrow(
+        'invalid range bounds'
+      )
+    })
+    it('should allow the safe integer boundary', async () => {
+      expect(await toPromise(create('(9007199254740990..9007199254740991)').evaluate(ctx))).toEqual([
+        9007199254740990, 9007199254740991
+      ])
+    })
     it('should eval range expression', async function () {
       expect(await toPromise(create('(2..4)').evaluate(ctx, false))).toEqual([2, 3, 4])
       expect(await toPromise(create('(two..4)').evaluate(ctx, false))).toEqual([2, 3, 4])

@@ -13,6 +13,7 @@ LiquidJS ships a thin cooperative DoS layer:
 - {@link LiquidOptions.outputLengthLimit | outputLengthLimit}: limit total output length per `render()` call.
 - {@link LiquidOptions.maxDepth | maxDepth}: limit nesting depth of `{% render %}`, `{% include %}`, and `{% layout %}`.
 - Strftime numeric pad widths in the `date` filter are capped at `1_000_000` (1M) per conversion.
+- Range bounds outside JavaScript's safe integer range, including infinities, are rejected to prevent non-terminating numeric iteration.
 
 These are cooperative safeguards, not runtime isolation—see <a href="#production-guidance">Production guidance</a> below for host-level limits and online-service hardening.
 

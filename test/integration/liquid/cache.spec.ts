@@ -4,6 +4,21 @@ import { Template } from '../../../src/template'
 describe('LiquidOptions#cache', function () {
   afterEach(restore)
   describe('#renderFile', function () {
+    it('should distinguish relative partial and layout lookups', async function () {
+      const engine = new Liquid({
+        root: '/root/',
+        partials: '/partials/',
+        layouts: '/layouts/',
+        extname: '.html',
+        cache: true
+      })
+      mock({
+        '/root/page.html': '{% render "./shared" %}{% layout "./shared" %}',
+        '/partials/shared.html': 'partial',
+        '/layouts/shared.html': 'layout'
+      })
+      expect(await engine.renderFile('page')).toBe('partiallayout')
+    })
     it('should be disabled by default', async function () {
       const engine = new Liquid({
         root: '/root/',

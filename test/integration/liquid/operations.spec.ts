@@ -1,4 +1,5 @@
 import { Liquid, Context, Tag, Emitter, toPromise } from '../../../src'
+import { getEventListeners } from 'node:events'
 import { drainStream } from '../../stub/stream'
 
 function deferred<T>() {
@@ -12,6 +13,36 @@ function deferred<T>() {
 }
 
 describe('operation lifecycle', () => {
+  it('does not retain layout blocks when reusing a context', async () => {
+    const engine = new Liquid({ templates: { base: '<main>{% block %}default{% endblock %}</main>' } })
+    const ctx = new Context({}, engine.options)
+    expect(await engine.parseAndRender('{% block %}initial{% endblock %}', ctx)).toBe('initial')
+    expect(await engine.parseAndRender('{% layout "base" %}first', ctx)).toBe('<main>first</main>')
+    expect(await engine.parseAndRender('{% layout "base" %}second', ctx)).toBe('<main>second</main>')
+  })
+
+  it('restores layout mode after a failed body', async () => {
+    const engine = new Liquid({ strictVariables: true, templates: { base: '{% block %}{% endblock %}' } })
+    const ctx = new Context({}, engine.options)
+    await expect(engine.parseAndRender('{% layout "base" %}{{ missing }}', ctx)).rejects.toThrow('undefined variable')
+    expect(await engine.parseAndRender('{% block %}recovered{% endblock %}', ctx)).toBe('recovered')
+  })
+
+  it.each(['where_exp', 'reject_exp', 'group_by_exp', 'find_exp', 'find_index_exp', 'has_exp'])(
+    'restores the expression scope after %s fails',
+    async filter => {
+      const engine = new Liquid()
+      const ctx = new Context({ item: 'outer', items: ['inner'] }, engine.options)
+      engine.registerFilter('fail', () => {
+        throw new Error('expression failed')
+      })
+      await expect(engine.parseAndRender(`{{ items | ${filter}: "item", "item | fail" }}`, ctx)).rejects.toThrow(
+        'expression failed'
+      )
+      expect(await engine.parseAndRender('{{ item }}', ctx)).toBe('outer')
+    }
+  )
+
   it('keeps rendering after toPromise joins the context operation', async () => {
     const engine = new Liquid()
     engine.registerFilter('lookup', function* (): Generator<unknown, unknown, unknown> {
@@ -311,6 +342,17 @@ describe('Web text streams', () => {
 })
 
 describe('operation boundary races', () => {
+  it.each([false, true])('releases analysis abort listeners after completion (failure: %s)', async fail => {
+    const engine = new Liquid({ templates: { part: '{{ value }}' } })
+    const controller = new AbortController()
+    const analysis = engine.parseAndAnalyze(`{% render "${fail ? 'missing' : 'part'}" %}`, undefined, {
+      signal: controller.signal
+    })
+    if (fail) await expect(analysis).rejects.toThrow('Failed to lookup')
+    else await expect(analysis).resolves.toHaveProperty('globals.value')
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0)
+  })
+
   it('preserves cross-realm reasons and bypasses aggregate errors', async () => {
     const { runInNewContext } = await import('node:vm')
     const reason = runInNewContext('({ cancelled: true })')

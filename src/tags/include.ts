@@ -49,7 +49,7 @@ export default class extends Tag {
       assert(filepath, () => `illegal file path "${filepath}"`)
 
       const saved = ctx.saveRegister('blocks', 'blockMode')
-      ctx.setRegister('blocks', {})
+      ctx.setRegister('blocks', Object.create(null))
       ctx.setRegister('blockMode', BlockMode.OUTPUT)
       try {
         const scope = (yield hash.render(ctx)) as Scope
@@ -74,6 +74,7 @@ export default class extends Tag {
   }
 
   public *children(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]> {
+    if (Array.isArray(this.file)) return this.file
     if (partials && isString(this.file)) {
       return (yield this.liquid._parsePartialFile(this.file, this.currentFile, options)) as Template[]
     }

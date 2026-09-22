@@ -88,16 +88,17 @@ export default class extends Tag {
       if (this.forBinding) {
         const { value, alias } = this.forBinding
         const collection = toEnumerable(yield evalToken(value, ctx))
-        scope['forloop'] = new ForloopDrop(collection.length, value.getText(), alias as string)
+        const forloop = new ForloopDrop(collection.length, value.getText(), alias || filepath)
         for (const item of collection) {
-          scope[alias as string] = item
+          scope[alias || filepath] = item
+          scope['forloop'] = forloop
           const templates = (yield liquid._parsePartialFile(
             filepath,
             this.currentFile,
             ctx.operationOptions
           )) as Template[]
           yield liquid.renderer.renderTemplates(templates, childCtx, emitter)
-          scope['forloop'].next()
+          forloop.next()
         }
       } else {
         const templates = (yield liquid._parsePartialFile(
@@ -113,6 +114,7 @@ export default class extends Tag {
   }
 
   public *children(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]> {
+    if (Array.isArray(this.file)) return this.file
     if (partials && isString(this.file)) {
       return (yield this.liquid._parsePartialFile(this.file, this.currentFile, options)) as Template[]
     }
@@ -133,6 +135,7 @@ export default class extends Tag {
       }
 
       if (this.forBinding) {
+        names.push('forloop')
         const { value, alias } = this.forBinding
         if (isString(alias)) {
           names.push([alias, value])
@@ -146,6 +149,8 @@ export default class extends Tag {
   }
 
   public *arguments(): Arguments {
+    if (isValueToken(this.file)) yield this.file
+
     for (const v of Object.values(this.hash.hash)) {
       if (isValueToken(v)) {
         yield v

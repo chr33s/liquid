@@ -20,6 +20,16 @@ export default class extends Tag {
     this.templates = parser.parseTokens(remainTokens)
   }
   *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
+    const saved = ctx.saveRegister('blocks', 'blockMode')
+    ctx.setRegister('blocks', Object.assign(Object.create(null), ctx.getRegister('blocks')))
+    try {
+      return yield this.renderLayout(ctx, emitter)
+    } finally {
+      ctx.restoreRegister(saved)
+    }
+  }
+
+  private *renderLayout(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     const { liquid, args, file } = this
     const { renderer } = liquid
     if (file === undefined) {
@@ -36,7 +46,7 @@ export default class extends Tag {
       // render remaining contents and store rendered results
       ctx.setRegister('blockMode', BlockMode.STORE)
       const html = yield renderer.renderTemplates(this.templates, ctx)
-      const blocks = ctx.getRegister('blocks', {} as Record<string, any>)
+      const blocks = ctx.getRegister('blocks', Object.create(null) as Record<string, any>)
 
       // set whole content to anonymous block if anonymous doesn't specified
       if (blocks[''] === undefined) blocks[''] = (parent: BlankDrop, emitter: Emitter) => emitter.write(html)
@@ -56,6 +66,7 @@ export default class extends Tag {
 
   public *children(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]> {
     const templates = this.templates.slice()
+    if (Array.isArray(this.file)) templates.unshift(...this.file)
 
     if (partials && isString(this.file)) {
       templates.push(...((yield this.liquid._parseLayoutFile(this.file, this.currentFile, options)) as Template[]))

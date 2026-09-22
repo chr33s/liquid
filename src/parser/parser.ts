@@ -79,7 +79,7 @@ export class Parser {
     options?: OperationOptions
   ): Generator<unknown, Template[], Template[]> {
     const cache = this.cache!
-    const key = this.loader.shouldLoadRelative(file) ? currentFile + ',' + file : type + ':' + file
+    const key = this.loader.shouldLoadRelative(file) ? JSON.stringify([type, currentFile, file]) : type + ':' + file
     let task = this.liquid.pendingLoads.get(key)
     if (task) return yield task
     let resolve!: (templates: Template[] | PromiseLike<Template[]>) => void

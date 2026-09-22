@@ -28,10 +28,6 @@ const dayNamesShort = dayNames.map(name => name.slice(0, 3))
 
 /**
  * A date implementation with timezone info, just like Ruby date
- *
- * Implementation:
- * - create a Date offset by it's timezone difference, avoiding overriding a bunch of methods
- * - rewrite getTimezoneOffset() to trick strftime
  */
 export class LiquidDate {
   private timezoneOffset: number
@@ -53,49 +49,58 @@ export class LiquidDate {
     this.timezoneOffset = isString(timezone) ? LiquidDate.getTimezoneOffset(timezone, this.date) : timezone
     this.timezoneName = isString(timezone) ? timezone : ''
 
-    const diff = (this.date.getTimezoneOffset() - this.timezoneOffset) * OneMinute
-    const time = this.date.getTime() + diff
-    this.displayDate = new Date(time)
+    if (this.timezoneFixed) {
+      this.displayDate = new Date(this.date.getTime() - this.timezoneOffset * OneMinute)
+    } else {
+      this.displayDate = new Date(0)
+      this.displayDate.setUTCFullYear(this.date.getFullYear(), this.date.getMonth(), this.date.getDate())
+      this.displayDate.setUTCHours(
+        this.date.getHours(),
+        this.date.getMinutes(),
+        this.date.getSeconds(),
+        this.date.getMilliseconds()
+      )
+    }
   }
 
   getTime() {
-    return this.displayDate.getTime()
+    return this.date.getTime()
   }
   getMilliseconds() {
-    return this.displayDate.getMilliseconds()
+    return this.displayDate.getUTCMilliseconds()
   }
   getSeconds() {
-    return this.displayDate.getSeconds()
+    return this.displayDate.getUTCSeconds()
   }
   getMinutes() {
-    return this.displayDate.getMinutes()
+    return this.displayDate.getUTCMinutes()
   }
   getHours() {
-    return this.displayDate.getHours()
+    return this.displayDate.getUTCHours()
   }
   getDay() {
-    return this.displayDate.getDay()
+    return this.displayDate.getUTCDay()
   }
   getDate() {
-    return this.displayDate.getDate()
+    return this.displayDate.getUTCDate()
   }
   getMonth() {
-    return this.displayDate.getMonth()
+    return this.displayDate.getUTCMonth()
   }
   getFullYear() {
-    return this.displayDate.getFullYear()
+    return this.displayDate.getUTCFullYear()
   }
   toLocaleString(locale?: string, init?: any) {
     if (init?.timeZone) {
       return this.date.toLocaleString(locale, init)
     }
-    return this.displayDate.toLocaleString(locale, init)
+    return this.displayDate.toLocaleString(locale, { ...init, timeZone: 'UTC' })
   }
   toLocaleTimeString(locale?: string) {
-    return this.displayDate.toLocaleTimeString(locale)
+    return this.displayDate.toLocaleTimeString(locale, { timeZone: 'UTC' })
   }
   toLocaleDateString(locale?: string) {
-    return this.displayDate.toLocaleDateString(locale)
+    return this.displayDate.toLocaleDateString(locale, { timeZone: 'UTC' })
   }
   getTimezoneOffset() {
     return this.timezoneOffset!
@@ -112,16 +117,18 @@ export class LiquidDate {
     return this.format({ month: 'short' }) ?? monthNamesShort[this.getMonth()]
   }
   getLongWeekdayName() {
-    return this.format({ weekday: 'long' }) ?? dayNames[this.displayDate.getDay()]
+    return this.format({ weekday: 'long' }) ?? dayNames[this.getDay()]
   }
   getShortWeekdayName() {
-    return this.format({ weekday: 'short' }) ?? dayNamesShort[this.displayDate.getDay()]
+    return this.format({ weekday: 'short' }) ?? dayNamesShort[this.getDay()]
   }
   valid() {
-    return !isNaN(this.getTime())
+    return !isNaN(this.displayDate.getTime())
   }
   private format(options: Intl.DateTimeFormatOptions) {
-    return this.DateTimeFormat && this.DateTimeFormat(this.locale, options).format(this.displayDate)
+    return (
+      this.DateTimeFormat && this.DateTimeFormat(this.locale, { ...options, timeZone: 'UTC' }).format(this.displayDate)
+    )
   }
 
   /**
@@ -131,11 +138,6 @@ export class LiquidDate {
    * will always be displayed as
    * - 2021-08-06 02:29:00
    * regardless timezoneOffset in JavaScript realm
-   *
-   * The implementation hack:
-   * Instead of calling `.getMonth()`/`.getUTCMonth()` respect to `preserveTimezones`,
-   * we create a different Date to trick strftime, it's both simpler and more performant.
-   * Given that a template is expected to be parsed fewer times than rendered.
    */
   static createDateFixedToTimezone(dateString: string, locale: string): LiquidDate {
     const m = dateString.match(TIMEZONE_PATTERN)
@@ -155,8 +157,8 @@ export class LiquidDate {
     const localDateString = date.toLocaleString('en-US', { timeZone: timezoneName })
     const utcDateString = date.toLocaleString('en-US', { timeZone: 'UTC' })
 
-    const localDate = new Date(localDateString)
-    const utcDate = new Date(utcDateString)
+    const localDate = new Date(`${localDateString} UTC`)
+    const utcDate = new Date(`${utcDateString} UTC`)
     return (+utcDate - +localDate) / (60 * 1000)
   }
 }

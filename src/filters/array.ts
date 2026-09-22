@@ -163,9 +163,12 @@ function* filter_exp<T extends object>(
   const array = toArray(arr)
   for (const item of array) {
     this.context.push({ [itemName]: item })
-    const value = yield keyTemplate.value(this.context)
-    this.context.pop()
-    if (value === include) filtered.push(item)
+    try {
+      const value = yield keyTemplate.value(this.context)
+      if (isTruthy(value, this.context) === include) filtered.push(item)
+    } finally {
+      this.context.pop()
+    }
   }
   return filtered
 }
@@ -229,10 +232,13 @@ export function* group_by_exp<T extends object>(
   arr = toEnumerable(arr)
   for (const item of arr) {
     this.context.push({ [itemName]: item })
-    const key = yield keyTemplate.value(this.context)
-    this.context.pop()
-    if (!map.has(key)) map.set(key, [])
-    map.get(key).push(item)
+    try {
+      const key = yield keyTemplate.value(this.context)
+      if (!map.has(key)) map.set(key, [])
+      map.get(key).push(item)
+    } finally {
+      this.context.pop()
+    }
   }
   return [...map.entries()].map(([name, items]) => ({ name, items }))
 }
@@ -262,9 +268,12 @@ function* search_exp<T extends object>(
   const array = toArray(arr)
   for (let index = 0; index < array.length; index++) {
     this.context.push({ [itemName]: array[index] })
-    const value = yield predicate.value(this.context)
-    this.context.pop()
-    if (value) return [index, array[index]]
+    try {
+      const value = yield predicate.value(this.context)
+      if (isTruthy(value, this.context)) return [index, array[index]]
+    } finally {
+      this.context.pop()
+    }
   }
 }
 

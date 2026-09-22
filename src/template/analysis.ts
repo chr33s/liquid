@@ -1,4 +1,4 @@
-import { Operation, associate, type OperationOptions } from '../util/operation'
+import { Operation, associate, existingOperation, type OperationOptions } from '../util/operation'
 import { Argument, Template, Value } from '.'
 import { isKeyValuePair } from '../parser/filter-arg'
 import { PropertyAccessToken, ValueToken } from '../tokens'
@@ -8,9 +8,10 @@ import {
   isQuotedToken,
   isRangeToken,
   isString,
+  isTagToken,
   isValueToken,
   isWordToken,
-  toPromise
+  drive
 } from '../util'
 
 /**
@@ -147,18 +148,14 @@ function* _analyze(
   const rootScope = new DummyScope(new Set())
 
   // Names of partial templates that we've already analyzed.
-  const seen: Set<string | undefined> = new Set()
+  const seen = new Set<string>()
 
   function updateVariables(variable: Variable, scope: DummyScope) {
     variables.push(variable)
     const aliased = scope.alias(variable)
 
     if (aliased !== undefined) {
-      const root = aliased.segments[0]
-      // TODO: What if a a template renders a rendered template? Do we need scope.parent?
-      if (isString(root) && !rootScope.has(root)) {
-        globals.push(aliased)
-      }
+      globals.push(aliased)
     } else {
       const root = variable.segments[0]
       if (isString(root) && !scope.has(root)) {
@@ -183,6 +180,8 @@ function* _analyze(
       }
     }
 
+    yield visitChildren(template, scope)
+
     if (template.localScope) {
       for (const ident of template.localScope()) {
         scope.add(ident.content)
@@ -191,7 +190,9 @@ function* _analyze(
         locals.push(new Variable([ident.content], { row, col, file: ident.file }))
       }
     }
+  }
 
+  function* visitChildren(template: Template, scope: DummyScope): Generator<unknown, void> {
     if (template.children) {
       if (template.partialScope) {
         const partial = template.partialScope()
@@ -204,10 +205,21 @@ function* _analyze(
           return
         }
 
-        if (seen.has(partial.name)) return
+        const key = JSON.stringify([
+          isTagToken(template.token) ? template.token.name : undefined,
+          partial.name,
+          /^\.{1,2}[/\\]/.test(partial.name) ? template.token.file : undefined
+        ])
+        if (seen.has(key)) {
+          for (const child of (yield template.children(false, options)) as Template[]) {
+            yield visit(child, scope)
+          }
+          return
+        }
+        seen.add(key)
 
         const partialScopeNames: Set<string> = new Set()
-        const partialScope = partial.isolated ? new DummyScope(partialScopeNames) : scope.push(partialScopeNames)
+        const aliases = new Map<string, VariableSegments>()
 
         for (const name of partial.scope) {
           if (isString(name)) {
@@ -217,14 +229,21 @@ function* _analyze(
             partialScopeNames.add(alias)
             const variables = Array.from(extractVariables(argument))
             if (variables.length) {
-              partialScope.setAlias(alias, variables[0].segments)
+              const variable = variables[0]
+              const aliased = scope.alias(variable)
+              const root = variable.segments[0]
+              if (aliased || (isString(root) && !scope.has(root))) {
+                aliases.set(alias, (aliased ?? variable).segments)
+              }
             }
           }
         }
 
+        const partialScope = partial.isolated ? new DummyScope(partialScopeNames) : scope.push(partialScopeNames)
+        for (const [alias, segments] of aliases) partialScope.setAlias(alias, segments)
+
         for (const child of (yield template.children(partials, options)) as Template[]) {
           yield visit(child, partialScope)
-          seen.add(partial.name)
         }
 
         partialScope.pop()
@@ -260,9 +279,18 @@ function* _analyze(
  */
 export async function analyze(template: Template[], options: StaticAnalysisOptions = {}): Promise<StaticAnalysis> {
   const opts = { ...defaultStaticAnalysisOptions, ...options } as Required<StaticAnalysisOptions>
-  const owner = new Operation(options.signal)
+  const active = existingOperation(options)
+  const owner = active ?? new Operation(options.signal)
   const owned = associate({ ...options, signal: owner.signal }, owner)
-  return toPromise(_analyze(template, opts.partials, owned), owned)
+  if (active) return owner.join(drive(_analyze(template, opts.partials, owned), owner))
+  try {
+    const result = await drive(_analyze(template, opts.partials, owned), owner)
+    owner.check()
+    return result
+  } finally {
+    await owner.drain()
+    owner.finish()
+  }
 }
 
 interface ScopeStackItem {
@@ -319,11 +347,12 @@ class DummyScope {
   }
 
   public deleteAlias(name: string): void {
-    this.stack[this.stack.length - 1].aliases.delete(name)
+    this.stack[0].aliases.delete(name)
   }
 
   private getAlias(name: string): VariableSegments | undefined {
-    for (const scope of this.stack) {
+    for (let index = this.stack.length - 1; index >= 0; index--) {
+      const scope = this.stack[index]
       if (scope.aliases.has(name)) {
         return scope.aliases.get(name)
       }
@@ -368,7 +397,14 @@ function* extractValueTokenVariables(token: ValueToken): Generator<Variable> {
     yield* extractValueTokenVariables(token.lhs)
     yield* extractValueTokenVariables(token.rhs)
   } else if (isPropertyAccessToken(token)) {
-    yield extractPropertyAccessVariable(token)
+    if (token.variable) {
+      yield* extractValueTokenVariables(token.variable)
+      for (const prop of token.props) {
+        if (isValueToken(prop)) yield* extractValueTokenVariables(prop)
+      }
+    } else {
+      yield extractPropertyAccessVariable(token)
+    }
   }
 }
 

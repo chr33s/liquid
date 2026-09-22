@@ -235,7 +235,9 @@ export function normalize(options: LiquidOptions): NormalizedFullOptions {
   if (options.templates) {
     options.fs = new MapFS(options.templates)
     options.relativeReference = true
-    options.root = options.partials = options.layouts = '.'
+    options.root = ['.']
+    options.partials = ['.']
+    options.layouts = ['.']
   }
   assert(
     isFunction(options.fs?.readFile) && isFunction(options.fs?.exists) && isFunction(options.fs?.resolve),

@@ -36,6 +36,7 @@ export async function drive<T>(
           try {
             input = await (cleanup ? input : owner.wait(input))
             if (!cleanup) owner.check()
+            continue
           } catch (error) {
             if (!cleanup && owner.signal.aborted) throw owner.signal.reason
             input = error

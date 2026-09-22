@@ -15,13 +15,9 @@ export async function sha256(str: string): Promise<string> {
 
 export async function hmacSha256(str: string, key: string): Promise<string> {
   const encoder = new TextEncoder()
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(key),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
+  // HMAC pads SHA-256 keys to 64 bytes; WebCrypto rejects zero-length keys.
+  const keyBytes = key ? encoder.encode(key) : new Uint8Array(64)
+  const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
   const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(str))
   return bufferToHex(signature)
 }

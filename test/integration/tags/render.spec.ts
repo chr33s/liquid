@@ -178,11 +178,19 @@ describe('tags/render', function () {
   it('should support for without as', async function () {
     mock({
       '/index.html': '{% render "item" for colors %}',
-      '/item.html': '{{forloop.index}}: {{color}}\n'
+      '/item.html': '{{forloop.index}}: {{item}}\n'
     })
     const html = await liquid.renderFile('index.html', { colors: ['red', 'green'] })
-    expect(html).toBe('1: \n2: \n')
+    expect(html).toBe('1: red\n2: green\n')
   })
+  it.each(['"forloop" for (1..2)', '"item" for (1..2) as forloop'])(
+    'should preserve loop metadata when the item binding collides: %s',
+    async binding => {
+      const partial = '{{ forloop.index }}/{{ forloop.length }};'
+      const engine = new Liquid({ templates: { forloop: partial, item: partial } })
+      expect(await engine.parseAndRender(`{% render ${binding} %}`)).toBe('1/2;2/2;')
+    }
+  )
   it('should support for...as with other parameters', async function () {
     mock({
       '/index.html': '{% render "item" for colors as color with ".\n" as tail sep: ". "%}',

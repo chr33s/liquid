@@ -22,6 +22,8 @@ describe('filters/html', function () {
   describe('escape_once', function () {
     it('should do escape', () => test('{{ "1 < 2 & 3" | escape_once }}', '1 &lt; 2 &amp; 3'))
     it('should not escape twice', () => test('{{ "1 &lt; 2 &amp; 3" | escape_once }}', '1 &lt; 2 &amp; 3'))
+    it('should preserve named and decimal entities while escaping bare characters', () =>
+      test('{{ "&quot; &#160; &copy; < & &missing" | escape_once }}', '&quot; &#160; &copy; &lt; &amp; &amp;missing'))
     it('should escape nil value to empty string', () => test('{{ undefinedValue | escape_once }}', ''))
   })
   describe('xml_escape', function () {

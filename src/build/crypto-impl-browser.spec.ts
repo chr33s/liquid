@@ -1,4 +1,4 @@
-import { webcrypto } from 'crypto'
+import { createHmac, webcrypto } from 'crypto'
 import * as cryptoImpl from './crypto-impl-browser'
 
 describe('crypto-impl/browser', function () {
@@ -33,6 +33,9 @@ describe('crypto-impl/browser', function () {
   })
 
   describe('#hmacSha256()', function () {
+    it('should match Node for an empty key', async function () {
+      expect(await cryptoImpl.hmacSha256('message', '')).toBe(createHmac('sha256', '').update('message').digest('hex'))
+    })
     it('should hash the Shopify reference example', async function () {
       expect(await cryptoImpl.hmacSha256('Polyjuice', 'Polina')).toBe(
         '8e0d5d65cff1242a4af66c8f4a32854fd5fb80edcc8aabe9b302b29c7c71dc20'

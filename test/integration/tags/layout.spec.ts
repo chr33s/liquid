@@ -11,6 +11,16 @@ describe('tags/layout', function () {
   })
   afterEach(restore)
 
+  it.each(['constructor', 'toString', '__proto__'])('should render block named %s', async name => {
+    const block = `{% block ${name} %}body{% endblock %}`
+    const engine = new Liquid({ templates: { parent: block, partial: block } })
+    expect(await engine.parseAndRender(block)).toBe('body')
+    expect(await engine.parseAndRender('{% include "partial" %}')).toBe('body')
+    expect(
+      await engine.parseAndRender(`{% layout "parent" %}{% block ${name} %}override {{ block.super }}{% endblock %}`)
+    ).toBe('override body')
+  })
+
   it('should throw when block not closed', function () {
     mock({
       '/parent.html': 'parent'

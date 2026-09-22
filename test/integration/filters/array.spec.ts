@@ -2,6 +2,16 @@ import { test, render } from '../../stub/render'
 import { Liquid } from '../../../src/liquid'
 describe('filters/array', function () {
   const engine = new Liquid()
+  it.each([false, true])('uses configured truthiness in expression filters (jsTruthy: %s)', async jsTruthy => {
+    const liquid = new Liquid({ jsTruthy })
+    const items = [null, false, 0, '', 'match']
+    const evaluate = (filter: string) => liquid.evalValue(`items | ${filter}: "item", "item"`, { items })
+    expect(await evaluate('where_exp')).toEqual(jsTruthy ? ['match'] : [0, '', 'match'])
+    expect(await evaluate('reject_exp')).toEqual(jsTruthy ? [null, false, 0, ''] : [null, false])
+    expect(await evaluate('find_exp')).toBe(jsTruthy ? 'match' : 0)
+    expect(await evaluate('find_index_exp')).toBe(jsTruthy ? 4 : 2)
+    expect(await liquid.evalValue('items | has_exp: "item", "item"', { items: [0] })).toBe(!jsTruthy)
+  })
   describe('index', function () {
     it('should support index', function () {
       const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' + '{{ beatles[1] }}'
