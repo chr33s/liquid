@@ -2,7 +2,7 @@ import { Operation, associate, operationFor, type OperationOptions } from './uti
 import { drive as execute } from './util/async'
 import { StreamedEmitter, type Emitter } from './emitters'
 import { Context } from './context'
-import { forOwn, isString, strictUniq } from './util'
+import { forOwn, isString, strictUniq, LiquidError, inlineErrorMessage } from './util'
 import {
   TagClass,
   FilterImplOptions,
@@ -16,8 +16,10 @@ import {
 import { LookupType } from './fs/loader'
 import { Render } from './render'
 import { Parser } from './parser'
-import { tags } from './tags'
+import { tags, hostedTags } from './tags'
 import { filters } from './filters'
+import { hostedFilters } from './filters/hosted'
+import { isHosted, renderThemeTemplates } from './theme'
 import {
   LiquidOptions,
   normalizeDirectoryList,
@@ -38,6 +40,10 @@ export class Liquid {
   public readonly parser: Parser
   public readonly filters: Record<string, FilterImplOptions> = Object.create(null)
   public readonly tags: Record<string, TagClass> = Object.create(null)
+  /**
+   * Syntax warnings collected while parsing under `errorMode: "warn"`.
+   */
+  public readonly warnings: string[] = []
 
   public constructor(opts: LiquidOptions = {}) {
     this.options = normalize(opts)
@@ -45,6 +51,10 @@ export class Liquid {
     this.parser = new Parser(this)
     forOwn(tags, (conf: TagClass, name: string) => this.registerTag(name, conf))
     forOwn(filters, (handler: FilterImplOptions, name: string) => this.registerFilter(name, handler))
+    if (isHosted(this.options.profile)) {
+      forOwn(hostedTags, (conf: TagClass, name: string) => this.registerTag(name, conf))
+      forOwn(hostedFilters, (handler: FilterImplOptions, name: string) => this.registerFilter(name, handler))
+    }
   }
   public parse(html: string, filepath?: string): Template[] {
     const parser = new Parser(this)
@@ -64,7 +74,14 @@ export class Liquid {
     ctx.operation = operationFor(renderOptions)
     try {
       if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
-      return yield this.renderer.renderTemplates(tpl, ctx, emitter)
+      return yield renderThemeTemplates(this, tpl, ctx, emitter)
+    } catch (e) {
+      ctx.operation.check()
+      if (ctx.renderErrors !== 'inline' || !LiquidError.is(e)) throw e
+      ctx.onError?.(e)
+      const message = inlineErrorMessage(e)
+      if (emitter) yield emitter.write(message)
+      return message
     } finally {
       ctx.operation = previous
       ctx.operationActive = wasActive
@@ -86,16 +103,25 @@ export class Liquid {
     return this.run(renderOptions, options => this._parseAndRender(html, scope, options))
   }
 
-  public _parsePartialFile(file: string, currentFile?: string, options?: OperationOptions) {
+  public _parsePartialFile(file: string, currentFile?: string, options?: OperationOptions & { tenant?: string }) {
     return new Parser(this).parseFile(file, LookupType.Partials, currentFile, options)
   }
-  public _parseLayoutFile(file: string, currentFile?: string, options?: OperationOptions) {
+  public _parseLayoutFile(file: string, currentFile?: string, options?: OperationOptions & { tenant?: string }) {
     return new Parser(this).parseFile(file, LookupType.Layouts, currentFile, options)
   }
-  public _parseFile(file: string, lookupType?: LookupType, currentFile?: string, options?: OperationOptions) {
+  public _parseFile(
+    file: string,
+    lookupType?: LookupType,
+    currentFile?: string,
+    options?: OperationOptions & { tenant?: string }
+  ) {
     return new Parser(this).parseFile(file, lookupType, currentFile, options)
   }
-  public async parseFile(file: string, lookupType?: LookupType, options?: OperationOptions): Promise<Template[]> {
+  public async parseFile(
+    file: string,
+    lookupType?: LookupType,
+    options?: OperationOptions & { tenant?: string }
+  ): Promise<Template[]> {
     return this.run(options, options => this._parseFile(file, lookupType, undefined, options))
   }
   public *_renderFile(
@@ -107,7 +133,7 @@ export class Liquid {
       file,
       renderFileOptions.lookupType,
       undefined,
-      renderFileOptions
+      associate({ ...renderFileOptions, tenant: renderFileOptions.theme?.tenant }, operationFor(renderFileOptions))
     )) as Template[]
     return yield this._render(templates, ctx, renderFileOptions)
   }
@@ -199,7 +225,12 @@ export class Liquid {
     try {
       owner.check()
       const templates = await execute(
-        this._parseFile(file, options.lookupType, undefined, associate({ ...options, signal: owner.signal }, owner)),
+        this._parseFile(
+          file,
+          options.lookupType,
+          undefined,
+          associate({ ...options, signal: owner.signal, tenant: options.theme?.tenant }, owner)
+        ),
         owner
       )
       return this.stream(templates, scope, options, owner)

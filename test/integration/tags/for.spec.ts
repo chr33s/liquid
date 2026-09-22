@@ -55,22 +55,25 @@ describe('tags/for', function () {
   })
   it('should not report undefined variable on null value', async function () {
     const engine = new Liquid({ strictVariables: true })
-    const src = '{% assign hello = "hello,world" | split: "," | concat: null %}{% for i in hello %}{{ i }},{% endfor %}'
+    const src = '{% assign hello = "hello,world" | split: "," %}{% for i in hello %}{{ i }},{% endfor %}'
     const html = await engine.parseAndRender(src, scope)
     return expect(html).toBe('hello,world,')
   })
   describe('illegal', function () {
     it('should reject when for not closed', function () {
       const src = '{%for c in alpha%}{{c}}'
-      return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(/tag .* not closed/)
+      return expect(liquid.parseAndRender(src, scope)).rejects.toThrow("'for' tag was never closed")
     })
     it('should reject when for in not found', function () {
       const src = '{%for c alpha%}{{c}}'
-      return expect(liquid.parseAndRender(src, scope)).rejects.toThrow('illegal tag: {%for c alpha%}, line:1, col:1')
+      return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(
+        "Syntax Error in 'for loop' - Valid syntax: for [item] in [collection], line:1, col:1"
+      )
     })
-    it('should throw for additional args', function () {
-      const src = "{% for f in foo %} foo {% else foo = 'blah' %} {% endfor %}"
-      return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(`unexpected "foo = 'blah'", line:1, col:1`)
+
+    it('ignores arguments after else and endfor, as the reference does', async function () {
+      const src = "{% for f in emptyArray %}a{% else foo = 'blah' %}b{% endfor x %}"
+      expect(await liquid.parseAndRender(src, scope)).toBe('b')
     })
   })
   describe('else', function () {

@@ -15,3 +15,15 @@ Output
 ```text
 Take your protein pills and put your helmet on
 ```
+
+The replacement reads Ruby's backslash escapes: `\0` and `\&` insert the matched text, `` \` `` and `\'` the text before and after the match, and `\\` a single backslash.
+
+Input
+```liquid
+{{ "abc" | replace: "b", "[\0]" }}
+```
+
+Output
+```text
+a[b]c
+```

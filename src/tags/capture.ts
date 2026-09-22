@@ -4,12 +4,13 @@ import { IdentifierToken, QuotedToken } from '../tokens'
 import { isTagToken } from '../util'
 
 export default class extends Tag {
+  public readonly blank = true
   identifier: IdentifierToken | QuotedToken
   variable: string
   templates: Template[] = []
   constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
-    this.identifier = this.readVariable()
+    this.identifier = (tagToken.parsed as IdentifierToken | undefined) ?? this.readVariable()
     this.variable = this.identifier.content
 
     while (remainTokens.length) {
@@ -17,7 +18,7 @@ export default class extends Tag {
       if (isTagToken(token) && token.name === 'endcapture') return
       this.templates.push(parser.parseToken(token, remainTokens))
     }
-    throw new Error(`tag ${tagToken.getText()} not closed`)
+    throw new Error(`'${tagToken.name}' tag was never closed`)
   }
 
   private readVariable(): IdentifierToken | QuotedToken {
@@ -31,7 +32,7 @@ export default class extends Tag {
   *render(ctx: Context): Generator<unknown, void, string> {
     const r = this.liquid.renderer
     const html = yield r.renderTemplates(this.templates, ctx)
-    ctx.bottom()[this.variable] = html
+    ctx.setBottom(this.variable, html)
   }
 
   public *children(): Generator<unknown, Template[]> {

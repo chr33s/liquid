@@ -8,9 +8,12 @@ The `date` filter is used to convert a timestamp into the specified format.
 * LiquidJS tries to conform to Shopify/Liquid, which uses Ruby's core [Time#strftime(string)](https://www.ruby-doc.org/core/Time.md). There are differences with [Ruby's format flags](https://ruby-doc.org/core/strftime_formatting_rdoc.md):
   * `%Z` (since v10.11.1) is replaced by the passed-in timezone name from `LiquidOption` or in-place value (see TimeZone below). If passed-in timezone is an offset number instead of string, it'll behave like `%z`. If there's none passed-in timezone, it returns [the runtime's default time zone](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/resolvedOptions#timezone).
   * LiquidJS provides an additional `%q` flag for date ordinals. e.g. `{{ '2023/02/02' | date: '%d%q of %b'}}` => `02nd of Feb`
+  * `%c`, `%x` and `%X` use Ruby's fixed formats rather than the runtime locale: `%c` is `%a %b %e %H:%M:%S %Y` (`Mon Jun 15 14:30:00 2020`), `%x` is `%m/%d/%y` and `%X` is `%H:%M:%S`.
+  * The combined formats `%D`, `%F`, `%R`, `%T`, `%r` and `%v`, and the ISO 8601 week codes `%V`, `%G` and `%g`, are supported.
 * Date literals are first converted to a `Date` object via [new Date()][jsDate], which means literal values are considered in the runtime's time zone by default.
 * The format filter argument is optional:
     * If not provided, it defaults to `%A, %B %-e, %Y at %-l:%M %P %z`.
+    * An explicit `nil` or empty format returns the input unchanged.
     * The above default can be overridden by {@link LiquidOptions.dateFormat | `dateFormat`} LiquidJS option.
 * LiquidJS `date` supports locale specific weekdays and month names, which will fallback to English where `Intl` is not supported.
     * Ordinals (`%q`) and Jekyll specific date filters are English-only.
@@ -34,6 +37,7 @@ The `date` filter is used to convert a timestamp into the specified format.
             * minutes: `-360` means `'+06:00'` and `360` means `'-06:00'`
             * timeZone ID: `Asia/Colombo` or `America/New_York`
     * See [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for TZ database values
+* A date string with its own offset, like `2020-06-15 14:30:00 -0400`, keeps that offset unless `timezoneOffset` or an in-place timezone is set, as in the reference engine. See {@link LiquidOptions.preserveTimezones | `preserveTimezones`}.
 
 ### Examples
 ```liquid
@@ -54,7 +58,7 @@ The `date` filter is used to convert a timestamp into the specified format.
 
 
 # Current Date
-* To get the current time, pass the special word `"now"` or `"today"` as input
+* To get the current time, pass the special word `"now"` or `"today"` as input, in any letter case
 * Note that the value will be the current time of when the page was last generated from the template, not when the page is presented to a user if caching or static site generation is involved
 
 ### Example

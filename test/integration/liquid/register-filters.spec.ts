@@ -31,6 +31,7 @@ describe('liquid#registerFilter()', function () {
       liquid.registerFilter('get_user_data', function (userId) {
         return Promise.resolve({ userId, userName: userId.toUpperCase() })
       })
+      liquid.registerFilter('json', (v: unknown) => JSON.stringify(v))
       const src = `{{ userId | get_user_data | json }}`
       const dst = '{"userId":"alice","userName":"ALICE"}'
       const html = await liquid.parseAndRender(src, { userId: 'alice' })

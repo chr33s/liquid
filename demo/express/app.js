@@ -1,11 +1,13 @@
 const express = require('express')
-const { Liquid } = require('@chr33s/liquid')
+const { Liquid, LayoutTag } = require('@chr33s/liquid')
 
 const app = express()
 const engine = new Liquid({
   root: __dirname, // for layouts and partials
   extname: '.liquid'
 })
+// `layout` belongs to the hosted dialect; a core engine registers it itself
+engine.registerTag('layout', LayoutTag)
 
 app.engine('liquid', engine.express()) // register liquid engine
 app.set('views', ['./partials', './views']) // specify the views directory

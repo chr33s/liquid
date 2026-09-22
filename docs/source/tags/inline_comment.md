@@ -36,6 +36,8 @@ Inline comments are useful inside <a href="./liquid.md">`liquid`</a> tags too.
 %}
 ```
 
+A line in a multi-line inline comment that does not start with `#` raises `Syntax error in tag '#' - Each line of comments must be prefixed by the '#' character`.
+
 But they don't work well for commenting out blocks of Liquid code. The <a href="./comment.md">`comment`</a> block tag is the better option when you need to temporarily stop other tags from being executed.
 
 Input

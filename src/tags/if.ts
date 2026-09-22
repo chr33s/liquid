@@ -1,7 +1,7 @@
 import { Liquid, Tag, Value, Emitter, isTruthy, TagToken, TopLevelToken, Context, Template } from '..'
-import { Parser } from '../parser'
-import { Arguments } from '../template'
-import { assert, assertEmpty } from '../util'
+import { Parser, assertConsumed } from '../parser'
+import type { ParsedMarkup } from '../parser/strict2'
+import { Arguments, blankBodies, LaxCondition } from '../template'
 
 export default class extends Tag {
   branches: { value: Value; templates: Template[] }[] = []
@@ -14,32 +14,30 @@ export default class extends Tag {
       .parseStream(remainTokens)
       .on('start', () =>
         this.branches.push({
-          value: new Value(tagToken.tokenizer.readFilteredValue(), this.liquid),
+          value: readCondition(tagToken, this.liquid),
           templates: (p = [])
         })
       )
+      // an else always holds, so what follows the first one is parsed but never reached
       .on('tag:elsif', (token: TagToken) => {
-        assert(!this.elseTemplates, 'unexpected elsif after else')
-        this.branches.push({
-          value: new Value(token.tokenizer.readFilteredValue(), this.liquid),
-          templates: (p = [])
-        })
+        const branch = { value: readCondition(token, this.liquid), templates: (p = []) }
+        if (!this.elseTemplates) this.branches.push(branch)
       })
-      .on<TagToken>('tag:else', tag => {
-        assertEmpty(tag.args)
-        assert(!this.elseTemplates, 'duplicated else')
-        p = this.elseTemplates = []
+      .on<TagToken>('tag:else', () => {
+        p = []
+        if (!this.elseTemplates) this.elseTemplates = p
       })
-      .on<TagToken>('tag:endif', function (tag) {
-        assertEmpty(tag.args)
+      .on<TagToken>('tag:endif', function () {
         this.stop()
       })
       .on('template', (tpl: Template) => p.push(tpl))
       .on('end', () => {
-        throw new Error(`tag ${tagToken.getText()} not closed`)
+        throw new Error(`'${tagToken.name}' tag was never closed`)
       })
       .start()
+    this.blank = blankBodies([...this.branches.map(branch => branch.templates), this.elseTemplates ?? []], true)
   }
+  public readonly blank: boolean;
 
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, string> {
     const r = this.liquid.renderer
@@ -65,4 +63,12 @@ export default class extends Tag {
   public arguments(): Arguments {
     return this.branches.map(b => b.value)
   }
+}
+
+function readCondition(token: TagToken, liquid: Liquid): Value {
+  if (token.laxCondition) return new LaxCondition(token.laxCondition, liquid)
+  if (token.parsed) return new Value(token.parsed as ParsedMarkup<'if'>, liquid)
+  const value = new Value(token.tokenizer.readFilteredValue(), liquid)
+  assertConsumed(token.tokenizer, liquid, value)
+  return value
 }

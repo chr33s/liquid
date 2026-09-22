@@ -55,7 +55,7 @@ describe('LiquidOptions#trimming', function () {
       const engine = new Liquid()
       const src = [
         '{%- assign username = "John G. Chalmers-Smith" -%}',
-        '{%- if username and username.length > 10 -%}',
+        '{%- if username and username.size > 10 -%}',
         '  Wow, {{ username }}, you have a long name!',
         '{%- else -%}',
         '  Hello there!',
@@ -69,7 +69,7 @@ describe('LiquidOptions#trimming', function () {
       const engine = new Liquid()
       const src = [
         '{% assign username = "John G. Chalmers-Smith" %}',
-        '{% if username and username.length > 10 %}',
+        '{% if username and username.size > 10 %}',
         '  Wow, {{ username }}, you have a long name!',
         '{% else %}',
         '  Hello there!',

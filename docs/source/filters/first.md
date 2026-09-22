@@ -35,3 +35,5 @@ You can use `first` with dot notation when you need to use the filter inside a t
   Here comes a zebra!
 {% endif %}
 ```
+
+On a hash, `first` returns the first entry as a `[key, value]` pair, and so does `hash.first` unless the hash has a key named `first`. On a string, both return the first character.

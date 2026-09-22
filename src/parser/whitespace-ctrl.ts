@@ -4,12 +4,13 @@ import { isTagToken, isHTMLToken, isDelimitedToken, TYPES, INLINE_BLANK, BLANK }
 
 export function whiteSpaceCtrl(tokens: Token[], options: NormalizedFullOptions) {
   let inRaw = false
+  const keepFirst = options.bugCompatibleWhitespaceTrimming
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
     if (!isDelimitedToken(token)) continue
     if (!inRaw && token.trimLeft) {
-      trimLeft(tokens[i - 1], options.greedy)
+      trimLeft(tokens[i - 1], options.greedy, keepFirst)
     }
 
     if (isTagToken(token)) {
@@ -23,11 +24,15 @@ export function whiteSpaceCtrl(tokens: Token[], options: NormalizedFullOptions) 
   }
 }
 
-function trimLeft(token: Token, greedy: boolean) {
+/** With `keepFirst`, text the trim empties keeps its first character. */
+function trimLeft(token: Token, greedy: boolean, keepFirst = false) {
   if (!token || !isHTMLToken(token)) return
 
+  const size = token.end - token.begin
+  const kept = size - token.trimLeft - token.trimRight
   const mask = greedy ? BLANK : INLINE_BLANK
   while (TYPES[token.input.charCodeAt(token.end - 1 - token.trimRight)] & mask) token.trimRight++
+  if (keepFirst && kept > 0 && token.trimLeft + token.trimRight >= size) token.trimRight = size - token.trimLeft - 1
 }
 
 function trimRight(token: Token, greedy: boolean) {

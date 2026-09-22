@@ -25,3 +25,5 @@ This would be the equivalent of doing the following:
   These shoes are not awesome.
 {% endif %}
 ```
+
+`unless` accepts `elsif` and `else` like [if](./if.md), and likewise renders only the first `else`.

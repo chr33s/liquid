@@ -8,30 +8,62 @@ import {
   isArray,
   isNil,
   isArrayLike,
+  isNumber,
+  isObject,
   readArrayElement,
-  toEnumerable
+  inputIterator,
+  toNumber,
+  isPlainObject,
+  toInteger
 } from '../util'
-import { arrayIncludes, equals, evalToken, isTruthy } from '../render'
-import { Value, FilterImpl } from '../template'
-import { Tokenizer } from '../parser'
+import { plus } from './math'
+import { FloatDrop, isDecimal } from '../drop/float-drop'
+import { equals, isTruthy } from '../render'
+import { assert, isString, LiquidRange } from '../util'
+import { FilterImpl } from '../template'
 import type { Scope } from '../context'
-import { EmptyDrop } from '../drop'
 
-export const join = argumentsToValue(function (this: FilterImpl, v: any[], arg: string) {
-  const array = toArray(v)
-  const sep = isNil(arg) ? ' ' : stringify(arg)
-  return Array.prototype.join.call(array, sep)
-})
+/**
+ * Standard property filters take a literal key: `a.b` names the key "a.b",
+ * not a nested lookup.
+ */
+function* readProperty(this: FilterImpl, item: unknown, property: unknown): IterableIterator<unknown> {
+  const key = toValue(property)
+  // as the reference's `Integer#[]` and `Array#[]`, a name cannot index an integer or an array
+  const indexed = toValue(item)
+  const indexable = isArray(indexed) || typeof indexed === 'bigint' || (isNumber(indexed) && !isDecimal(item))
+  assert(!indexable || isNumber(key), () => `cannot select the property '${stringify(property)}'`)
+  // as in the reference's `String#[]`: an index reads a character, a string reads itself if contained
+  const value = toValue(item)
+  if (isString(value)) {
+    // `String#[]` takes no nil
+    assert(!isNil(key), () => `cannot select the property '${stringify(property)}'`)
+    if (isNumber(key)) return value.charAt(key < 0 ? value.length + key : key) || undefined
+    return value.includes(stringify(key)) ? stringify(key) : undefined
+  }
+  return yield this.context.readProperty(item as Scope, stringify(key))
+}
+
+export function join(this: FilterImpl, v: any[], ...args: unknown[]) {
+  // an omitted glue is a space, an explicit nil one is empty
+  const sep = args.length ? stringify(args[0]) : ' '
+  return inputIterator(v)
+    .map(item => stringify(item))
+    .join(sep)
+}
 export const last = argumentsToValue(function (this: FilterImpl, v: any) {
+  if (v instanceof LiquidRange) return v.last
   return isArrayLike(v) ? readArrayElement(v, -1, this.context.ownPropertyOnly) : ''
 })
 export const first = argumentsToValue(function (this: FilterImpl, v: any) {
+  if (v instanceof LiquidRange) return v.first
+  // a hash answers its first entry as a `[key, value]` pair
+  if (isPlainObject(v)) return Object.entries(v)[0] ?? ''
   return isArrayLike(v) ? readArrayElement(v, 0, this.context.ownPropertyOnly) : ''
 })
-export const reverse = argumentsToValue(function (this: FilterImpl, v: any[]) {
-  const array = toArray(v)
-  return [...array].reverse()
-})
+export function reverse(this: FilterImpl, v: any[]) {
+  return inputIterator(v).reverse()
+}
 
 function* sortBy<T>(
   this: FilterImpl,
@@ -40,98 +72,113 @@ function* sortBy<T>(
   comparator: (a: unknown, b: unknown) => number
 ): IterableIterator<unknown> {
   const values: [T, unknown][] = []
-  const array = toArray(arr)
+  const array = inputIterator<T>(arr)
   for (const item of array) {
-    values.push([item, property ? yield this.context._getFromScope(item, stringify(property).split('.'), false) : item])
+    values.push([item, isNil(toValue(property)) ? item : yield* readProperty.call(this, item, property)])
   }
-  return values.sort((lhs, rhs) => comparator(lhs[1], rhs[1])).map(tuple => tuple[0])
+  return values.sort((lhs, rhs) => comparator(toValue(lhs[1]), toValue(rhs[1]))).map(tuple => tuple[0])
 }
 
 export function* sort<T>(this: FilterImpl, arr: T[], property?: string): IterableIterator<unknown> {
-  return yield* sortBy.call(this, arr, property, orderedCompare)
+  return yield* sortBy.call(this, arr, property, referenceCompare)
 }
 
 export function* sort_natural<T>(this: FilterImpl, arr: T[], property?: string): IterableIterator<unknown> {
-  return yield* sortBy.call(this, arr, property, caseInsensitiveCompare)
+  return yield* sortBy.call(this, arr, property, (a, b) =>
+    caseInsensitiveCompare(isNil(a) ? a : stringify(a), isNil(b) ? b : stringify(b))
+  )
 }
 
-export const size = (v: string | any[]) => v?.length || 0
+/** The reference's `<=>`: numbers with numbers, strings with strings, nil last; anything else cannot be ordered. */
+function referenceCompare(a: unknown, b: unknown): number {
+  if (isNil(a) || isNil(b)) return orderedCompare(a, b)
+  if (
+    ((isNumber(a) || typeof a === 'bigint') && (isNumber(b) || typeof b === 'bigint')) ||
+    (isString(a) && isString(b))
+  )
+    return orderedCompare(a, b)
+  assert(a === b, 'cannot sort values of incompatible types')
+  return 0
+}
+
+export function size(this: FilterImpl, v: any) {
+  if (v instanceof FloatDrop) return 0
+  v = toValue(v)
+  if (isNil(v)) return 0
+  if (isString(v)) return [...v].length
+  if (isArray(v)) return v.length
+  if (v instanceof LiquidRange) return v.length
+  if (v instanceof Map || v instanceof Set) return v.size
+  if (isObject(v)) return Object.keys(v).length
+  // an integer answers its byte size, as in the reference; a float has no size
+  if (isNumber(v)) return Number.isInteger(v) ? 8 : 0
+  return 0
+}
 
 export function* map(this: FilterImpl, arr: Scope[], property: string): IterableIterator<unknown> {
   const results = []
-  const array = toArray(arr)
-  for (const item of array) {
-    results.push(yield this.context._getFromScope(item, stringify(property), false))
+  for (const item of inputIterator(arr)) {
+    results.push(yield* readProperty.call(this, item, property))
   }
   return results
 }
 
 export function* sum(this: FilterImpl, arr: Scope[], property?: string): IterableIterator<unknown> {
-  let sum = 0
-  const array = toArray(arr)
-  for (const item of array) {
-    const data = Number(property ? yield this.context._getFromScope(item, stringify(property), false) : item)
-    sum += Number.isNaN(data) ? 0 : data
+  let sum: unknown = 0
+  for (const item of inputIterator(arr)) {
+    const raw = isNil(toValue(property)) ? item : yield* readProperty.call(this, item, property)
+    const value = toValue(raw)
+    sum = plus(
+      sum,
+      isNumber(value) || isString(value) || typeof value === 'bigint' || raw instanceof FloatDrop ? raw : 0
+    )
   }
   return sum
 }
 
-export function compact<T>(this: FilterImpl, arr: T[]) {
-  const array = toArray(arr)
-  return Array.prototype.filter.call(array, x => !isNil(toValue(x)))
+export function* compact<T>(this: FilterImpl, arr: T[], property?: string): IterableIterator<unknown> {
+  const array = inputIterator<T>(arr)
+  if (isNil(toValue(property))) return array.filter(x => !isNil(toValue(x)))
+  const kept: T[] = []
+  for (const item of array) {
+    if (!isNil(toValue(yield* readProperty.call(this, item, property)))) kept.push(item)
+  }
+  return kept
 }
 
 export function concat<T1, T2>(this: FilterImpl, v: T1[], arg: T2[] = []): (T1 | T2)[] {
-  const lhs = toArray(v)
-  const rhs = toArray(arg)
-  return Array.prototype.concat.call(lhs, rhs)
-}
-
-export function push<T>(this: FilterImpl, v: T[], arg: T): T[] {
-  return concat.call(this, v, [arg]) as T[]
-}
-
-export function unshift<T>(this: FilterImpl, v: T[], arg: T): T[] {
-  const array = toArray(v)
-  const clone = [...array]
-  clone.unshift(arg)
-  return clone
-}
-
-export function pop<T>(this: FilterImpl, v: T[]): T[] {
-  const array = toArray(v)
-  const clone = [...array]
-  clone.pop()
-  return clone
-}
-
-export function shift<T>(this: FilterImpl, v: T[]): T[] {
-  const array = toArray(v)
-  const clone = [...array]
-  clone.shift()
-  return clone
+  const rhs = toValue(arg)
+  assert(isArray(rhs) || rhs instanceof LiquidRange, 'concat filter requires an array argument')
+  return [...inputIterator<T1>(v), ...inputIterator<T2>(rhs)]
 }
 
 export function slice<T>(this: FilterImpl, v: T[] | string, begin: number, length = 1): T[] | string {
-  v = toValue(v)
-  if (isNil(v)) return []
-  if (!isArray(v)) v = stringify(v)
-  begin = begin < 0 ? v.length + begin : begin
-  if (begin < 0 || length < 0) return isArray(v) ? [] : ''
-  return isArray(v)
-    ? Array.prototype.slice.call(v, begin, begin + length)
-    : String.prototype.slice.call(v, begin, begin + length)
+  // a float is sliced as the text it prints, `0.0` rather than `0`
+  v = v instanceof FloatDrop ? String(v) : toValue(v)
+  assert(!isNil(toValue(begin)), 'invalid integer')
+  begin = toStrictInteger(begin)
+  length = isNil(toValue(length)) ? 1 : toStrictInteger(length)
+  if (isNil(v)) return ''
+  // a range is not an array to the reference: it is sliced as the text it prints
+  if (v instanceof LiquidRange) v = String(v)
+  const wasArray = isArray(v)
+  const chars: any[] = wasArray ? (v as any[]) : [...stringify(v)]
+  begin = begin < 0 ? chars.length + begin : begin
+  if (begin < 0 || length < 0) return wasArray ? [] : ''
+  const part = chars.slice(begin, begin + length)
+  return wasArray ? (part as T[]) : part.join('')
+}
+
+/** Whether an item answers `[]`, as the reference asks: a boolean, nil or float does not, and ends the filter with nil. */
+function indexable(item: unknown): boolean {
+  const value = toValue(item)
+  return !isNil(value) && typeof value !== 'boolean' && !(isNumber(value) && isDecimal(item))
 }
 
 function expectedMatcher(this: FilterImpl, expected: any): (v: any) => boolean {
-  if (this.context.opts.jekyllWhere) {
-    return (v: any) =>
-      EmptyDrop.is(expected) ? equals(v, expected) : isArray(v) ? arrayIncludes(v, expected) : equals(v, expected)
-  } else if (expected === undefined) {
-    return (v: any) => isTruthy(v, this.context)
-  } else {
-    return (v: any) => equals(v, expected)
-  }
+  // as the reference, a nil target selects by truthiness, as an omitted one does
+  if (isNil(toValue(expected))) return (v: any) => isTruthy(v, this.context)
+  return (v: any) => equals(v, expected)
 }
 
 function* filter<T extends object>(
@@ -142,32 +189,13 @@ function* filter<T extends object>(
   expected: any
 ): IterableIterator<unknown> {
   const values: unknown[] = []
-  arr = toArray(arr)
-  const token = new Tokenizer(stringify(property)).readScopeValue()
-  for (const item of arr) {
-    values.push(yield evalToken(token, this.context.spawn(item)))
+  const array = inputIterator<T>(arr)
+  for (const item of array) {
+    if (!indexable(item)) return undefined
+    values.push(yield* readProperty.call(this, item, property))
   }
   const matcher = expectedMatcher.call(this, expected)
-  return Array.prototype.filter.call(arr, (_, i) => matcher(values[i]) === include)
-}
-
-function* filter_exp<T extends object>(
-  this: FilterImpl,
-  include: boolean,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  const filtered: unknown[] = []
-  const keyTemplate = new Value(stringify(exp), this.liquid)
-  const array = toArray(arr)
-  for (const item of array) {
-    this.context.push({ [itemName]: item })
-    const value = yield keyTemplate.value(this.context)
-    this.context.pop()
-    if (value === include) filtered.push(item)
-  }
-  return filtered
+  return array.filter((_, i) => matcher(values[i]) === include)
 }
 
 export function* where<T extends object>(
@@ -188,83 +216,18 @@ export function* reject<T extends object>(
   return yield* filter.call(this, false, arr, property, expected)
 }
 
-export function* where_exp<T extends object>(
-  this: FilterImpl,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  return yield* filter_exp.call(this, true, arr, itemName, exp)
-}
-
-export function* reject_exp<T extends object>(
-  this: FilterImpl,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  return yield* filter_exp.call(this, false, arr, itemName, exp)
-}
-
-export function* group_by<T extends object>(this: FilterImpl, arr: T[], property: string): IterableIterator<unknown> {
-  const map = new Map()
-  arr = toEnumerable(arr)
-  const token = new Tokenizer(stringify(property)).readScopeValue()
-  for (const item of arr) {
-    const key = yield evalToken(token, this.context.spawn(item))
-    if (!map.has(key)) map.set(key, [])
-    map.get(key).push(item)
-  }
-  return [...map.entries()].map(([name, items]) => ({ name, items }))
-}
-
-export function* group_by_exp<T extends object>(
-  this: FilterImpl,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  const map = new Map()
-  const keyTemplate = new Value(stringify(exp), this.liquid)
-  arr = toEnumerable(arr)
-  for (const item of arr) {
-    this.context.push({ [itemName]: item })
-    const key = yield keyTemplate.value(this.context)
-    this.context.pop()
-    if (!map.has(key)) map.set(key, [])
-    map.get(key).push(item)
-  }
-  return [...map.entries()].map(([name, items]) => ({ name, items }))
-}
-
 function* search<T extends object>(
   this: FilterImpl,
   arr: T[],
   property: string,
   expected: string
 ): IterableIterator<unknown> {
-  const token = new Tokenizer(stringify(property)).readScopeValue()
-  const array = toArray(arr)
+  const array = inputIterator<T>(arr)
   const matcher = expectedMatcher.call(this, expected)
   for (let index = 0; index < array.length; index++) {
-    const value = yield evalToken(token, this.context.spawn(array[index]))
+    if (!indexable(array[index])) return undefined
+    const value = yield* readProperty.call(this, array[index], property)
     if (matcher(value)) return [index, array[index]]
-  }
-}
-
-function* search_exp<T extends object>(
-  this: FilterImpl,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  const predicate = new Value(stringify(exp), this.liquid)
-  const array = toArray(arr)
-  for (let index = 0; index < array.length; index++) {
-    this.context.push({ [itemName]: array[index] })
-    const value = yield predicate.value(this.context)
-    this.context.pop()
-    if (value) return [index, array[index]]
   }
 }
 
@@ -278,16 +241,6 @@ export function* has<T extends object>(
   return !!result
 }
 
-export function* has_exp<T extends object>(
-  this: FilterImpl,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  const result = yield* search_exp.call(this, arr, itemName, exp)
-  return !!result
-}
-
 export function* find_index<T extends object>(
   this: FilterImpl,
   arr: T[],
@@ -295,16 +248,6 @@ export function* find_index<T extends object>(
   expected?: any
 ): IterableIterator<unknown> {
   const result = yield* search.call(this, arr, property, expected)
-  return result ? result[0] : undefined
-}
-
-export function* find_index_exp<T extends object>(
-  this: FilterImpl,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  const result = yield* search_exp.call(this, arr, itemName, exp)
   return result ? result[0] : undefined
 }
 
@@ -318,26 +261,25 @@ export function* find<T extends object>(
   return result ? result[1] : undefined
 }
 
-export function* find_exp<T extends object>(
-  this: FilterImpl,
-  arr: T[],
-  itemName: string,
-  exp: string
-): IterableIterator<unknown> {
-  const result = yield* search_exp.call(this, arr, itemName, exp)
-  return result ? result[1] : undefined
+export function* uniq<T>(this: FilterImpl, arr: T[], property?: string): IterableIterator<unknown> {
+  const kept: T[] = []
+  // primitives dedupe through a Set; only structural keys need the linear scan
+  const primitives = new Set<unknown>()
+  const structural: unknown[] = []
+  for (const item of inputIterator<T>(arr)) {
+    const key = toValue(isNil(toValue(property)) ? item : yield* readProperty.call(this, item, property))
+    if (isObject(key)) {
+      if (structural.some(seen => equals(seen, key))) continue
+      structural.push(key)
+    } else {
+      if (primitives.has(key)) continue
+      primitives.add(key)
+    }
+    kept.push(item)
+  }
+  return kept
 }
 
-export function uniq<T>(this: FilterImpl, arr: T[]): T[] {
-  arr = toArray(arr)
-  return [...new Set(arr)]
-}
-
-export function sample<T>(this: FilterImpl, v: T[] | string, count = 1): T | string | (T | string)[] {
-  v = toValue(v)
-  if (isNil(v)) return []
-  if (!isArray(v)) v = stringify(v)
-  const shuffled = [...v].sort(() => Math.random() - 0.5)
-  if (count === 1) return shuffled[0]
-  return shuffled.slice(0, count)
+function toStrictInteger(value: any): number {
+  return isNil(toValue(value)) ? 0 : Number(toInteger(value))
 }

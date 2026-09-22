@@ -59,7 +59,7 @@ describe('fetch', () => {
       return expect(html).toBe('hello alice5')
     })
     it('should throw 404', () => {
-      return expect(engine.renderFile('/not/exist.html')).rejects.toThrow('ENOENT')
+      return expect(engine.renderFile('/not/exist.html')).rejects.toMatchObject({ code: 'ENOENT' })
     })
     it('should throw network error', async () => {
       server.fail(new TypeError('Network error'))

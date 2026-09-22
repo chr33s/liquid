@@ -37,11 +37,23 @@ import { Operators, Expression } from '../render'
 import { NormalizedFullOptions, defaultOptions } from '../liquid-options'
 import { FilterArg } from './filter-arg'
 import { whiteSpaceCtrl } from './whitespace-ctrl'
+import { isHosted } from '../theme/profile'
+
+/** Tags whose body is read verbatim rather than tokenized as Liquid. */
+const RAW_BODY_TAGS: ReadonlySet<string> = new Set(['raw', 'doc'])
+/** Raw-body tags the hosted theme dialect adds. */
+const HOSTED_RAW_BODY_TAGS: ReadonlySet<string> = new Set(['schema', 'stylesheet', 'javascript'])
 
 export class Tokenizer {
   p: number
   N: number
+  /** `errorMode: "lax"`: tolerate markup the other modes reject. */
+  lax = false
+  /** A bracket lookup closes right after the one value it holds, as the reference reads it. */
+  exactBrackets = false
   private rawBeginAt = -1
+  private rawTagName = 'raw'
+  private rawToken?: TagToken
   private opTrie: Trie<OperatorHandler>
   private literalTrie: Trie<LiteralValue>
 
@@ -115,6 +127,8 @@ export class Tokenizer {
     this.assert(this.read() === '|', `expected "|" before filter`)
     const name = this.readIdentifier()
     if (!name.size()) {
+      // lax mode reads `a || f` as `a | f`
+      if (this.lax && this.peek() === '|') return this.readFilter()
       this.assert(this.end(), `expected filter name`)
       return null
     }
@@ -179,11 +193,23 @@ export class Tokenizer {
   readTagToken(options: NormalizedFullOptions): TagToken {
     const { file, input } = this
     const begin = this.p
+    // as the reference, a malformed tag is an error only once the parse reaches it
     if (this.readToDelimiter(options.tagDelimiterRight) === -1) {
-      throw this.error(`tag ${this.snapshot(begin)} not closed`, begin)
+      const message = `Tag '${this.excerpt(begin)}' was not properly terminated with regexp: /\\%\\}/`
+      return malform(new TagToken(input, begin, this.N, options, file), this.error(message, begin), true)
     }
     const token = new TagToken(input, begin, this.p, options, file)
-    if (token.name === 'raw') this.rawBeginAt = begin
+    if (token.name === 'raw' && token.args.trim()) {
+      malform(token, this.error("Syntax Error in 'raw' - Valid syntax: raw", begin))
+    }
+    if (token.name === 'doc' && token.args.trim()) {
+      malform(token, this.error("Syntax Error in 'doc' - Valid syntax: {% doc %}{% enddoc %}", begin))
+    }
+    if (RAW_BODY_TAGS.has(token.name) || (isHosted(options.profile) && HOSTED_RAW_BODY_TAGS.has(token.name))) {
+      this.rawBeginAt = begin
+      this.rawTagName = token.name
+      this.rawToken = token
+    }
     return token
   }
 
@@ -202,10 +228,26 @@ export class Tokenizer {
 
   readOutputToken(options: NormalizedFullOptions = defaultOptions): OutputToken {
     const { file, input } = this
-    const { outputDelimiterRight } = options
+    const { outputDelimiterLeft, outputDelimiterRight, tagDelimiterLeft, tagDelimiterRight } = options
     const begin = this.p
-    if (this.readToDelimiter(outputDelimiterRight, true) === -1) {
-      throw this.error(`output ${this.snapshot(begin)} not closed`, begin)
+    // the reference's modes read outputs as it does; `warn` keeps reading quoted text
+    const reference = options.errorMode !== 'warn'
+    if (reference) {
+      // the reference ends an output where a tag opens: `{{ a{% b %}` is one token that fails to parse
+      const from = begin + outputDelimiterLeft.length
+      const close = input.indexOf(outputDelimiterRight, from)
+      const tag = input.indexOf(tagDelimiterLeft, from)
+      const tagEnd = tag === -1 ? -1 : input.indexOf(tagDelimiterRight, tag + tagDelimiterLeft.length)
+      if (tagEnd !== -1 && (close === -1 || tag < close)) {
+        this.p = tagEnd + tagDelimiterRight.length
+        const token = new OutputToken(input, begin, this.p, options, file)
+        token.terminated = false
+        return token
+      }
+    }
+    // the reference ends an output at the first delimiter, quoted or not
+    if (this.readToDelimiter(outputDelimiterRight, !reference) === -1) {
+      throw this.error(`Variable '${this.excerpt(begin)}' was not properly terminated with regexp: /\\}\\}/`, begin)
     }
     return new OutputToken(input, begin, this.p, options, file)
   }
@@ -216,7 +258,11 @@ export class Tokenizer {
     let leftPos = this.readTo(tagDelimiterLeft) - tagDelimiterLeft.length
     while (this.p < this.N) {
       if (this.peek() === '-') this.p++
-      if (this.readIdentifier().getText() !== 'endraw') {
+      const name = this.readIdentifier().getText()
+      if (this.rawTagName === 'doc' && name === 'doc') {
+        return this.unclosedRaw(begin, "Syntax Error in 'doc' - Nested doc tags are not allowed")
+      }
+      if (name !== 'end' + this.rawTagName) {
         leftPos = this.readTo(tagDelimiterLeft) - tagDelimiterLeft.length
         continue
       }
@@ -238,7 +284,15 @@ export class Tokenizer {
         this.p++
       }
     }
-    throw this.error(`raw ${this.snapshot(this.rawBeginAt)} not closed`, begin)
+    return this.unclosedRaw(begin, `'${this.rawTagName}' tag was never closed`)
+  }
+
+  /** The rest of the input is the raw body; the raw tag fails when it is parsed. */
+  private unclosedRaw(begin: number, message: string): HTMLToken {
+    malform(this.rawToken!, this.error(message, begin))
+    this.rawBeginAt = -1
+    this.p = this.N
+    return new HTMLToken(this.input, begin, this.N, this.file)
   }
 
   readLiquidTagTokens(options: NormalizedFullOptions = defaultOptions): LiquidTagToken[] {
@@ -266,6 +320,10 @@ export class Tokenizer {
 
   assert(pred: unknown, msg: string | (() => string), pos?: number) {
     if (!pred) throw this.error(typeof msg === 'function' ? msg() : msg, pos)
+  }
+
+  excerpt(begin: number = this.p) {
+    return ellipsis(this.input.slice(begin, this.N), 32)
   }
 
   snapshot(begin: number = this.p) {
@@ -366,10 +424,19 @@ export class Tokenizer {
   private readProperties(isBegin = true): (ValueToken | IdentifierToken)[] {
     const props: (ValueToken | IdentifierToken)[] = []
     while (true) {
+      // a lookup may be spaced from what it reads, as in `a . b`
+      if (props.length) {
+        const before = this.p
+        this.skipBlank()
+        if (this.peek() !== '[' && !(this.peek() === '.' && this.peek(1) !== '.')) this.p = before
+      }
       if (this.peek() === '[') {
         this.p++
         const prop = this.readValue() || new IdentifierToken(this.input, this.p, this.p, this.file)
-        this.assert(this.readTo(']') !== -1, '[ not closed')
+        if (this.exactBrackets) {
+          this.skipBlank()
+          this.assert(this.read() === ']', '[ not closed')
+        } else this.assert(this.readTo(']') !== -1, '[ not closed')
         props.push(prop)
         continue
       }
@@ -420,6 +487,8 @@ export class Tokenizer {
     this.skipBlank()
     const end = this.matchTrie(this.literalTrie)
     if (end === -1) return
+    // `blank.foo` looks up a variable named `blank`
+    if (this.input[end] === '[' || (this.input[end] === '.' && this.input[end + 1] !== '.')) return
     const literal = new LiteralToken(this.input, this.p, end, this.file)
     this.p = end
     return literal
@@ -432,7 +501,7 @@ export class Tokenizer {
     ++this.p
     const lhs = this.readValueOrThrow()
     this.skipBlank()
-    this.assert(this.read() === '.' && this.read() === '.', 'invalid range syntax')
+    this.assert(this.read() === '.' && this.read() === '.' && this.peek() !== '.', 'invalid range syntax')
     const rhs = this.readValueOrThrow()
     this.skipBlank()
     this.assert(this.read() === ')', 'invalid range syntax')
@@ -450,12 +519,9 @@ export class Tokenizer {
     const begin = this.p
     if (!(this.peekType() & QUOTE)) return
     ++this.p
-    let escaped = false
     while (this.p < this.N) {
       ++this.p
-      if (this.input[this.p - 1] === this.input[begin] && !escaped) break
-      if (escaped) escaped = false
-      else if (this.input[this.p - 1] === '\\') escaped = true
+      if (this.input[this.p - 1] === this.input[begin]) break
     }
     return new QuotedToken(this.input, begin, this.p, this.file)
   }
@@ -495,4 +561,9 @@ export class Tokenizer {
   skipBlank() {
     while (this.peekType() & BLANK) ++this.p
   }
+}
+
+function malform(token: TagToken, error: TokenizationError, replace = false): TagToken {
+  if (replace || !token.malformed) (token as { malformed?: TokenizationError }).malformed = error
+  return token
 }

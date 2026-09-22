@@ -5,9 +5,13 @@ import { LRU, LiquidCache } from './cache'
 import { FS, LookupType } from './fs'
 import * as fs from './fs/fs-impl'
 import { defaultOperators, Operators } from './render'
-import misc from './filters/misc'
+import { json } from './filters/misc'
 import { escape } from './filters/html'
 import { MapFS } from './fs/map-fs'
+import type { FilterImplOptions } from './template/filter-impl-options'
+import type { LiquidProfile, ThemeProviders } from './theme'
+import type { LiquidError } from './util/error'
+import type { ResourceLedger } from './util/limiter'
 
 type OutputEscape = (value: any) => string
 type OutputEscapeOption = 'escape' | 'json' | OutputEscape
@@ -23,24 +27,18 @@ export interface LiquidOptions {
   layouts?: string | string[]
   /** Allow refer to layouts/partials by relative pathname. To avoid arbitrary filesystem read, paths been referenced also need to be within corresponding root, partials, layouts. Defaults to `true`. */
   relativeReference?: boolean
-  /** Use jekyll style include, pass parameters to `include` variable of current scope. Defaults to `false`. */
-  jekyllInclude?: boolean
-  /** Use jekyll style where filter, enables array item match. Defaults to `false`. */
-  jekyllWhere?: boolean
   /** Add a extname (if filepath doesn't include one) before template file lookup. Eg: setting to `".html"` will allow including file by basename. Defaults to `""`. */
   extname?: string
   /** Whether or not to cache resolved templates. Defaults to `false`. */
   cache?: boolean | number | LiquidCache
-  /** Use JavaScript Truthiness. Defaults to `false`. */
-  jsTruthy?: boolean
-  /** If set, treat the `filepath` parameter in `{%include filepath %}` and `{%layout filepath%}` as a variable, otherwise as a literal value. Defaults to `true`. */
-  dynamicPartials?: boolean
   /** Whether or not to assert filter existence. If set to `false`, undefined filters will be skipped. Otherwise, undefined filters will cause an exception. Defaults to `false`. */
   strictFilters?: boolean
   /** Whether or not to assert variable existence.  If set to `false`, undefined variables will be rendered as empty string.  Otherwise, undefined variables will cause an exception. Defaults to `false`. */
   strictVariables?: boolean
   /** Catch all errors instead of exit upon one. Please note that render errors won't be reached when parse fails. */
   catchAllErrors?: boolean
+  /** What a render error does: `"raise"` stops rendering and rejects with it, `"inline"` writes `Liquid error (line N): message` in place of the failing node and continues. Exceeding a resource limit stops rendering under both. Defaults to `"raise"`. */
+  renderErrors?: RenderErrorPolicy
   /** Limit template property reads on plain scope objects to own properties. Defaults to `true`. See https://github.com/chr33s/liquid/wiki/Tutorials.Document.Security-Model */
   ownPropertyOnly?: boolean
   /** Modifies the behavior of `strictVariables`. If set, a single undefined variable will *not* cause an exception in the context of the `if`/`elsif`/`unless` tag and the `default` filter. Instead, it will evaluate to `false` and `null`, respectively. Irrelevant if `strictVariables` is not set. Defaults to `false`. **/
@@ -67,10 +65,12 @@ export interface LiquidOptions {
   outputDelimiterLeft?: string
   /** The right delimiter for liquid outputs. **/
   outputDelimiterRight?: string
-  /** Whether input strings to date filter preserve the given timezone **/
+  /** Whether a date string with an offset, like `2020-06-15 14:30:00 -0400`, keeps that offset in the `date` filter, as in the reference engine. Defaults to keeping it unless `timezoneOffset` is set. **/
   preserveTimezones?: boolean
   /** Whether `trim*Left`/`trim*Right` is greedy. When set to `true`, all consecutive blank characters including `\n` will be trimmed regardless of line breaks. Defaults to `true`. */
   greedy?: boolean
+  /** When a `{%-` or `{{-` trims away all of the text before it, keep its first character, as the reference's `bug_compatible_whitespace_trimming` parse option does. Shopify's storefront renders themes this way. Defaults to `false`. */
+  bugCompatibleWhitespaceTrimming?: boolean
   /** `fs` is used to override the default file-system module with a custom implementation. */
   fs?: FS
   /** keyValue separator */
@@ -87,13 +87,25 @@ export interface LiquidOptions {
   orderedFilterParameters?: boolean
   /** For DoS handling, limit total length of templates parsed in one `parse()` call. A typical PC can handle 1e8 (100M) characters without issues. */
   parseLimit?: number
-  /** For DoS handling, limit total renders of tag/HTML/output in one `render()` call. */
+  /** For DoS handling, limit the render score of one `render()` call: each tag, HTML and output node rendered adds one, as does each item a loop visits over a range. */
   templateLimit?: number
   /** For DoS handling, limit total output length in one `render()` call. */
   outputLengthLimit?: number
-  /** For DoS handling, limit nesting depth of `{% render %}`, `{% include %}`, and `{% layout %}` tags. Defaults to `128`. */
+  /** For DoS handling, limit the nesting depth of scopes at render time: the template itself, each `{% render %}`, `{% include %}` and `{% layout %}`, and each `{% for %}` and `{% tablerow %}` loop. Exceeding it raises `Nesting too deep`. Defaults to `100`, as in the reference engine. */
   maxDepth?: number
+  /** For DoS handling, limit nesting depth of block tags at parse time. Defaults to `128`. */
+  maxParseDepth?: number
+  /** How to treat markup the grammar does not accept, such as text left over after a complete expression or an operator missing an operand: `"lax"` ignores it, `"warn"` records it in `liquid.warnings`, `"strict"` throws. `"strict2"` throws too, and also rejects a bare bracket lookup like `['key']`, which must be written `self['key']`. Defaults to `"lax"`. */
+  errorMode?: 'lax' | 'warn' | 'strict' | 'strict2'
+  /** Which dialect to render: `"core"` is the reference engine, `"shopify_theme"` adds the documented hosted theme limits, tags and filters. Defaults to `"core"`. */
+  profile?: LiquidProfile
+  /** Data and services the hosted theme dialect renders against. */
+  theme?: ThemeProviders
+  /** For DoS handling, limit the assign score of one `render()` call. Every `{% assign %}` and `{% capture %}` adds to it, re-binding a variable included: a string scores its UTF-8 byte length, an array or hash one plus the score of what it holds, any other value one. */
+  assignLimit?: number
 }
+
+export type RenderErrorPolicy = 'raise' | 'inline'
 
 export interface RenderOptions extends OperationOptions {
   /**
@@ -105,6 +117,28 @@ export interface RenderOptions extends OperationOptions {
    */
   strictVariables?: boolean
   /**
+   * Same as `strictFilters` on LiquidOptions, but only for current render() call
+   */
+  strictFilters?: boolean
+  /**
+   * Same as `renderErrors` on LiquidOptions, but only for current render() call
+   */
+  renderErrors?: RenderErrorPolicy
+  /**
+   * Called with each render error the `"inline"` policy recovered from, in render order.
+   */
+  onError?: (error: LiquidError) => void
+  /**
+   * Filters available to the current render() call only, taking precedence over
+   * the engine-wide registry. The same parsed template can therefore be rendered
+   * against different filter registries.
+   */
+  filters?: Record<string, FilterImplOptions>
+  /**
+   * Same as `theme` on LiquidOptions, but only for current render() call
+   */
+  theme?: ThemeProviders
+  /**
    * Same as `ownPropertyOnly` on LiquidOptions, but only for current render() call
    */
   ownPropertyOnly?: boolean
@@ -112,6 +146,13 @@ export interface RenderOptions extends OperationOptions {
   templateLimit?: number
   /** For DoS handling, limit total output length in one `render()` call. */
   outputLengthLimit?: number
+  /** For DoS handling, limit the assign score of one `render()` call: see `assignLimit` on LiquidOptions. */
+  assignLimit?: number
+  /**
+   * Cumulative budgets charged by every render handed this ledger, on top of
+   * the per-render `templateLimit` and `assignLimit`.
+   */
+  ledger?: ResourceLedger
 }
 
 export interface RenderFileOptions extends RenderOptions {
@@ -131,14 +172,12 @@ export interface NormalizedFullOptions extends NormalizedOptions {
   partials: string[]
   layouts: string[]
   relativeReference: boolean
-  jekyllInclude: boolean
   extname: string
   cache?: LiquidCache
-  jsTruthy: boolean
-  dynamicPartials: boolean
   fs: FS
   strictFilters: boolean
   strictVariables: boolean
+  renderErrors: RenderErrorPolicy
   ownPropertyOnly: boolean
   lenientIf: boolean
   dateFormat: string
@@ -151,14 +190,20 @@ export interface NormalizedFullOptions extends NormalizedOptions {
   tagDelimiterRight: string
   outputDelimiterLeft: string
   outputDelimiterRight: string
-  preserveTimezones: boolean
+  preserveTimezones?: boolean
   greedy: boolean
+  bugCompatibleWhitespaceTrimming: boolean
   globals: object
   operators: Operators
   parseLimit: number
   templateLimit: number
   outputLengthLimit: number
+  assignLimit: number
   maxDepth: number
+  maxParseDepth: number
+  errorMode: 'lax' | 'warn' | 'strict' | 'strict2'
+  profile: LiquidProfile
+  theme: ThemeProviders
 }
 
 export const defaultOptions: NormalizedFullOptions = {
@@ -166,13 +211,10 @@ export const defaultOptions: NormalizedFullOptions = {
   layouts: ['.'],
   partials: ['.'],
   relativeReference: true,
-  jekyllInclude: false,
   keyValueSeparator: ':',
   cache: undefined,
   extname: '',
   fs: undefined as unknown as FS,
-  dynamicPartials: true,
-  jsTruthy: false,
   dateFormat: '%A, %B %-e, %Y at %-l:%M %P %z',
   locale: '',
   trimTagRight: false,
@@ -180,13 +222,14 @@ export const defaultOptions: NormalizedFullOptions = {
   trimOutputRight: false,
   trimOutputLeft: false,
   greedy: true,
+  bugCompatibleWhitespaceTrimming: false,
   tagDelimiterLeft: '{%',
   tagDelimiterRight: '%}',
   outputDelimiterLeft: '{{',
   outputDelimiterRight: '}}',
-  preserveTimezones: false,
   strictFilters: false,
   strictVariables: false,
+  renderErrors: 'raise',
   ownPropertyOnly: true,
   lenientIf: false,
   globals: {},
@@ -194,7 +237,12 @@ export const defaultOptions: NormalizedFullOptions = {
   parseLimit: Infinity,
   templateLimit: Infinity,
   outputLengthLimit: Infinity,
-  maxDepth: 128
+  assignLimit: Infinity,
+  maxDepth: 100,
+  maxParseDepth: 128,
+  errorMode: 'lax',
+  profile: 'core',
+  theme: {}
 }
 
 export function normalize(options: LiquidOptions): NormalizedFullOptions {
@@ -218,7 +266,7 @@ export function normalize(options: LiquidOptions): NormalizedFullOptions {
     else cache = options.cache ? new LRU(1024) : undefined
     options.cache = cache
   }
-  options = { ...defaultOptions, ...(options.jekyllInclude ? { dynamicPartials: false } : {}), ...options }
+  options = { ...defaultOptions, ...options }
   if ((!options.fs!.dirname || !options.fs!.sep) && options.relativeReference) {
     console.warn(
       '[LiquidJS] `fs.dirname` and `fs.sep` are required for relativeReference, set relativeReference to `false` to suppress this warning'
@@ -246,7 +294,7 @@ export function normalize(options: LiquidOptions): NormalizedFullOptions {
 
 function getOutputEscapeFunction(nameOrFunction: OutputEscapeOption): OutputEscape {
   if (nameOrFunction === 'escape') return escape
-  if (nameOrFunction === 'json') return misc.json
+  if (nameOrFunction === 'json') return json
   assert(isFunction(nameOrFunction), '`outputEscape` need to be of type string or function')
   return nameOrFunction
 }

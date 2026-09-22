@@ -28,3 +28,5 @@ An optional argument specifies which property of the array's items to use for so
   <h4>{{ product.title }}</h4>
 {% endfor %}
 ```
+
+Items are compared as text, so a mix of numbers and strings sorts without an error: `[10, 2, "b", "A"]` sorts to `10, 2, A, b`. `nil` sorts last.

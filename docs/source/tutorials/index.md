@@ -22,6 +22,8 @@ children:
   - ./truthy-and-falsy.md
   - ./security-model.md
   - ./static-analysis.md
+  - ./shopify-theme-profile.md
+  - ./migrate-to-12.md
   - ./migrate-to-11.md
   - ./migrate-to-9.md
   - ./differences.md
@@ -55,9 +57,11 @@ Guides for using LiquidJS, grouped roughly from first steps to advanced extensio
 - [Truthy and Falsy](./truthy-and-falsy.md)
 - [Security Model](./security-model.md)
 - [Static Analysis](./static-analysis.md)
+- [Shopify Theme Profile](./shopify-theme-profile.md)
 
 ## Miscellaneous
 
+- [Migrate to LiquidJS 12](./migrate-to-12.md)
 - [Migrate to LiquidJS 11](./migrate-to-11.md)
 - [Migrate to LiquidJS 9](./migrate-to-9.md)
 - [Differences with Shopify Liquid](./differences.md)

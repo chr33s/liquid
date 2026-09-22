@@ -156,23 +156,22 @@ describe('util/strftime', function () {
   })
 
   describe('combination', () => {
-    it('should format ISO weeks across year boundaries', function () {
-      expect(t(new TestDate('2016-01-01 12:00:00'), '%G-W%V|%g')).toBe('2015-W53|15')
-      expect(t(new TestDate('2016-01-04 12:00:00'), '%G-W%V|%g')).toBe('2016-W01|16')
-      expect(t(new TestDate('2018-12-31 12:00:00'), '%G-W%V|%g')).toBe('2019-W01|19')
+    it('should format %x as the reference date', function () {
+      expect(t(now, '%x')).toBe('01/04/16')
     })
-    it('should format %x as local date string', function () {
-      expect(t(now, '%x')).toBe(now.toLocaleDateString())
+    it('should format %X as the reference time', function () {
+      expect(t(now, '%X')).toBe('13:15:23')
     })
-    it('should format %X as local time string', function () {
-      expect(t(now, '%X')).toBe(now.toLocaleTimeString())
+    it('should format the reference composites and ISO week dates', function () {
+      expect(t(now, '%D|%F|%R|%T|%r|%v')).toBe('01/04/16|2016-01-04|13:15|13:15:23|01:15:23 PM| 4-JAN-2016')
+      expect(t(now, '%G-W%V|%g')).toBe('2016-W01|16')
     })
     it('should format detailed datetime', function () {
       expect(t(now, '%Y-%m-%d %H:%M:%S')).toBe('2016-01-04 13:15:23')
     })
 
-    it('should format %c as local string', function () {
-      expect(t(now, '%c')).toBe(now.toLocaleString())
+    it('should format %c as the reference date and time', function () {
+      expect(t(now, '%c')).toBe('Mon Jan  4 13:15:23 2016')
     })
   })
 

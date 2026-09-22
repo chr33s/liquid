@@ -5,7 +5,9 @@ describe('tags/assign', function () {
   it('should throw when variable name illegal', function () {
     const src = '{% assign / %}'
     const ctx = {}
-    return expect(liquid.parseAndRender(src, ctx)).rejects.toThrow(/expected variable name/)
+    return expect(liquid.parseAndRender(src, ctx)).rejects.toThrow(
+      "Syntax Error in 'assign' - Valid syntax: assign [var] = [source]"
+    )
   })
   it('should support assign to a string', async function () {
     const src = '{% assign foo="bar" %}{{foo}}'
@@ -14,18 +16,19 @@ describe('tags/assign', function () {
   })
   it('should throw when variable value illegal', function () {
     const src = '{% assign foo = “bar” %}'
-    expect(() => liquid.parse(src)).toThrow(/invalid value expression: "“bar”"/)
-    expect(() => liquid.parse(src)).toThrow(TokenizationError)
+    const warn = new Liquid({ errorMode: 'warn' })
+    expect(() => warn.parse(src)).toThrow(/invalid value expression: "“bar”"/)
+    expect(() => warn.parse(src)).toThrow(TokenizationError)
   })
   it('should support assign to a number', async function () {
     const src = '{% assign foo=10086 %}{{foo}}'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('10086')
   })
-  it('should assign as array', async function () {
-    const src = '{% assign foo=(1..3) %}{{foo}}'
+  it('should assign a range, which prints as its bounds', async function () {
+    const src = '{% assign foo=(1..3) %}{{foo}}|{{foo | join}}'
     const html = await liquid.parseAndRender(src)
-    return expect(html).toBe('123')
+    return expect(html).toBe('1..3|1 2 3')
   })
   it('should assign as filter result', async function () {
     const src = '{% assign foo="a b" | capitalize | split: " " | first %}{{foo}}'

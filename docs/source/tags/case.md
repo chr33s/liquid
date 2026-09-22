@@ -23,3 +23,17 @@ Output
 ```text
 This is a cake
 ```
+
+As in the reference engine, every matching `when` renders, not just the first, and so does every matching value of one `when`: `{% case 1 %}{% when 1, 1 %}a{% endcase %}` renders `aa`. An `else` renders when no `when` before it has matched, and a `case` may hold more than one `else`:
+
+Input
+```liquid
+{% case 2 %}{% else %}x{% when 1 %}a{% else %}c{% endcase %}
+```
+
+Output
+```text
+xc
+```
+
+Under `errorMode: "strict2"`, text after `else` is rejected with `Syntax Error in tag 'case' - Valid else condition: {% else %} (no parameters) `.

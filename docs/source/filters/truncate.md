@@ -47,3 +47,7 @@ Output
 ```text
 Ground control to Ma
 ```
+
+## Nil and arguments
+
+`nil` input stays `nil`. The length is read like Ruby's `Integer()`: an integer, or a string spelling one such as `"5"`. A decimal like `2.9` or `nil` raises `invalid integer`.

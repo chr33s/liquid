@@ -55,14 +55,16 @@ In LiquidJS, {{ this | escape }} will be HTML-escaped, but
 {{{ that }}} will not.
 ```
 
-Within string literals in a LiquidJS template, `\` can be used to escape special characters in string syntax. For example:
+String literals in a LiquidJS template have no escape sequences, as in the reference engine: `"a\nb"` is `a`, a backslash, `n` and `b`. A quote cannot be escaped, so to write one, quote the string with the other kind:
 
 Input
 ```liquid
-{{ "\"" }}
+{{ '"' }}
+{{ "it's" }}
 ```
 
 Output
 ```liquid
 "
+it's
 ```

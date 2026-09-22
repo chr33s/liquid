@@ -7,8 +7,8 @@
 <body>
   <h1>{{title}}</h1>
 
-  {% block %}{% endblock %}
+  {{ content_for_layout }}
 
-  <footer> {% block footer %}{% endblock %} </footer>
+  <footer> {% render "footer" %} </footer>
 </body>
 </html>

@@ -25,3 +25,5 @@ Output
 ```text
 Tetsuro+Takara
 ```
+
+`nil` stays `nil`, as with [escape](./escape.md).

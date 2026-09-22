@@ -33,50 +33,6 @@ Additionally, it can also be a custom cache implementation. See [Caching](./cach
 
 **relativeReference** is set to `true` by default to allow relative filenames. Note that relatively referenced files also need to be within the corresponding root. For example you can reference another file like `{% render ../foo/bar %}` as long as `../foo/bar` is also within `partials` directory.
 
-## dynamicPartials
-
-> Note: for historical reasons, it's named dynamicPartials but it also works for layouts.
-
-**dynamicPartials** indicates whether or not to treat filename arguments in [include][include], [render][render], [layout][layout] tags as a variable. Defaults to `true`. For example, render the following snippet with scope `{ file: 'foo.html' }` will include the `foo.html`:
-
-```liquid
-{% include file %}
-```
-
-Setting `dynamicPartials: false`, LiquidJS will try to include the file named `file`, which is weird but allows simpler syntax if your template relations are static:
-
-```liquid
-{% liquid foo.html %}
-```
-
-**Common Pitfall**
-
-
-LiquidJS defaults this option to <code>true</code> to be compatible with shopify/liquid, but if you're from <a href="https://github.com/11ty/eleventy" target="_blank">eleventy</a> it's set to <code>false</code> by default (see <a href="https://www.11ty.dev/docs/languages/liquid/#quoted-include-paths" target="_blank">Quoted Include Paths</a>) which I believe is trying to be compatible with Jekyll.
-
-## Jekyll include
-
-Since v9.33.0.
-
-[jekyllInclude][jekyllInclude] is used to enable Jekyll-like include syntax. Defaults to `false`, when set to `true`:
-
-- Filename will be static: `dynamicPartials` now defaults to `false` (instead of `true`). And you can set `dynamicPartials` back to `true`.
-- Use `=` instead of `:` to separate parameter key-values.
-- Parameters are under `include` variable instead of current scope.
-
-For example in the following template, `name.html` is not quoted, `header` and `"HEADER"` are separated by `=`, and the `header` parameter is referenced by `include.header`. For more details, see [include][include].
-
-```liquid
-// entry template
-{% include article.html header="HEADER" content="CONTENT" %}
-
-// article.html
-<article>
-  <header>{{include.header}}</header>
-  {{include.content}}
-</article>
-```
-
 ## extname
 
 **extname** defines the default extension name to be appended into filenames if the filename has no extension name. Defaults to `''` which means it's disabled by default. By setting it to `.liquid`:
@@ -98,17 +54,11 @@ For example in the following template, `name.html` is not quoted, `header` and `
 
 **globals** is used to define global variables available to all templates even in cases of [render tag](../tags/render.md). See [3185][185] for details.
 
-## jsTruthy
-
-**jsTruthy** is used to use standard JavaScript truthiness rather than Shopify's.
-
-It defaults to `false`. For example, when set to `true`, a blank string would evaluate to false with jsTruthy. With Shopify's truthiness, a blank string is true.
-
 ## outputEscape
 
 {@link LiquidOptions.outputEscape | outputEscape} can be used to automatically escape output strings. It can be one of `"escape"`, `"json"`, or `(val: unknown) => string`, defaults to `undefined`.
 
-- For untrusted output variables, set `outputEscape: "escape"` makes them be HTML escaped by default. You'll need [raw][raw] filter for direct output.
+- For untrusted output variables, set `outputEscape: "escape"` makes them be HTML escaped by default. To opt a value out, register a filter with `{ raw: true }` and pipe through it last.
 - `"json"` is useful when you're using LiquidJS to create valid JSON files.
 - It can even be a function that allows you to control what variables are output throughout LiquidJS. Please note the input can be any type other than string, e.g. a filter may return a non-string value.
 
@@ -116,7 +66,7 @@ It defaults to `false`. For example, when set to `true`, a blank string would ev
 
 **timezoneOffset** is used to specify a different timezone to output dates, your local timezone will be used if not specified. For example, set `timezoneOffset: 0` to output all dates in UTC/GMT 00:00.
 
-**preserveTimezones** is a boolean that affects only literal timestamps. When set to `true`, all literal timestamps will remain the same when output. This is a parser option, so Date objects passed to LiquidJS as data will not be affected. Note that `preserveTimezones` has a higher priority than `timezoneOffset`.
+**preserveTimezones** is a boolean that affects only date strings. When `true`, a string with its own offset, like `2020-06-15 14:30:00 -0400`, keeps that offset when output, as in the reference engine. Date objects passed to LiquidJS as data are not affected. When it is not set, a date string keeps its offset unless `timezoneOffset` is set; set it to `true` to keep the offset even then, or to `false` to always convert to `timezoneOffset` or the local timezone.
 
 **dateFormat** is used to specify a default format to output dates. `%A, %B %-e, %Y at %-l:%M %P %z` will be used if not specified. For example, set `dateFormat: %Y-%m-%dT%H:%M:%S:%LZ` to output all dates in [JavaScript Date.toJson()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON) format.
 
@@ -146,16 +96,34 @@ It defaults to `false`. For example, when set to `true`, a blank string would ev
 >
 > Nonexistent tags always throw errors during parsing and this behavior cannot be customized.
 
+## Error Mode
+
+**errorMode** decides what happens to markup the grammar does not accept, such as text left over after a complete expression or an operator missing an operand (`{% if true and %}`). Defaults to `"lax"`.
+
+- `"lax"` reads markup it cannot read as written the way the reference's lax parser does, skipping what it does not recognize: `{{ 'X' | downcase) }}` renders `x`, `{% case foo=>bar %}` reads `foo.bar`, `{% for i in (1...5) %}` loops over `1..5`, and tag attributes are found anywhere in the markup. Such a condition is read as comparisons evaluated left to right, so `{% if true && false %}` holds, and an operator the reference does not know, as in `{% if a foo b %}`, is an `Unknown operator foo` error when it is reached. Markup that reads as written keeps its meaning. An output ends at the first `}}`, quoted or not.
+- `"warn"` records leftover markup in `liquid.warnings`, and reads outputs across quoted `}}`.
+- `"strict"` throws at parse time. Outputs, `echo`, `if`/`elsif`/`unless` and `for` are parsed by the reference strict parser and fail with its messages, such as `Unexpected character ~` or `[:end_of_string] is not a valid expression`. Bare bracket lookups like `{{ ['key'] }}` are allowed, and a filter argument list may not end with a comma. The other tags, such as `assign`, `case`, `cycle`, `include`, `render` and `tablerow`, keep the lax reading, as the reference's strict mode does.
+- `"strict2"` parses every output and tag markup with the reference `strict2` grammar and rejects it with the reference messages, for example `Expected id but found end_of_string` for `{{ a | }}`, `[:comma, ","] is not a valid expression`, `For loops require an 'in' clause`, `Invalid attribute 'step' in tablerow loop. Valid attributes are cols, limit, offset, and range`, and `Expected string but found id` for a `render` name that is not quoted. A trailing comma is accepted after filter arguments and in `render`, `include`, `cycle` and `for`. Bare bracket lookups fail with `Bare bracket access is not allowed. Use self['...'] instead`.
+
+`{{ }}` renders nothing in every mode. Structural errors read the same in every mode: `Unknown tag 'x'`, `'if' tag was never closed`, `'endfor' is not a valid delimiter for if tags. use endif`, `Unexpected outer 'else' tag`, and `Tag '{% if x' was not properly terminated with regexp: /\%\}/` (or `Variable '{{ x' was not properly terminated with regexp: /\}\}/`) for a tag or output that is never closed.
+
+## Render Errors
+
+**renderErrors** decides what a render error does. `"raise"` stops rendering and rejects with the error. `"inline"` writes `Liquid error (line N): message` in place of the failing node, or `Liquid error (file line N): message` inside a partial, and carries on. Defaults to `"raise"`; it can also be passed per call in {@link RenderOptions.renderErrors | RenderOptions}.
+
+```javascript
+const errors = []
+await liquid.parseAndRender('a{{ 1 | divided_by: 0 }}b', {}, {
+  renderErrors: 'inline',
+  onError: err => errors.push(err)
+})
+// "aLiquid error (line 1): divided by 0b"
+```
+
+{@link RenderOptions.onError | onError} receives each error the inline policy recovered from. Under `strictVariables`, an undefined variable is reported to `onError` but writes nothing. Neither does an error in an `assign` or, outside `errorMode: "strict2"`, in a tag that renders nothing, such as an `if` around only `assign`s; the assignment is abandoned. A partial that fails to tokenize, like one with an unclosed tag, is written as `Liquid syntax error (file line N): message`. Exceeding a resource limit stops rendering under both policies; with `"inline"` the result is just the error line. `Nesting too deep` from {@link LiquidOptions.maxDepth | maxDepth} is not a resource limit: the inline policy writes it in place and carries on. **catchAllErrors** still collects the render errors of a `"raise"` render into one `LiquidErrors`.
+
 ## Parameter Order
 
 Parameter orders are ignored by default, for example `{% for i in (1..8) reversed limit:3 %}` will always perform `limit` before `reversed`, even if `reversed` occurs before `limit`. To make parameter order respected, set **orderedFilterParameters** to `true`. Its default value is `false`.
 
 [185]: https://github.com/harttle/liquidjs/issues/185
-[render]: ../tags/render.md
-[include]: ../tags/include.md
-[layout]: ../tags/layout.md
-[wc]: ./whitespace-control.md
-[intro]: ./intro-to-liquid.md
-[jekyllInclude]: /api/interfaces/LiquidOptions.html#jekyllInclude
-[raw]: ../filters/raw.md
-[outputEscape]: /api/interfaces/LiquidOptions.html#outputEscape

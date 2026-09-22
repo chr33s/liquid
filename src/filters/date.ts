@@ -1,39 +1,21 @@
-import { toValue, stringify, isString, isNumber, LiquidDate, strftime, isNil } from '../util'
+import { isDecimal } from '../drop/float-drop'
+import { assert, toValue, stringify, isString, isNumber, LiquidDate, strftime, isNil } from '../util'
 import { FilterImpl } from '../template'
 import { NormalizedFullOptions } from '../liquid-options'
 
 export function date(this: FilterImpl, v: string | Date, format?: string, timezoneOffset?: number | string) {
+  const given = toValue(format)
+  const fallback = this.context.opts.dateFormat
+  // an empty or nil format returns the input untouched; an omitted one falls
+  // back to the configured `dateFormat`, and is an error when that is unset
+  const omitted = arguments.length < 2
+  assert(!omitted || fallback !== '', 'date filter requires a format')
+  if (!omitted && isNil(given)) return v
+  const pattern = omitted ? fallback : stringify(given)
+  if (pattern === '') return v
   const date = parseDate(v, this.context.opts, timezoneOffset)
   if (!date) return v
-  format = toValue(format)
-  format = isNil(format) ? this.context.opts.dateFormat : stringify(format)
-  return strftime(date, format)
-}
-
-export function date_to_xmlschema(this: FilterImpl, v: string | Date) {
-  return date.call(this, v, '%Y-%m-%dT%H:%M:%S%:z')
-}
-
-export function date_to_rfc822(this: FilterImpl, v: string | Date) {
-  return date.call(this, v, '%a, %d %b %Y %H:%M:%S %z')
-}
-
-export function date_to_string(this: FilterImpl, v: string | Date, type?: string, style?: string) {
-  return stringify_date.call(this, v, '%b', type, style)
-}
-
-export function date_to_long_string(this: FilterImpl, v: string | Date, type?: string, style?: string) {
-  return stringify_date.call(this, v, '%B', type, style)
-}
-
-function stringify_date(this: FilterImpl, v: string | Date, month_type: string, type?: string, style?: string) {
-  const date = parseDate(v, this.context.opts)
-  if (!date) return v
-  if (type === 'ordinal') {
-    const d = date.getDate()
-    return style === 'US' ? strftime(date, `${month_type} ${d}%q, %Y`) : strftime(date, `${d}%q ${month_type} %Y`)
-  }
-  return strftime(date, `%d ${month_type} %Y`)
+  return strftime(date, pattern)
 }
 
 function parseDate(
@@ -44,23 +26,28 @@ function parseDate(
   let date: LiquidDate | undefined
   const defaultTimezoneOffset = timezoneOffset ?? opts.timezoneOffset
   const locale = opts.locale
+  const decimal = isDecimal(v)
   v = toValue(v)
-  if (isNil(v)) {
+  // as the reference's `to_date`, only an integer is a timestamp, and a decimal is no date at all
+  if (isNil(v) || decimal) {
     return undefined
-  } else if (v === 'now' || v === 'today') {
+  } else if (isString(v) && /^(now|today)$/i.test(v)) {
     date = new LiquidDate(Date.now(), locale, defaultTimezoneOffset)
   } else if (isNumber(v)) {
     date = new LiquidDate(v * 1000, locale, defaultTimezoneOffset)
   } else if (isString(v)) {
     if (/^\d+$/.test(v)) {
       date = new LiquidDate(+v * 1000, locale, defaultTimezoneOffset)
-    } else if (opts.preserveTimezones && timezoneOffset === undefined) {
+    } else if ((opts.preserveTimezones ?? opts.timezoneOffset === undefined) && timezoneOffset === undefined) {
       date = LiquidDate.createDateFixedToTimezone(v, locale)
     } else {
       date = new LiquidDate(v, locale, defaultTimezoneOffset)
     }
-  } else {
+  } else if (v instanceof Date) {
     date = new LiquidDate(v, locale, defaultTimezoneOffset)
+  } else {
+    // as the reference, a value that is no date, string or number is not converted
+    return undefined
   }
   return date.valid() ? date : undefined
 }

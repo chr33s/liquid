@@ -5,7 +5,7 @@ describe('tags/tablerow', function () {
 
   it('should support tablerow', async function () {
     const src = '{% tablerow i in (1..3)%}{{ i }}{% endtablerow %}'
-    const dst = '<tr class="row1"><td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>'
+    const dst = '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>\n'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
@@ -15,7 +15,7 @@ describe('tags/tablerow', function () {
     const ctx = {
       promiseNumbers: Promise.resolve([1, 2, 3])
     }
-    const dst = '<tr class="row1"><td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>'
+    const dst = '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>\n'
     const html = await liquid.parseAndRender(src, ctx)
     return expect(html).toBe(dst)
   })
@@ -32,7 +32,7 @@ describe('tags/tablerow', function () {
     const ctx = {
       someIterable: new MockIterable()
     }
-    const dst = '<tr class="row1"><td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>'
+    const dst = '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>\n'
     const html = await liquid.parseAndRender(src, ctx)
     return expect(html).toBe(dst)
   })
@@ -43,49 +43,49 @@ describe('tags/tablerow', function () {
       alpha: ['a', 'b', 'c']
     }
     const dst =
-      '<tr class="row1"><td class="col1">a</td><td class="col2">b</td></tr>' +
-      '<tr class="row2"><td class="col1">c</td></tr>'
+      '<tr class="row1">\n<td class="col1">a</td><td class="col2">b</td></tr>\n' +
+      '<tr class="row2"><td class="col1">c</td></tr>\n'
     const html = await liquid.parseAndRender(src, ctx)
     return expect(html).toBe(dst)
   })
 
   it('should support cols set to 0', async function () {
     const src = '{% tablerow i in (1..3) cols:0 %}{{ i }}{% endtablerow %}'
-    const dst = '<tr class="row1"><td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>'
+    const dst = '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>\n'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
 
-  it('should support empty tablerow', async function () {
+  it('T23: an empty collection still emits the row markup', async function () {
     const src = '{% tablerow i in (1..0) cols:2 %}{{ i }}{% endtablerow %}'
-    const dst = ''
     const html = await liquid.parseAndRender(src)
-    return expect(html).toBe(dst)
+    return expect(html).toBe('<tr class="row1">\n</tr>\n')
   })
 
-  it('should support empty array', async function () {
+  it('T23: a nil collection renders nothing', async function () {
     const src = '{% tablerow i in alpha.z cols:2 %}{{ i }}{% endtablerow %}'
-    const dst = ''
     const html = await liquid.parseAndRender(src)
-    return expect(html).toBe(dst)
+    return expect(html).toBe('')
   })
 
-  it('should throw when tablerow not closed', function () {
+  it('should throw when tablerow not closed', async function () {
     const src = '{% tablerow i in (1..0) cols:2 %}{{ i }}'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/tag .* not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow("'tablerow' tag was never closed")
   })
 
-  it('should throw when x in y not found', function () {
+  it('should throw when x in y not found', async function () {
     const src = '{% tablerow i (1..3) %}{{ i }}'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow('illegal tag: {% tablerow i (1..3) %}, line:1, col:1')
+    return expect(liquid.parseAndRender(src)).rejects.toThrow(
+      "Syntax Error in 'table_row loop' - Valid syntax: table_row [item] in [collection] cols=3, line:1, col:1"
+    )
   })
 
   it('should support tablerow with range', async function () {
     const src = '{% tablerow i in (1..5) cols:2 %}{{ i }}{% endtablerow %}'
     const dst =
-      '<tr class="row1"><td class="col1">1</td><td class="col2">2</td></tr>' +
-      '<tr class="row2"><td class="col1">3</td><td class="col2">4</td></tr>' +
-      '<tr class="row3"><td class="col1">5</td></tr>'
+      '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td></tr>\n' +
+      '<tr class="row2"><td class="col1">3</td><td class="col2">4</td></tr>\n' +
+      '<tr class="row3"><td class="col1">5</td></tr>\n'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
@@ -93,8 +93,8 @@ describe('tags/tablerow', function () {
   it('should support tablerow with limit', async function () {
     const src = '{% tablerow i in (1..5) cols:2 limit:3 %}{{ i }}{% endtablerow %}'
     const dst =
-      '<tr class="row1"><td class="col1">1</td><td class="col2">2</td></tr>' +
-      '<tr class="row2"><td class="col1">3</td></tr>'
+      '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td></tr>\n' +
+      '<tr class="row2"><td class="col1">3</td></tr>\n'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
@@ -102,7 +102,8 @@ describe('tags/tablerow', function () {
   it('should support index0, index, rindex0, rindex', async function () {
     const src =
       '{% tablerow i in (1..3)%}{{tablerowloop.index0}}{{tablerowloop.index}}{{tablerowloop.rindex0}}{{tablerowloop.rindex}}{% endtablerow %}'
-    const dst = '<tr class="row1"><td class="col1">0123</td><td class="col2">1212</td><td class="col3">2301</td></tr>'
+    const dst =
+      '<tr class="row1">\n<td class="col1">0123</td><td class="col2">1212</td><td class="col3">2301</td></tr>\n'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
@@ -110,7 +111,7 @@ describe('tags/tablerow', function () {
     const src =
       '{% tablerow i in (1..3)%}{{tablerowloop.first}} {{tablerowloop.last}} {{tablerowloop.length}}{% endtablerow %}'
     const dst =
-      '<tr class="row1"><td class="col1">true false 3</td><td class="col2">false false 3</td><td class="col3">false true 3</td></tr>'
+      '<tr class="row1">\n<td class="col1">true false 3</td><td class="col2">false false 3</td><td class="col3">false true 3</td></tr>\n'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
@@ -118,26 +119,26 @@ describe('tags/tablerow', function () {
     const src =
       '{% tablerow i in (1..3)%}{{tablerowloop.col}} {{tablerowloop.col0}} {{tablerowloop.col_first}} {{tablerowloop.col_last}}{% endtablerow %}'
     const dst =
-      '<tr class="row1"><td class="col1">1 0 true false</td><td class="col2">2 1 false false</td><td class="col3">3 2 false true</td></tr>'
+      '<tr class="row1">\n<td class="col1">1 0 true false</td><td class="col2">2 1 false false</td><td class="col3">3 2 false true</td></tr>\n'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
   describe('offset', function () {
     it('should support tablerow with offset', async function () {
       const src = '{% tablerow i in (1..5) cols:2 offset:3 %}{{ i }}{% endtablerow %}'
-      const dst = '<tr class="row1"><td class="col1">4</td><td class="col2">5</td></tr>'
+      const dst = '<tr class="row1">\n<td class="col1">4</td><td class="col2">5</td></tr>\n'
       const html = await liquid.parseAndRender(src)
       return expect(html).toBe(dst)
     })
     it('index should also start at 1', async function () {
       const src = '{% tablerow i in (1..4) cols:2 offset:2 %}{{tablerowloop.index}}{% endtablerow %}'
-      const dst = '<tr class="row1"><td class="col1">1</td><td class="col2">2</td></tr>'
+      const dst = '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td></tr>\n'
       const html = await liquid.parseAndRender(src)
       return expect(html).toBe(dst)
     })
     it('col should also start at 1', async function () {
       const src = '{% tablerow i in (1..4) cols:2 offset:3 %}{{tablerowloop.col}}{% endtablerow %}'
-      const dst = '<tr class="row1"><td class="col1">1</td></tr>'
+      const dst = '<tr class="row1">\n<td class="col1">1</td></tr>\n'
       const html = await liquid.parseAndRender(src)
       return expect(html).toBe(dst)
     })
@@ -145,15 +146,14 @@ describe('tags/tablerow', function () {
   describe('sync support', function () {
     it('should support tablerow', async function () {
       const src = '{% tablerow i in (1..3)%}{{ i }}{% endtablerow %}'
-      const dst = '<tr class="row1"><td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>'
+      const dst = '<tr class="row1">\n<td class="col1">1</td><td class="col2">2</td><td class="col3">3</td></tr>\n'
       const html = await liquid.parseAndRender(src)
       expect(html).toBe(dst)
     })
-    it('should support empty tablerow', async function () {
+    it('T23: an empty string collection emits the row markup', async function () {
       const src = '{% tablerow i in "" cols:2 %}{{ i }}{% endtablerow %}'
-      const dst = ''
       const html = await liquid.parseAndRender(src)
-      return expect(html).toBe(dst)
+      return expect(html).toBe('<tr class="row1">\n</tr>\n')
     })
   })
 })

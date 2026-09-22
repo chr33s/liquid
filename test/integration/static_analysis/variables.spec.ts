@@ -587,7 +587,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should throw an error if an included template does not exist', () => {
+  it('should throw an error if an included template does not exist', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "b" %}')
 
@@ -693,26 +693,6 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle jekyll style includes', async () => {
-    const engine = new Liquid({ templates: { a: '{{ include.x | append: y }}' }, jekyllInclude: true })
-    const template = engine.parse('{% include a x=y z=42 %}{{ x }}')
-    const analysis = await analyze(template)
-
-    const include = [new Variable(['include', 'x'], { row: 1, col: 4, file: 'a' })]
-    const x = [new Variable(['x'], { row: 1, col: 28, file: undefined })]
-
-    const y = [
-      new Variable(['y'], { row: 1, col: 16, file: undefined }),
-      new Variable(['y'], { row: 1, col: 24, file: 'a' })
-    ]
-
-    expect(analysis).toStrictEqual({
-      variables: { include, x, y },
-      globals: { x, y },
-      locals: {}
-    })
-  })
-
   it('should report variables from rendered templates', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "a" %}')
@@ -727,7 +707,7 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should throw an error if a rendered template does not exist', () => {
+  it('should throw an error if a rendered template does not exist', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "b" %}')
 
@@ -906,44 +886,46 @@ describe('Variable analysis', () => {
   })
 
   it('should report variables from layout templates', async () => {
-    const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{% endblock %}{{ y }}' } })
-    const template = engine.parse('{% layout "a" %}{% block %}{{ z }}{% endblock %}')
+    const engine = new Liquid({ profile: 'shopify_theme', templates: { a: '{{ x }}{{ content_for_layout }}{{ y }}' } })
+    const template = engine.parse('{% layout "a" %}{{ z }}')
     const analysis = await analyze(template)
 
+    const content_for_layout = [new Variable(['content_for_layout'], { row: 1, col: 11, file: 'a' })]
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
-    const y = [new Variable(['y'], { row: 1, col: 36, file: 'a' })]
-    const z = [new Variable(['z'], { row: 1, col: 31, file: undefined })]
+    const y = [new Variable(['y'], { row: 1, col: 35, file: 'a' })]
+    const z = [new Variable(['z'], { row: 1, col: 20, file: undefined })]
 
     expect(analysis).toStrictEqual({
-      variables: { x, y, z },
-      globals: { x, y, z },
+      variables: { content_for_layout, x, y, z },
+      globals: { content_for_layout, x, y, z },
       locals: {}
     })
   })
 
-  it('should report variables outside block tags', async () => {
-    const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{% endblock %}{{ y }}' } })
-    const template = engine.parse('{% layout "a" %}{{ b }}{% block %}{{ z }}{% endblock %}')
+  it('should report variables from the page body of a layout', async () => {
+    const engine = new Liquid({ profile: 'shopify_theme', templates: { a: '{{ x }}{{ content_for_layout }}{{ y }}' } })
+    const template = engine.parse('{% layout "a" %}{{ b }}{{ z }}')
     const analysis = await analyze(template)
 
     const b = [new Variable(['b'], { row: 1, col: 20, file: undefined })]
+    const content_for_layout = [new Variable(['content_for_layout'], { row: 1, col: 11, file: 'a' })]
     const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
-    const y = [new Variable(['y'], { row: 1, col: 36, file: 'a' })]
-    const z = [new Variable(['z'], { row: 1, col: 38, file: undefined })]
+    const y = [new Variable(['y'], { row: 1, col: 35, file: 'a' })]
+    const z = [new Variable(['z'], { row: 1, col: 27, file: undefined })]
 
     expect(analysis).toStrictEqual({
-      variables: { b, x, y, z },
-      globals: { b, x, y, z },
+      variables: { b, content_for_layout, x, y, z },
+      globals: { b, content_for_layout, x, y, z },
       locals: {}
     })
   })
 
   it('should handle layout is none', async () => {
-    const engine = new Liquid()
-    const template = engine.parse('{% layout none %}{% block %}{{ z }}{% endblock %}')
+    const engine = new Liquid({ profile: 'shopify_theme' })
+    const template = engine.parse('{% layout none %}{{ z }}')
     const analysis = await analyze(template)
 
-    const z = [new Variable(['z'], { row: 1, col: 32, file: undefined })]
+    const z = [new Variable(['z'], { row: 1, col: 21, file: undefined })]
 
     expect(analysis).toStrictEqual({
       variables: { z },
@@ -952,35 +934,18 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should handle block.super', async () => {
-    const engine = new Liquid({ templates: { a: '{{ x }}{% block %}{{ b }}{% endblock %}{{ y }}' } })
-    const template = engine.parse('{% layout "a" %}{% block %}{{ z }}{{ block.super }}{% endblock %}')
-    const analysis = await analyze(template)
-
-    const b = [new Variable(['b'], { row: 1, col: 22, file: 'a' })]
-    const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
-    const y = [new Variable(['y'], { row: 1, col: 43, file: 'a' })]
-    const z = [new Variable(['z'], { row: 1, col: 31, file: undefined })]
-    const block = [new Variable(['block', 'super'], { row: 1, col: 38, file: undefined })]
-
-    expect(analysis).toStrictEqual({
-      variables: { b, x, y, z, block },
-      globals: { b, x, y, z },
-      locals: {}
-    })
-  })
-
   it('should handle recursive layout', async () => {
     const engine = new Liquid({
+      profile: 'shopify_theme',
       templates: {
-        a: '{% layout "b" %}{% block %}{{ a }}{% endblock %}',
-        b: '{% layout "a" %}{% block %}{{ b }}{% endblock %}'
+        a: '{% layout "b" %}{{ a }}',
+        b: '{% layout "a" %}{{ b }}'
       }
     })
     const template = engine.parse('{% layout "a" %}{{ c }}')
     const analysis = await analyze(template)
 
-    const a = [new Variable(['a'], { row: 1, col: 31, file: 'a' })]
+    const a = [new Variable(['a'], { row: 1, col: 20, file: 'a' })]
     // const b = [new Variable(['b'], { row: 1, col: 31, file: 'b' })]
     const c = [new Variable(['c'], { row: 1, col: 20, file: undefined })]
 
@@ -992,7 +957,7 @@ describe('Variable analysis', () => {
   })
 
   it('should ignore layouts with a dynamic name', async () => {
-    const engine = new Liquid()
+    const engine = new Liquid({ profile: 'shopify_theme' })
     const template = engine.parse('{% layout a %}')
     const analysis = await analyze(template)
 
@@ -1006,11 +971,11 @@ describe('Variable analysis', () => {
   })
 
   it('should report variables from layout keyword arguments', async () => {
-    const engine = new Liquid({ templates: { a: '{% block %}{{ x }}{% endblock %}' } })
+    const engine = new Liquid({ profile: 'shopify_theme', templates: { a: '{{ x }}' } })
     const template = engine.parse('{% layout "a" x:y %}')
     const analysis = await analyze(template)
 
-    const x = [new Variable(['x'], { row: 1, col: 15, file: 'a' })]
+    const x = [new Variable(['x'], { row: 1, col: 4, file: 'a' })]
     const y = [new Variable(['y'], { row: 1, col: 17, file: undefined })]
 
     expect(analysis).toStrictEqual({
@@ -1034,7 +999,7 @@ describe('Variable analysis', () => {
     ].join('\n')
 
     const template = engine.parse(source)
-    const analysis = analyze(template)
+    const analysis = await analyze(template)
 
     const refs = {
       a: [
@@ -1051,7 +1016,7 @@ describe('Variable analysis', () => {
 
     const x = [new Variable(['x'], { row: 3, col: 15, file: undefined })]
 
-    await expect(analysis).resolves.toStrictEqual({
+    expect(analysis).toStrictEqual({
       variables: { ...refs, x },
       globals: refs,
       locals: {}

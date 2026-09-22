@@ -2,6 +2,26 @@ import { Liquid } from '../../../src/liquid'
 import { mock, restore } from '../../stub/mockfs'
 import { Template } from '../../../src/template'
 describe('LiquidOptions#cache', function () {
+  it.each([false, true])('forwards tenant identity to file providers with cache=%s', async function (cache) {
+    const reads: Array<string | undefined> = []
+    const engine = new Liquid({
+      cache,
+      relativeReference: false,
+      fs: {
+        resolve: (_root, file) => file,
+        exists: () => true,
+        readFile: (_file, options?: { signal?: AbortSignal; tenant?: string }) => {
+          reads.push(options?.tenant)
+          return options?.tenant ?? 'missing'
+        }
+      }
+    })
+    const render = (tenant: string) => engine.renderFile('shared', {}, { theme: { tenant } })
+    expect(await Promise.all([render('a'), render('b')])).toEqual(['a', 'b'])
+    expect(await render('a')).toBe('a')
+    expect(reads).toEqual(cache ? ['a', 'b'] : ['a', 'b', 'a'])
+  })
+
   afterEach(restore)
   describe('#renderFile', function () {
     it('should be disabled by default', async function () {

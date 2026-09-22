@@ -1,4 +1,4 @@
-const { Liquid, Tag, Value } = require('@chr33s/liquid')
+const { Liquid, LayoutTag, Tag, Value } = require('@chr33s/liquid')
 
 const engine = new Liquid({
   extname: '.liquid',
@@ -10,6 +10,8 @@ const engine = new Liquid({
   // partial files for `{% include %}` and `{% render %}`
   partials: './partials'
 })
+// `layout` belongs to the hosted dialect; a core engine registers it itself
+engine.registerTag('layout', LayoutTag)
 
 engine.registerTag('header', class HeaderTag extends Tag {
   constructor (token, remainTokens, liquid) {

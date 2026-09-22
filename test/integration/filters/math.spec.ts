@@ -1,4 +1,4 @@
-import { test, liquid } from '../../stub/render'
+import { test, liquid, render } from '../../stub/render'
 
 describe('filters/math', function () {
   describe('abs', function () {
@@ -23,9 +23,12 @@ describe('filters/math', function () {
   describe('divided_by', function () {
     it('should return 2 for 4,2', () => test('{{4 | divided_by: 2}}', '2'))
     it('should return 4 for 16,4', () => test('{{16 | divided_by: 4}}', '4'))
-    it('should return 1 for 5,3', () => test('{{5 | divided_by: 3}}', (5 / 3).toString()))
-    it('should support integer arithmetic', () => test('{{5 | divided_by: 3, true}}', '1'))
-    it('should floor the result in integer arithmetic', () => test('{{ -5 | divided_by: 3, true}}', '-2'))
+    it('F13: should divide integers as integers', () => test('{{5 | divided_by: 3}}', '1'))
+    it('F13: should floor integer division', () => test('{{ -5 | divided_by: 3}}', '-2'))
+    it('F14: should keep a decimal divisor decimal', () => test('{{5 | divided_by: 2.0}}', '2.5'))
+    it('F16: should reject integer division by zero', () =>
+      expect(render('{{5 | divided_by: 0}}')).rejects.toThrow('divided by 0'))
+    it('F16: should yield Infinity for a decimal divisor of zero', () => test('{{5 | divided_by: 0.0}}', 'Infinity'))
     it('should convert string to number', () => test('{{"6" | divided_by: "3"}}', '2'))
   })
   describe('floor', function () {

@@ -1,4 +1,7 @@
-import { test } from '../../stub/render'
+import { test as render } from '../../stub/render'
+
+/** The hash filters belong to the hosted dialect. */
+const test = (src: string, expected: string) => render(src, {}, expected, { profile: 'shopify_theme' })
 
 const SHA256_EMPTY = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
 

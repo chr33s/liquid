@@ -1,10 +1,12 @@
-import { Liquid } from '@chr33s/liquid'
+import { Liquid, LayoutTag } from '@chr33s/liquid'
 import { getOutputs } from './get-outputs.ts'
 
 const engine = new Liquid({
   root: import.meta.dirname,
   extname: '.liquid'
 })
+// `layout` belongs to the hosted dialect; a core engine registers it itself
+engine.registerTag('layout', LayoutTag)
 
 const templates = await engine.parseFile('todolist')
 

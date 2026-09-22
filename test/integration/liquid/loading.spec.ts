@@ -1,3 +1,4 @@
+import { LayoutTag } from '../../../src/tags'
 import { Liquid } from '../../../src'
 import { createFS } from '../../../src/build/fs-impl-browser'
 
@@ -125,7 +126,19 @@ describe('classified loading and source limits', () => {
         throw new Error('offline')
       })
     })
+    engine.registerTag('layout', LayoutTag)
     await expect(engine.parseAndRender('{% layout "theme" %}body')).rejects.toThrow('offline')
+  })
+
+  it('does not disguise operational default theme layout failures', async () => {
+    const engine = new Liquid({
+      profile: 'shopify_theme',
+      relativeReference: false,
+      fs: fs(() => {
+        throw new Error('offline')
+      })
+    })
+    await expect(engine.parseAndRender('body')).rejects.toThrow('offline')
   })
 
   it('keeps primary load failure when async cache eviction also fails', async () => {

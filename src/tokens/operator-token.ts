@@ -9,6 +9,7 @@ export const enum OperatorType {
 export const operatorPrecedences = {
   '==': 2,
   '!=': 2,
+  '<>': 2,
   '>': 2,
   '<': 2,
   '>=': 2,
@@ -22,6 +23,7 @@ export const operatorPrecedences = {
 export const operatorTypes = {
   '==': OperatorType.Binary,
   '!=': OperatorType.Binary,
+  '<>': OperatorType.Binary,
   '>': OperatorType.Binary,
   '<': OperatorType.Binary,
   '>=': OperatorType.Binary,

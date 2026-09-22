@@ -1,6 +1,6 @@
 {
   "name": "@chr33s/liquid",
-  "version": "11.0.0",
+  "version": "12.0.0",
   "description": "A simple, expressive, extensible Liquid template engine for JavaScript \u2014 Shopify, Jekyll and GitHub Pages compatible, for Node.js, browsers, and the CLI, with TypeScript support.",
   "keywords": [
     "express",
@@ -46,10 +46,12 @@
   },
   "scripts": {
     "lint": "oxlint && oxfmt --check src test bin rolldown.config.mjs vitest.config.mts",
-    "check": "npm run build && npm run build:docs && npm test && npm run lint && npm run typecheck && npm run perf:diff",
+    "check": "npm run build && npm run build:compat && npm run build:docs && npm test && npm run test:spec && npm run test:diff && npm run lint && npm run typecheck && npm run perf:diff",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage src test/integration",
     "test:e2e": "vitest run test/e2e",
+    "test:spec": "node bin/liquid-spec.mts",
+    "test:diff": "node bin/liquid-diff.mts --count 5000",
     "test:demo": "./test/demo/test.sh",
     "perf:diff": "node bin/perf-diff.mts",
     "perf:engines": "cd benchmark && npm run engines",
@@ -61,6 +63,7 @@
     "build:charmap": "./bin/character-gen.mts > src/util/character.ts && oxfmt src/util/character.ts",
     "build:docs": "run-s build:apidoc check:docs",
     "build:apidoc": "typedoc --options typedoc.json",
+    "build:compat": "node bin/build-compat-manifest.mts",
     "format": "oxfmt src test bin rolldown.config.mjs vitest.config.mts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "build:types": "shx rm -rf dist && tsc -p tsconfig.build.json && shx cp src/build/liquid.node.cjs dist/liquid.node.cjs && shx cp src/build/dist-package.json dist/package.json",
@@ -104,5 +107,9 @@
   },
   "allowScripts": {
     "fsevents": true
+  },
+  "ref": {
+    "Shopify/liquid": "4e39ae4cc3da73921923c0669e0fc84a66b2f696",
+    "Shopify/liquid-spec": "84bf25e0edbca5f7e530574788b0f875ab331f50"
   }
 }

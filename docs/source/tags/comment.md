@@ -17,3 +17,5 @@ Output
 Anything you put between  tags
 is turned into a comment.
 ```
+
+A `comment` block may contain another `comment` block: the inner `{% endcomment %}` closes only the inner one.

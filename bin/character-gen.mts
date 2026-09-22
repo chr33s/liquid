@@ -43,9 +43,12 @@ export const NUMBER = 32
 export const SIGN = 64
 export const PUNCTUATION = 128
 
+// beyond ASCII, a word character is one Ruby's \\w matches: a letter, mark, digit or connector
+const UNICODE_WORD = /[\\p{L}\\p{M}\\p{Nd}\\p{Pc}]/u
+
 export function isWord (char: string): boolean {
   const code = char.charCodeAt(0)
-  return code >= 128 ? !TYPES[code] : !!(TYPES[code] & WORD)
+  return code >= 128 ? !TYPES[code] && UNICODE_WORD.test(char) : !!(TYPES[code] & WORD)
 }
 `.trim()
 )

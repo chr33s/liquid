@@ -48,3 +48,7 @@ one
 two
 two
 ```
+
+## Values
+
+Values are rendered as text, so `{% cycle false, true %}` writes `false`. An unnamed `cycle` whose values include a variable keeps a counter of its own, rather than sharing one with other `cycle` tags that are spelled the same.

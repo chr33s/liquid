@@ -4,19 +4,25 @@ title: layout
 
 **Since:** v1.9.1
 
+> **Theme profile only**
+>
+> `layout` is registered by the [Shopify theme profile](../tutorials/shopify-theme-profile.md) (`profile: 'shopify_theme'`), not by the default `core` profile. A core engine can register it itself: `liquid.registerTag('layout', LayoutTag)`, with {@link LayoutTag} imported from the package root.
+
 ## Using a Layout
 
-Introduce a layout template for the current template to render in. The directory for layout files are defined by [layouts][layouts] or [root][root].
+Introduce a layout template for the current template to render in. The directory for layout files is defined by {@link LiquidOptions.layouts | layouts} or {@link LiquidOptions.root | root}.
+
+The page renders first, and the layout receives the result as `content_for_layout`:
 
 ```liquid
 // default-layout.liquid
 Header
-{% block %}{% endblock %}
+{{ content_for_layout }}
 Footer
 
 // page.liquid
 {% layout "default-layout.liquid" %}
-{% block %}My page content{% endblock %}
+My page content
 
 // result
 Header
@@ -34,36 +40,12 @@ If {@link LiquidOptions.extname | extname} option is set, the `.liquid` extensio
 >
 > When a partial template is rendered by the `layout` tag, its template has access to its caller's variables but not vice versa. Variables defined in `layout` will be popped out before control returns to its caller.
 
-## Multiple Blocks
+## Rendering Without a Layout
 
-The `layout` file can contain multiple blocks, each with a specified name. The following snippets yield same result as in the above example.
-
-```liquid
-// default-layout.liquid
-{% block header %}{% endblock %}
-{% block content %}{% endblock %}
-{% block footer %}{% endblock %}
-
-// page.liquid
-{% layout "default-layout.liquid" %}
-{% block header %}Header{% endblock %}
-{% block content %}My page content{% endblock %}
-{% block footer %}Footer{% endblock %}
-```
-
-## Default Block Contents
-
-In the above `layout` files, blocks have empty contents. They do not necessarily need to be empty; in that case, the block contents in `layout` files will be used as default templates. The following snippets are also equivalent to the above examples:
+`{% layout none %}` renders the template on its own, with no outer layout:
 
 ```liquid
-// default-layout.liquid
-{% block header %}Header{% endblock %}
-{% block content %}{% endblock %}
-{% block footer %}Footer{% endblock %}
-
-// page.liquid
-{% layout "default-layout.liquid" %}
-{% block content %}My page content{% endblock %}
+{% layout none %}My page content
 ```
 
 ## Passing Variables
@@ -80,30 +62,13 @@ Variables defined in the current template can be passed to the `layout` template
 When filename is specified as literal string, it supports Liquid output and filter syntax. Useful when concatenating strings for a complex filename.
 
 ```liquid
-{% layout "prefix/{{name | append: \".html\"}}" %}
+{% layout "prefix/{{name | append: '.html'}}" %}
 ```
 
-**Escaping**
+> **Quotes**
+>
+> String literals have no escape sequences, so a `\"` cannot appear inside a `"`-quoted name. Quote the inner string with the other kind of quote, as above.
 
-
-In LiquidJS, `"` within quoted string literals need to be escaped. Adding a slash before the quote, e.g. `\"`. Using Jekyll-like filenames can make this easier, see below.
-
-
-## Jekyll-like Filenames
-
-Setting [dynamicPartials][dynamicPartials] to `false` will enable Jekyll-like filenames, file names are specified as literal string. And it also supports Liquid outputs and filters.
-
-```liquid
-{% layout prefix/{{ page.my_variable }}/suffix %}
-```
-
-This way, you don't need to escape `"` in the filename expression.
-
-```liquid
-{% layout prefix/{{name | append: ".html"}} %}
-```
-
-[extname]: /api/interfaces/LiquidOptions.html#extname
-[root]: /api/interfaces/LiquidOptions.html#root
-[layouts]: /api/interfaces/LiquidOptions.html#layouts
-[dynamicPartials]: /api/interfaces/LiquidOptions.html#dynamicPartials
+> **Named blocks were removed**
+>
+> The <code>block</code> inheritance tag no longer exists. See <a href="../tutorials/migrate-to-12.md">Migrate to v12</a> for the <code>content_for_layout</code> replacement.

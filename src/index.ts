@@ -12,10 +12,11 @@ export {
   RenderError,
   UndefinedVariableError,
   TokenizationError,
-  AssertionError
+  AssertionError,
+  ResourceLedger
 } from './util'
 export type { LiquidErrors } from './util/error'
-export { Drop } from './drop'
+export { Drop, FloatDrop } from './drop'
 export type { Comparable } from './drop'
 export type { Emitter } from './emitters'
 export { defaultOperators, type Operators, evalToken, evalQuotedToken, Expression, isFalsy, isTruthy } from './render'
@@ -43,6 +44,33 @@ export { Token, type TopLevelToken, TagToken, type ValueToken } from './tokens'
 export type { RangeToken, LiteralToken, QuotedToken, PropertyAccessToken, NumberToken } from './tokens'
 export { TokenKind, Tokenizer, ParseStream, Parser } from './parser'
 export { filters } from './filters'
+export { hostedFilters } from './filters/hosted'
+export {
+  type LiquidProfile,
+  type ThemeProviders,
+  type ThemeRequest,
+  type PaginatedSource,
+  type AssetProvider,
+  type StoreProvider,
+  type LocaleBundle,
+  type SectionDefinition,
+  type SectionGroup,
+  type ThemeBlock,
+  type CapabilityReport,
+  CapabilityLog,
+  MissingCapabilityError,
+  PaginateDrop,
+  hostedLimits
+} from './theme'
+export {
+  type CompatEntry,
+  type CompatibilityManifest,
+  type Provenance,
+  type SupportStatus,
+  buildCompatibilityManifest,
+  unimplementedFilters,
+  sources as compatibilitySources
+} from './compat'
 export * from './tags'
 export { defaultOptions } from './liquid-options'
 export type { LiquidOptions, RenderOptions, RenderFileOptions } from './liquid-options'

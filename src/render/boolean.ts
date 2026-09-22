@@ -7,10 +7,5 @@ export function isTruthy(val: any, ctx: Context): boolean {
 
 export function isFalsy(val: any, ctx: Context): boolean {
   val = toValue(val)
-
-  if (ctx.opts.jsTruthy) {
-    return !val
-  } else {
-    return val === false || undefined === val || val === null
-  }
+  return val === false || undefined === val || val === null
 }

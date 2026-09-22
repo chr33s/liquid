@@ -61,6 +61,6 @@ describe('liquid#registerTag()', function () {
   it('should not treat Object.prototype names as registered tags', () => {
     const l = new Liquid()
     expect(Object.getPrototypeOf(l.tags)).toBeNull()
-    expect(() => l.parse('{% constructor %}')).toThrow('tag "constructor" not found')
+    expect(() => l.parse('{% constructor %}')).toThrow("Unknown tag 'constructor'")
   })
 })

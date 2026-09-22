@@ -49,7 +49,7 @@ describe('tags/inline-comment', function () {
   it('should enforce leading hashes', async function () {
     const src = ['{%-', '  # spread inline comments', '  over multiple lines', '-%}'].join('\n')
     return expect(liquid.parseAndRender(src)).rejects.toThrow(
-      /every line of an inline comment must start with a '#' character/
+      "Syntax error in tag '#' - Each line of comments must be prefixed by the '#' character"
     )
   })
   describe('Promise execution', function () {

@@ -1,6 +1,5 @@
 import { Token } from './token'
 import { TokenKind } from '../parser'
-import { parseStringLiteral } from '../render/string'
 
 export class QuotedToken extends Token {
   public readonly content: string
@@ -11,6 +10,7 @@ export class QuotedToken extends Token {
     public file?: string
   ) {
     super(TokenKind.Quoted, input, begin, end, file)
-    this.content = parseStringLiteral(this.getText())
+    // as in the reference, a string literal has no escapes: its text is its content
+    this.content = this.getText().slice(1, -1)
   }
 }

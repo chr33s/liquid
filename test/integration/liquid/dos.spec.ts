@@ -29,7 +29,7 @@ describe('DoS related', function () {
       const src = '{% for i in (1..1000) %}{{i}},{% endfor %}'
       const noLimit = new Liquid()
       const limitSmall = new Liquid({ templateLimit: 100 })
-      const limitLarge = new Liquid({ templateLimit: 2001 })
+      const limitLarge = new Liquid({ templateLimit: 3001 })
       await expect(noLimit.parseAndRender(src)).resolves.toMatch(/^1,2,3,4,5,.*,999,1000,$/)
       await expect(limitSmall.parseAndRender(src)).rejects.toThrow('template limit exceeded')
       await expect(limitLarge.parseAndRender(src)).resolves.toMatch(/^1,2,3,4,5,.*,999,1000,$/)
@@ -38,7 +38,7 @@ describe('DoS related', function () {
       const src = '{% for i in (1..1000) %}{{i}},{% endfor %}'
       const liquid = new Liquid({ templateLimit: 100 })
       await expect(liquid.parseAndRender(src)).rejects.toThrow('template limit exceeded')
-      await expect(liquid.parseAndRender(src, {}, { templateLimit: 2001 })).resolves.toMatch(/^1,2,3,4,5,.*,999,1000,$/)
+      await expect(liquid.parseAndRender(src, {}, { templateLimit: 3001 })).resolves.toMatch(/^1,2,3,4,5,.*,999,1000,$/)
     })
     it('should take partials into account', async () => {
       mock({
@@ -100,22 +100,23 @@ describe('DoS related', function () {
     }
     it('should throw when include depth exceeded', async () => {
       const liquid = new Liquid({ templates: chain(3, 'include'), maxDepth: 2 })
-      await expect(liquid.parseAndRender('{% include "t0" %}')).rejects.toThrow('template depth limit exceeded')
+      await expect(liquid.parseAndRender('{% include "t0" %}')).rejects.toThrow('Nesting too deep')
     })
     it('should allow include within maxDepth', async () => {
-      const liquid = new Liquid({ templates: chain(2, 'include'), maxDepth: 2 })
+      const liquid = new Liquid({ templates: chain(2, 'include'), maxDepth: 3 })
       await expect(liquid.parseAndRender('{% include "t0" %}')).resolves.toBe('done')
     })
     it('should throw when render depth exceeded', async () => {
       const liquid = new Liquid({ templates: chain(3, 'render'), maxDepth: 2 })
-      await expect(liquid.parseAndRender('{% render "t0" %}')).rejects.toThrow('template depth limit exceeded')
+      await expect(liquid.parseAndRender('{% render "t0" %}')).rejects.toThrow('Nesting too deep')
     })
     it('should allow render within maxDepth', async () => {
-      const liquid = new Liquid({ templates: chain(2, 'render'), maxDepth: 2 })
+      const liquid = new Liquid({ templates: chain(2, 'render'), maxDepth: 3 })
       await expect(liquid.parseAndRender('{% render "t0" %}')).resolves.toBe('done')
     })
     it('should throw when layout depth exceeded', async () => {
       const liquid = new Liquid({
+        profile: 'shopify_theme',
         templates: {
           a: '{% layout "b" %}body-a',
           b: '{% layout "c" %}body-b',
@@ -123,33 +124,33 @@ describe('DoS related', function () {
         },
         maxDepth: 2
       })
-      await expect(liquid.parseAndRender('{% layout "a" %}root')).rejects.toThrow('template depth limit exceeded')
+      await expect(liquid.parseAndRender('{% layout "a" %}root')).rejects.toThrow('Nesting too deep')
     })
     it('should allow layout within maxDepth', async () => {
       const liquid = new Liquid({
+        profile: 'shopify_theme',
         templates: {
           a: '{% layout "b" %}body-a',
           b: 'body-b'
         },
-        maxDepth: 2
+        maxDepth: 3
       })
       await expect(liquid.parseAndRender('{% layout "a" %}root')).resolves.toBe('body-b')
     })
     it('should not count layout none toward depth', async () => {
-      const liquid = new Liquid({ maxDepth: 0 })
+      const liquid = new Liquid({ profile: 'shopify_theme', maxDepth: 0 })
       await expect(liquid.parseAndRender('{% layout none %}ok')).resolves.toBe('ok')
     })
-    it('should default maxDepth to 128', async () => {
-      const liquid = new Liquid({ templates: chain(128, 'include') })
+
+    it('should default maxDepth to 100 scopes, the template itself included', async () => {
+      const liquid = new Liquid({ templates: chain(99, 'include') })
       await expect(liquid.parseAndRender('{% include "t0" %}')).resolves.toBe('done')
-      const overflow = new Liquid({ templates: chain(129, 'include') })
-      await expect(overflow.parseAndRender('{% include "t0" %}')).rejects.toThrow('template depth limit exceeded')
+      const overflow = new Liquid({ templates: chain(100, 'include') })
+      await expect(overflow.parseAndRender('{% include "t0" %}')).rejects.toThrow('Nesting too deep')
     })
     it('should enforce maxDepth in Promise rendering', async () => {
       const liquid = new Liquid({ templates: chain(3, 'include'), maxDepth: 2 })
-      await expect(async () => await liquid.parseAndRender('{% include "t0" %}')).rejects.toThrow(
-        'template depth limit exceeded'
-      )
+      await expect(liquid.parseAndRender('{% include "t0" %}')).rejects.toThrow('Nesting too deep')
     })
   })
   describe('strip_html ReDoS', () => {

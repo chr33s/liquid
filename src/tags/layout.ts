@@ -1,8 +1,6 @@
 import type { OperationOptions } from '../util/operation'
 import { Scope, Template, Liquid, Tag, assert, Emitter, Hash, TagToken, TopLevelToken, Context } from '..'
-import { BlockMode } from '../context'
 import { parseFilePath, renderFilePath, ParsedFileName } from './render'
-import { BlankDrop } from '../drop'
 import { Parser } from '../parser'
 import { Arguments, PartialScope } from '../template'
 import { isString, isValueToken } from '../util'
@@ -22,8 +20,8 @@ export default class extends Tag {
   *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     const { liquid, args, file } = this
     const { renderer } = liquid
+    // `{% layout none %}` renders the page without an outer layout
     if (file === undefined) {
-      ctx.setRegister('blockMode', BlockMode.OUTPUT)
       yield renderer.renderTemplates(this.templates, ctx, emitter)
       return
     }
@@ -31,19 +29,16 @@ export default class extends Tag {
     try {
       const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
       assert(filepath, () => `illegal file path "${filepath}"`)
-      const templates = (yield liquid._parseLayoutFile(filepath, this.currentFile, ctx.operationOptions)) as Template[]
+      const templates = (yield liquid._parseLayoutFile(
+        filepath,
 
-      // render remaining contents and store rendered results
-      ctx.setRegister('blockMode', BlockMode.STORE)
-      const html = yield renderer.renderTemplates(this.templates, ctx)
-      const blocks = ctx.getRegister('blocks', {} as Record<string, any>)
+        this.currentFile,
+        ctx.operationOptions
+      )) as Template[]
 
-      // set whole content to anonymous block if anonymous doesn't specified
-      if (blocks[''] === undefined) blocks[''] = (parent: BlankDrop, emitter: Emitter) => emitter.write(html)
-      ctx.setRegister('blockMode', BlockMode.OUTPUT)
-
-      // render the layout file use stored blocks
-      ctx.push((yield args.render(ctx)) as Scope)
+      // the page renders first; the layout receives it as content_for_layout
+      const content = yield renderer.renderTemplates(this.templates, ctx)
+      ctx.push({ ...((yield args.render(ctx)) as Scope), content_for_layout: content })
       try {
         yield renderer.renderTemplates(templates, ctx, emitter)
       } finally {

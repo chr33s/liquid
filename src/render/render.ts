@@ -1,6 +1,6 @@
-import { RenderError, LiquidErrors, LiquidError } from '../util'
+import { RenderError, LiquidErrors, LiquidError, LimitError, inlineErrorMessage } from '../util'
 import { Context } from '../context'
-import { Template } from '../template'
+import { Template, isBlank, Output } from '../template'
 import { Emitter, SimpleEmitter } from '../emitters'
 
 export class Render {
@@ -10,9 +10,9 @@ export class Render {
     emitter: Emitter = new SimpleEmitter(ctx.outputLengthLimit, ctx.operation)
   ): IterableIterator<any> {
     const errors = []
+    ctx.templateLimit.use(templates.length)
     for (const tpl of templates) {
       ctx.operation.check()
-      ctx.templateLimit.use(1)
       try {
         const html = yield tpl.render(ctx, emitter)
         if (html) yield emitter.write(html)
@@ -20,7 +20,15 @@ export class Render {
       } catch (e) {
         ctx.operation.check()
         const err = LiquidError.is(e) ? e : new RenderError(e as Error, tpl)
-        if (ctx.opts.catchAllErrors) errors.push(err)
+        if (ctx.renderErrors === 'inline' && !LimitError.is(err)) {
+          ctx.onError?.(err)
+          // outside strict2 the reference writes no error text for a blank tag, like an `if` around an `assign`;
+          // an `assign` itself never writes its error, whatever the mode
+          const assign = (tpl as { name?: string }).name === 'assign'
+          const quiet = assign || (ctx.opts.errorMode !== 'strict2' && isBlank(tpl) && !(tpl instanceof Output))
+          if (err.name !== 'UndefinedVariableError' && !quiet) yield emitter.write(inlineErrorMessage(err))
+          if (ctx.breakCalled || ctx.continueCalled) break
+        } else if (ctx.opts.catchAllErrors) errors.push(err)
         else throw err
       }
     }

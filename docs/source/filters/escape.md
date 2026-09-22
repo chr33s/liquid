@@ -25,3 +25,5 @@ Output
 ```text
 Tetsuro Takara
 ```
+
+`nil` input stays `nil` rather than becoming an empty string.

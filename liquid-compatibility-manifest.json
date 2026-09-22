@@ -1,0 +1,1873 @@
+{
+  "generated_at": "2026-09-22",
+  "package_version": "12.0.0",
+  "sources": {
+    "rubyCore": {
+      "repository": "Shopify/liquid",
+      "revision": "4e39ae4cc3da73921923c0669e0fc84a66b2f696",
+      "version": "5.14.0"
+    },
+    "hosted": {
+      "reference": "https://shopify.dev/docs/api/liquid",
+      "reviewedOn": "2026-09-21",
+      "catalog": "Shopify/theme-liquid-docs",
+      "catalogRevision": "5dffe0f7ca76f902f212a602478bc8f5ce0c893a",
+      "runtimeRevision": null
+    }
+  },
+  "filters": {
+    "abs": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "append": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "at_least": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "at_most": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "base64_decode": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "base64_encode": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "base64_url_safe_decode": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "base64_url_safe_encode": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "capitalize": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "ceil": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "compact": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "concat": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "date": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "default": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        2
+      ]
+    },
+    "divided_by": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "downcase": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "escape": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "escape_once": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "find": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "find_index": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "first": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "floor": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "h": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "has": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "join": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "last": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "lstrip": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "map": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "minus": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "modulo": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "newline_to_br": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "plus": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "prepend": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "reject": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "remove": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "remove_first": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "remove_last": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "replace": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "replace_first": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "replace_last": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        2,
+        2
+      ]
+    },
+    "reverse": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "round": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "rstrip": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "size": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "slice": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "sort": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "sort_natural": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "split": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "squish": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "strip": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "strip_html": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "strip_newlines": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "sum": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "times": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        1
+      ]
+    },
+    "truncate": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        2
+      ]
+    },
+    "truncatewords": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        2
+      ]
+    },
+    "uniq": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        1
+      ]
+    },
+    "upcase": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "url_decode": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "url_encode": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        0,
+        0
+      ]
+    },
+    "where": {
+      "kind": "filter",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented",
+      "arity": [
+        1,
+        2
+      ]
+    },
+    "article_img_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.imageUrl"
+    },
+    "asset_img_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.imageUrl"
+    },
+    "asset_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.assetUrl"
+    },
+    "avatar": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "store.platformMarkup"
+    },
+    "blake3": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "brightness_difference": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "camelize": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "class_list": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "collection_img_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.imageUrl"
+    },
+    "color_brightness": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_contrast": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_darken": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_desaturate": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_difference": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_extract": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_lighten": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_mix": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_modify": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_saturate": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_to_hex": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_to_hsl": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_to_oklch": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "color_to_rgb": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "currency_selector": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "store.platformMarkup"
+    },
+    "customer_login_link": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "customer_logout_link": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "customer_register_link": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "default_errors": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "default_pagination": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "external_video_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "external_video_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "file_img_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.imageUrl"
+    },
+    "file_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.fileUrl"
+    },
+    "font_face": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.fontFace"
+    },
+    "font_modify": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.fontModify"
+    },
+    "font_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.fontUrl"
+    },
+    "format_address": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "global_asset_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.shopifyAssetUrl"
+    },
+    "handle": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "handleize": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "hex_to_rgba": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "highlight": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "highlight_active_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "hmac_sha1": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "hmac_sha256": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "image_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "image_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.imageUrl"
+    },
+    "img_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "img_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.imageUrl"
+    },
+    "inline_asset_content": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.inlineAsset"
+    },
+    "item_count_for_variant": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "json": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "line_items_for": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "link_to": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "link_to_add_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "link_to_remove_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "link_to_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "link_to_type": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "link_to_vendor": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "login_button": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "store.platformMarkup"
+    },
+    "md5": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "media_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "metafield_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "metafield_text": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "model_viewer_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "money": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "money_with_currency": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "money_without_currency": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "money_without_trailing_zeros": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "payment_button": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "store.platformMarkup"
+    },
+    "payment_terms": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "store.platformMarkup"
+    },
+    "payment_type_img_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "store.platformMarkup"
+    },
+    "payment_type_svg_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "store.platformMarkup"
+    },
+    "placeholder_svg_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "pluralize": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "preload_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "product_img_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.imageUrl"
+    },
+    "script_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "sha1": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "sha256": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "shopify_asset_url": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "provider_required",
+      "provider": "assets.shopifyAssetUrl"
+    },
+    "sort_by": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "structured_data": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "stylesheet_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "t": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "time_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "translate": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "unit_price_with_measurement": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "url_escape": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "url_for_type": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "url_for_vendor": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "url_param_escape": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "video_tag": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "weight_with_unit": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "within": {
+      "kind": "filter",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    }
+  },
+  "tags": {
+    "#": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "assign": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "break": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "capture": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "case": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "comment": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "content_for": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "continue": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "cycle": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "decrement": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "doc": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "echo": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "for": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "form": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "if": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "ifchanged": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "include": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "increment": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "javascript": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "layout": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "liquid": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "paginate": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "raw": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "render": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "schema": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "section": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "sections": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "style": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "stylesheet": {
+      "kind": "tag",
+      "provenance": "hosted",
+      "profiles": [
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "tablerow": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    },
+    "unless": {
+      "kind": "tag",
+      "provenance": "ruby_core",
+      "profiles": [
+        "core",
+        "shopify_theme"
+      ],
+      "status": "implemented"
+    }
+  },
+  "counts": {
+    "coreFilters": 61,
+    "hostedOnlyFilters": 95,
+    "tags": 31,
+    "providerRequired": 22
+  },
+  "unresolved": {
+    "filters_without_implementation": [],
+    "hosted_runtime_revision": null,
+    "note": "Provider-required names are implemented but answer only when the matching provider is configured. No hosted conformance run against a Shopify runtime is claimed."
+  }
+}

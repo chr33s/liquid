@@ -33,17 +33,19 @@ For more details, see the [render](../tags/render.md) tag.
 
 ## Layout Templates (Extends)
 
+The `layout` tag belongs to the [Shopify theme profile](./shopify-theme-profile.md). Create the engine with `profile: 'shopify_theme'`, or register the tag on a core engine with `liquid.registerTag('layout', LayoutTag)`.
+
 For the following template files:
 
 ```
 // file: default-layout.liquid
 Header
-{% block content %}My default content{% endblock %}
+{{ content_for_layout }}
 Footer
 
 // file: page.liquid
 {% layout "default-layout.liquid" %}
-{% block content %}My page content{% endblock %}
+My page content
 ```
 
 The output of `page.liquid`:

@@ -93,8 +93,6 @@ Output
 
 **Since:** v10.21.0
 
-For Liquid users migrating from Jekyll, there's a `jekyllWhere` option to mimic the behavior of Jekyll's `where` filter. This option is set to `false` by default. When enabled, if `property` is an array, the target value is matched using `Array.includes` instead of `==`, which is particularly useful for excluding tags.
-
 ```javascript
 const pages = [
     { tags: ["cat", "food"], title: 'Cat Food' },

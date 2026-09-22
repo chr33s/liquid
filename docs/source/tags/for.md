@@ -180,6 +180,8 @@ Output
 3456
 ```
 
+`offset` and `limit` must be integers or strings spelling one; a decimal like `2.9` raises `invalid integer`, and `nil` reads as `0`. They select items as the reference engine does: a negative `offset` starts at the first item but still counts toward the `limit`, so `{% for i in (1..5) offset: -1 limit: 3 %}` renders `12`. A string collection is a single item, whatever the `offset` and `limit`.
+
 #### offset:continue
 
 **Since:** v9.33.0

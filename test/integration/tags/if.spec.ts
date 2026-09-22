@@ -12,18 +12,19 @@ describe('tags/if', function () {
       return false
     }
   }
-  it('should throw if not closed', function () {
+  it('should throw if not closed', async function () {
     const src = '{% if false%}yes'
-    return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(/tag {% if false%} not closed/)
+    return expect(liquid.parseAndRender(src, scope)).rejects.toThrow("'if' tag was never closed")
   })
   it('should support nested', async function () {
     const src = '{%if false%}{%if true%}{%else%}a{%endif%}{%endif%}'
     const html = await liquid.parseAndRender(src, scope)
     return expect(html).toBe('')
   })
-  it('should throw for additional args', function () {
-    const src = "{% if foo %} foo {% else foo = 'blah' %} {% endif %}"
-    return expect(liquid.parseAndRender(src, scope)).rejects.toThrow(`unexpected "foo = 'blah'", line:1, col:1`)
+
+  it('should ignore else arguments, as the reference', async function () {
+    const src = "{% if false %} foo {% else foo = 'blah' %}else{% endif %}"
+    return expect(liquid.parseAndRender(src, scope)).resolves.toBe('else')
   })
   describe('single value as condition', function () {
     it('should support boolean', async function () {
@@ -147,14 +148,10 @@ describe('tags/if', function () {
     const html = await liquid.parseAndRender(src, scope)
     return expect(html).toBe('no')
   })
-  it('should throw for duplicated else', async () => {
-    await expect(
-      async () => await liquid.parseAndRender('{% if false %}{% else %}{% else %}{% endif %}')
-    ).rejects.toThrow(`duplicated else`)
+  it('should render the first else, as the reference', async () => {
+    expect(await liquid.parseAndRender('{% if false %}{% else %}a{% else %}b{% endif %}')).toBe('a')
   })
-  it('should throw for unexpected elsif', async () => {
-    await expect(
-      async () => await liquid.parseAndRender('{% if false %}{% else %}{% elsif true %}{% endif %}')
-    ).rejects.toThrow(`unexpected elsif after else`)
+  it('should not reach an elsif after an else', async () => {
+    expect(await liquid.parseAndRender('{% if false %}{% else %}a{% elsif true %}b{% endif %}')).toBe('a')
   })
 })

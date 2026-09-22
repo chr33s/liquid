@@ -1,6 +1,7 @@
 import { Liquid, Tag, Value, TopLevelToken, Template, Emitter, isTruthy, isFalsy, Context, TagToken } from '..'
-import { Parser } from '../parser'
-import { Arguments } from '../template'
+import { Parser, assertConsumed } from '../parser'
+import type { ParsedMarkup } from '../parser/strict2'
+import { Arguments, blankBodies, LaxCondition } from '../template'
 
 export default class extends Tag {
   branches: { value: Value; test: (val: any, ctx: Context) => boolean; templates: Template[] }[] = []
@@ -8,44 +9,36 @@ export default class extends Tag {
   constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
     let p: Template[] = []
-    let elseCount = 0
+    let elseSeen = false
     parser
       .parseStream(remainTokens)
       .on('start', () =>
         this.branches.push({
-          value: new Value(tagToken.tokenizer.readFilteredValue(), this.liquid),
+          value: readCondition(tagToken, this.liquid),
           test: isFalsy,
           templates: (p = [])
         })
       )
+      // an else always holds, so what follows the first one is parsed but never reached
       .on('tag:elsif', (token: TagToken) => {
-        if (elseCount > 0) {
-          p = []
-          return
-        }
-        this.branches.push({
-          value: new Value(token.tokenizer.readFilteredValue(), this.liquid),
-          test: isTruthy,
-          templates: (p = [])
-        })
+        const branch = { value: readCondition(token, this.liquid), test: isTruthy, templates: (p = []) }
+        if (!elseSeen) this.branches.push(branch)
       })
       .on('tag:else', () => {
-        elseCount++
-        p = this.elseTemplates
+        p = elseSeen ? [] : this.elseTemplates
+        elseSeen = true
       })
       .on('tag:endunless', function () {
         this.stop()
       })
-      .on('template', (tpl: Template) => {
-        if (p !== this.elseTemplates || elseCount === 1) {
-          p.push(tpl)
-        }
-      })
+      .on('template', (tpl: Template) => p.push(tpl))
       .on('end', () => {
-        throw new Error(`tag ${tagToken.getText()} not closed`)
+        throw new Error(`'${tagToken.name}' tag was never closed`)
       })
       .start()
+    this.blank = blankBodies([...this.branches.map(branch => branch.templates), this.elseTemplates], true)
   }
+  public readonly blank: boolean;
 
   *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     const r = this.liquid.renderer
@@ -72,4 +65,12 @@ export default class extends Tag {
   public arguments(): Arguments {
     return this.branches.map(b => b.value)
   }
+}
+
+function readCondition(token: TagToken, liquid: Liquid): Value {
+  if (token.laxCondition) return new LaxCondition(token.laxCondition, liquid)
+  if (token.parsed) return new Value(token.parsed as ParsedMarkup<'if'>, liquid)
+  const value = new Value(token.tokenizer.readFilteredValue(), liquid)
+  assertConsumed(token.tokenizer, liquid, value)
+  return value
 }

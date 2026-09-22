@@ -10,6 +10,8 @@ const TRAIT = '__liquidClass__'
 export abstract class LiquidError extends Error {
   public token!: Token
   public context = ''
+  /** The message without the location suffix `message` carries. */
+  public summary!: string
   public originalError?: Error
   public constructor(err: Error | string, token: Token) {
     /**
@@ -23,6 +25,7 @@ export abstract class LiquidError extends Error {
   }
   protected update() {
     Object.defineProperty(this, 'context', { value: mkContext(this.token), enumerable: false })
+    Object.defineProperty(this, 'summary', { value: this.message, enumerable: false })
     this.message = mkMessage(this.message, this.token)
     this.stack = this.message + '\n' + this.context + '\n' + this.stack
     if (this.originalError) this.stack += '\nFrom ' + this.originalError.stack
@@ -101,6 +104,32 @@ export class AssertionError extends Error {
     this.name = 'AssertionError'
     this.message = message + ''
   }
+}
+
+/** A resource budget ran out. Rendering stops under every error policy. */
+export class LimitError extends AssertionError {
+  public constructor(message: string) {
+    super(message)
+    this.name = 'LimitError'
+  }
+  public static is(err: unknown): boolean {
+    for (let e = err as Error | undefined; e; e = (e as LiquidError).originalError) {
+      if (e.name === 'LimitError') return true
+    }
+    return false
+  }
+}
+
+/** How a render error reads when written into the output: `Liquid error (file line N): message`. */
+export function inlineErrorMessage(err: LiquidError): string {
+  const [line] = err.token.getPosition()
+  const location = err.token.file ? `${err.token.file} line ${line}` : `line ${line}`
+  let cause: Error = err
+  while (LiquidError.is(cause) && cause.originalError) cause = cause.originalError
+  const message = LiquidError.is(cause) ? cause.summary : cause.message
+  const kind =
+    cause.name === 'ParseError' || cause.name === 'TokenizationError' ? 'Liquid syntax error' : 'Liquid error'
+  return `${kind} (${location}): ${message}`
 }
 
 function mkContext(token: Token) {

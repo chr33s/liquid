@@ -1,0 +1,3106 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-09-21",
+  "supersedes": "core-only inventory from the previous audit",
+  "policy": "Core registers exactly the pinned Ruby reference inventory (src/compat/ruby-core.ts); documented Shopify theme names are registered by the shopify_theme profile only. Preserve necessary JS/Ruby adaptations outside the template dialect. Hosted support requires semantic and provider tests.",
+  "baselines": {
+    "downstream": {
+      "repository": "chr33s/liquid",
+      "revision": "06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263",
+      "role": "original audit pin, not a newly advanced branch"
+    },
+    "ruby_core": {
+      "repository": "Shopify/liquid",
+      "revision": "4e39ae4cc3da73921923c0669e0fc84a66b2f696",
+      "version": "5.14.0"
+    },
+    "shopify_hosted": {
+      "requested_url": "https://shopify.dev/docs/api/liquid.md",
+      "readable_reference_url": "https://shopify.dev/docs/api/liquid",
+      "reviewed_on": "2026-09-21",
+      "runtime_revision": null,
+      "read_method": "The .md endpoint was not readable through the available fetcher; used the corresponding official HTML reference and linked detail pages.",
+      "supplemental_catalog_repository": "Shopify/theme-liquid-docs",
+      "supplemental_catalog_revision": "5dffe0f7ca76f902f212a602478bc8f5ce0c893a",
+      "dependent_tools_doc_revision": "40f966fc7793462726d9f8573c8d522f8ab44c54",
+      "complete_current_hosted_catalog_claimed": false,
+      "note": "Documentation revisions are not Shopify production engine revisions. Generated catalog is a discovery aid; public detail pages override stale omissions."
+    }
+  },
+  "counts": {
+    "downstream_filters": 88,
+    "ruby_core_filters": 61,
+    "shared_with_ruby": 58,
+    "missing_ruby": 3,
+    "previous_downstream_only": 30,
+    "reclassified_hosted_keep": 3,
+    "retained_existing_across_baselines": 61,
+    "remaining_removal_candidates": 27,
+    "reviewed_hosted_filter_names": 154,
+    "reviewed_hosted_names_missing_downstream": 94,
+    "reviewed_hosted_only_names_missing_downstream": 92,
+    "minimum_core_plus_reclassified_filters": 64
+  },
+  "missing": [
+    "base64_url_safe_decode",
+    "base64_url_safe_encode",
+    "h"
+  ],
+  "remove": [
+    "array_to_sentence_string",
+    "cgi_escape",
+    "date_to_long_string",
+    "date_to_rfc822",
+    "date_to_string",
+    "date_to_xmlschema",
+    "find_exp",
+    "find_index_exp",
+    "group_by",
+    "group_by_exp",
+    "has_exp",
+    "inspect",
+    "jsonify",
+    "normalize_whitespace",
+    "number_of_words",
+    "pop",
+    "push",
+    "raw",
+    "reject_exp",
+    "sample",
+    "shift",
+    "slugify",
+    "to_integer",
+    "unshift",
+    "uri_escape",
+    "where_exp",
+    "xml_escape"
+  ],
+  "shared": [
+    "abs",
+    "append",
+    "at_least",
+    "at_most",
+    "base64_decode",
+    "base64_encode",
+    "capitalize",
+    "ceil",
+    "compact",
+    "concat",
+    "date",
+    "default",
+    "divided_by",
+    "downcase",
+    "escape",
+    "escape_once",
+    "find",
+    "find_index",
+    "first",
+    "floor",
+    "has",
+    "join",
+    "last",
+    "lstrip",
+    "map",
+    "minus",
+    "modulo",
+    "newline_to_br",
+    "plus",
+    "prepend",
+    "reject",
+    "remove",
+    "remove_first",
+    "remove_last",
+    "replace",
+    "replace_first",
+    "replace_last",
+    "reverse",
+    "round",
+    "rstrip",
+    "size",
+    "slice",
+    "sort",
+    "sort_natural",
+    "split",
+    "squish",
+    "strip",
+    "strip_html",
+    "strip_newlines",
+    "sum",
+    "times",
+    "truncate",
+    "truncatewords",
+    "uniq",
+    "upcase",
+    "url_decode",
+    "url_encode",
+    "where"
+  ],
+  "retain_hosted": [
+    "hmac_sha256",
+    "json",
+    "sha256"
+  ],
+  "previous_remove_list": [
+    "array_to_sentence_string",
+    "cgi_escape",
+    "date_to_long_string",
+    "date_to_rfc822",
+    "date_to_string",
+    "date_to_xmlschema",
+    "find_exp",
+    "find_index_exp",
+    "group_by",
+    "group_by_exp",
+    "has_exp",
+    "hmac_sha256",
+    "inspect",
+    "json",
+    "jsonify",
+    "normalize_whitespace",
+    "number_of_words",
+    "pop",
+    "push",
+    "raw",
+    "reject_exp",
+    "sample",
+    "sha256",
+    "shift",
+    "slugify",
+    "to_integer",
+    "unshift",
+    "uri_escape",
+    "where_exp",
+    "xml_escape"
+  ],
+  "hosted_missing_reviewed": [
+    "article_img_url",
+    "asset_img_url",
+    "asset_url",
+    "avatar",
+    "base64_url_safe_decode",
+    "base64_url_safe_encode",
+    "blake3",
+    "brightness_difference",
+    "camelize",
+    "class_list",
+    "collection_img_url",
+    "color_brightness",
+    "color_contrast",
+    "color_darken",
+    "color_desaturate",
+    "color_difference",
+    "color_extract",
+    "color_lighten",
+    "color_mix",
+    "color_modify",
+    "color_saturate",
+    "color_to_hex",
+    "color_to_hsl",
+    "color_to_oklch",
+    "color_to_rgb",
+    "currency_selector",
+    "customer_login_link",
+    "customer_logout_link",
+    "customer_register_link",
+    "default_errors",
+    "default_pagination",
+    "external_video_tag",
+    "external_video_url",
+    "file_img_url",
+    "file_url",
+    "font_face",
+    "font_modify",
+    "font_url",
+    "format_address",
+    "global_asset_url",
+    "handle",
+    "handleize",
+    "hex_to_rgba",
+    "highlight",
+    "highlight_active_tag",
+    "hmac_sha1",
+    "image_tag",
+    "image_url",
+    "img_tag",
+    "img_url",
+    "inline_asset_content",
+    "item_count_for_variant",
+    "line_items_for",
+    "link_to",
+    "link_to_add_tag",
+    "link_to_remove_tag",
+    "link_to_tag",
+    "link_to_type",
+    "link_to_vendor",
+    "login_button",
+    "md5",
+    "media_tag",
+    "metafield_tag",
+    "metafield_text",
+    "model_viewer_tag",
+    "money",
+    "money_with_currency",
+    "money_without_currency",
+    "money_without_trailing_zeros",
+    "payment_button",
+    "payment_terms",
+    "payment_type_img_url",
+    "payment_type_svg_tag",
+    "placeholder_svg_tag",
+    "pluralize",
+    "preload_tag",
+    "product_img_url",
+    "script_tag",
+    "sha1",
+    "shopify_asset_url",
+    "sort_by",
+    "structured_data",
+    "stylesheet_tag",
+    "t",
+    "time_tag",
+    "translate",
+    "unit_price_with_measurement",
+    "url_escape",
+    "url_for_type",
+    "url_for_vendor",
+    "url_param_escape",
+    "video_tag",
+    "weight_with_unit",
+    "within"
+  ],
+  "hosted_only_missing_reviewed": [
+    "article_img_url",
+    "asset_img_url",
+    "asset_url",
+    "avatar",
+    "blake3",
+    "brightness_difference",
+    "camelize",
+    "class_list",
+    "collection_img_url",
+    "color_brightness",
+    "color_contrast",
+    "color_darken",
+    "color_desaturate",
+    "color_difference",
+    "color_extract",
+    "color_lighten",
+    "color_mix",
+    "color_modify",
+    "color_saturate",
+    "color_to_hex",
+    "color_to_hsl",
+    "color_to_oklch",
+    "color_to_rgb",
+    "currency_selector",
+    "customer_login_link",
+    "customer_logout_link",
+    "customer_register_link",
+    "default_errors",
+    "default_pagination",
+    "external_video_tag",
+    "external_video_url",
+    "file_img_url",
+    "file_url",
+    "font_face",
+    "font_modify",
+    "font_url",
+    "format_address",
+    "global_asset_url",
+    "handle",
+    "handleize",
+    "hex_to_rgba",
+    "highlight",
+    "highlight_active_tag",
+    "hmac_sha1",
+    "image_tag",
+    "image_url",
+    "img_tag",
+    "img_url",
+    "inline_asset_content",
+    "item_count_for_variant",
+    "line_items_for",
+    "link_to",
+    "link_to_add_tag",
+    "link_to_remove_tag",
+    "link_to_tag",
+    "link_to_type",
+    "link_to_vendor",
+    "login_button",
+    "md5",
+    "media_tag",
+    "metafield_tag",
+    "metafield_text",
+    "model_viewer_tag",
+    "money",
+    "money_with_currency",
+    "money_without_currency",
+    "money_without_trailing_zeros",
+    "payment_button",
+    "payment_terms",
+    "payment_type_img_url",
+    "payment_type_svg_tag",
+    "placeholder_svg_tag",
+    "pluralize",
+    "preload_tag",
+    "product_img_url",
+    "script_tag",
+    "sha1",
+    "shopify_asset_url",
+    "sort_by",
+    "structured_data",
+    "stylesheet_tag",
+    "t",
+    "time_tag",
+    "translate",
+    "unit_price_with_measurement",
+    "url_escape",
+    "url_for_type",
+    "url_for_vendor",
+    "url_param_escape",
+    "video_tag",
+    "weight_with_unit",
+    "within"
+  ],
+  "hosted_groups_reviewed": {
+    "array": [
+      "compact",
+      "concat",
+      "find",
+      "find_index",
+      "first",
+      "has",
+      "join",
+      "last",
+      "map",
+      "reject",
+      "reverse",
+      "size",
+      "sort",
+      "sort_natural",
+      "sum",
+      "uniq",
+      "where"
+    ],
+    "cart": [
+      "item_count_for_variant",
+      "line_items_for"
+    ],
+    "collection": [
+      "link_to_type",
+      "link_to_vendor",
+      "sort_by",
+      "url_for_type",
+      "url_for_vendor",
+      "within",
+      "highlight_active_tag"
+    ],
+    "color": [
+      "brightness_difference",
+      "color_brightness",
+      "color_contrast",
+      "color_darken",
+      "color_desaturate",
+      "color_difference",
+      "color_extract",
+      "color_lighten",
+      "color_mix",
+      "color_modify",
+      "color_saturate",
+      "color_to_hex",
+      "color_to_hsl",
+      "color_to_oklch",
+      "color_to_rgb",
+      "hex_to_rgba"
+    ],
+    "customer": [
+      "customer_login_link",
+      "customer_logout_link",
+      "customer_register_link",
+      "avatar",
+      "login_button"
+    ],
+    "date": [
+      "date"
+    ],
+    "default": [
+      "default_errors",
+      "default",
+      "default_pagination"
+    ],
+    "font": [
+      "font_face",
+      "font_modify",
+      "font_url"
+    ],
+    "format": [
+      "json",
+      "structured_data",
+      "unit_price_with_measurement",
+      "weight_with_unit"
+    ],
+    "hosted_file": [
+      "asset_img_url",
+      "asset_url",
+      "file_img_url",
+      "file_url",
+      "global_asset_url",
+      "shopify_asset_url"
+    ],
+    "html": [
+      "class_list",
+      "time_tag",
+      "inline_asset_content",
+      "highlight",
+      "link_to",
+      "placeholder_svg_tag",
+      "preload_tag",
+      "script_tag",
+      "stylesheet_tag"
+    ],
+    "localization": [
+      "currency_selector",
+      "translate",
+      "t",
+      "format_address"
+    ],
+    "math": [
+      "abs",
+      "at_least",
+      "at_most",
+      "ceil",
+      "divided_by",
+      "floor",
+      "minus",
+      "modulo",
+      "plus",
+      "round",
+      "times"
+    ],
+    "media": [
+      "external_video_tag",
+      "external_video_url",
+      "image_tag",
+      "media_tag",
+      "model_viewer_tag",
+      "video_tag",
+      "article_img_url",
+      "collection_img_url",
+      "image_url",
+      "img_tag",
+      "img_url",
+      "product_img_url"
+    ],
+    "metafield": [
+      "metafield_tag",
+      "metafield_text"
+    ],
+    "money": [
+      "money",
+      "money_with_currency",
+      "money_without_currency",
+      "money_without_trailing_zeros"
+    ],
+    "payment": [
+      "payment_button",
+      "payment_terms",
+      "payment_type_img_url",
+      "payment_type_svg_tag"
+    ],
+    "string": [
+      "hmac_sha1",
+      "hmac_sha256",
+      "md5",
+      "sha1",
+      "sha256",
+      "blake3",
+      "append",
+      "base64_decode",
+      "base64_encode",
+      "base64_url_safe_decode",
+      "base64_url_safe_encode",
+      "capitalize",
+      "downcase",
+      "escape",
+      "escape_once",
+      "lstrip",
+      "newline_to_br",
+      "prepend",
+      "remove",
+      "remove_first",
+      "remove_last",
+      "replace",
+      "replace_first",
+      "replace_last",
+      "rstrip",
+      "slice",
+      "split",
+      "strip",
+      "strip_html",
+      "strip_newlines",
+      "truncate",
+      "truncatewords",
+      "upcase",
+      "url_decode",
+      "url_encode",
+      "camelize",
+      "handleize",
+      "handle",
+      "url_escape",
+      "url_param_escape",
+      "pluralize"
+    ],
+    "tag": [
+      "link_to_add_tag",
+      "link_to_remove_tag",
+      "link_to_tag"
+    ]
+  },
+  "filters": [
+    {
+      "name": "abs",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "append",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "array_to_sentence_string",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "article_img_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "asset_img_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "hosted_file",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "asset_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "hosted_file",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "at_least",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "at_most",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "avatar",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "customer",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "base64_decode",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "base64_encode",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "base64_url_safe_decode",
+      "downstream_present": false,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_ruby_core",
+      "rationale": "Missing from the pinned downstream registry; add upstream semantics.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "base64_url_safe_encode",
+      "downstream_present": false,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_ruby_core",
+      "rationale": "Missing from the pinned downstream registry; add upstream semantics.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "blake3",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/blake3"
+      ]
+    },
+    {
+      "name": "brightness_difference",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "camelize",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "capitalize",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "ceil",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "cgi_escape",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "class_list",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "collection_img_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_brightness",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_contrast",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_darken",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_desaturate",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_difference",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_extract",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_lighten",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_mix",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_modify",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_saturate",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_to_hex",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_to_hsl",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_to_oklch",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "color_to_rgb",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "compact",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "concat",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "currency_selector",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "localization",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "customer_login_link",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "customer",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "customer_logout_link",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "customer",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "customer_register_link",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "customer",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "date",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "date",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/date"
+      ]
+    },
+    {
+      "name": "date_to_long_string",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "date_to_rfc822",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "date_to_string",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "date_to_xmlschema",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "default",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "default",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "default_errors",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "default",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "default_pagination",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "default",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "divided_by",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "downcase",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "escape",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "escape_once",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "external_video_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "external_video_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "file_img_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "hosted_file",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "file_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "hosted_file",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "find",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "find_exp",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "find_index",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "find_index_exp",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "first",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "floor",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "font_face",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "font",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "font_modify",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "font",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "font_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "font",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "format_address",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "localization",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "global_asset_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "hosted_file",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "group_by",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "group_by_exp",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "h",
+      "downstream_present": false,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "add_ruby_core",
+      "rationale": "Missing from the pinned downstream registry; add upstream semantics.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb"
+      ]
+    },
+    {
+      "name": "handle",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/handleize"
+      ]
+    },
+    {
+      "name": "handleize",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/handleize"
+      ]
+    },
+    {
+      "name": "has",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "has_exp",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "hex_to_rgba",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "color",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "highlight",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "highlight_active_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "collection",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "hmac_sha1",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/hmac_sha1"
+      ]
+    },
+    {
+      "name": "hmac_sha256",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_hosted_profile_only",
+      "rationale": "Not a Ruby core built-in; documented Shopify theme filter, registered by the shopify_theme profile only (review 3f0e71a, R8).",
+      "execution_status": "tested_locally",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/hmac_sha256"
+      ]
+    },
+    {
+      "name": "image_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "image_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "img_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "img_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "inline_asset_content",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "inspect",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "item_count_for_variant",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "cart",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "join",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "json",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "format",
+      "action": "retain_hosted_profile_only",
+      "rationale": "Not a Ruby core built-in; documented Shopify theme filter, registered by the shopify_theme profile only (review 3f0e71a, R8).",
+      "execution_status": "tested_locally",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/json"
+      ]
+    },
+    {
+      "name": "jsonify",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "last",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "line_items_for",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "cart",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "link_to",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "link_to_add_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "tag",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "link_to_remove_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "tag",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "link_to_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "tag",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "link_to_type",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "collection",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "link_to_vendor",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "collection",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "login_button",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "customer",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "lstrip",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "map",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "md5",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/md5"
+      ]
+    },
+    {
+      "name": "media_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "metafield_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "metafield",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "metafield_text",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "metafield",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "minus",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "model_viewer_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "modulo",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "money",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "money",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "money_with_currency",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "money",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "money_without_currency",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "money",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "money_without_trailing_zeros",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "money",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "newline_to_br",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "normalize_whitespace",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "number_of_words",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "payment_button",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "payment",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "payment_terms",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "payment",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "payment_type_img_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "payment",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "payment_type_svg_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "payment",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "placeholder_svg_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "pluralize",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "plus",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "pop",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "preload_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "prepend",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "product_img_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "push",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "raw",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "reject",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "reject_exp",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "remove",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "remove_first",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "remove_last",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "replace",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "replace_first",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "replace_last",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "reverse",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "round",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "rstrip",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "sample",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "script_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "sha1",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/sha1"
+      ]
+    },
+    {
+      "name": "sha256",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_hosted_profile_only",
+      "rationale": "Not a Ruby core built-in; documented Shopify theme filter, registered by the shopify_theme profile only (review 3f0e71a, R8).",
+      "execution_status": "tested_locally",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/sha256"
+      ]
+    },
+    {
+      "name": "shift",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "shopify_asset_url",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "hosted_file",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "size",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "slice",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "slugify",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "sort",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "sort_by",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "collection",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "sort_natural",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "split",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "squish",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb"
+      ]
+    },
+    {
+      "name": "strip",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "strip_html",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "strip_newlines",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "structured_data",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "format",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "stylesheet_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "sum",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "t",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "localization",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/translate"
+      ]
+    },
+    {
+      "name": "time_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "html",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "times",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "math",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "to_integer",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "translate",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "localization",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc",
+        "https://shopify.dev/docs/api/liquid/filters/translate"
+      ]
+    },
+    {
+      "name": "truncate",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "truncatewords",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "uniq",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "unit_price_with_measurement",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "format",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "unshift",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "upcase",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "uri_escape",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "url_decode",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "url_encode",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "url_escape",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "url_for_type",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "collection",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "url_for_vendor",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "collection",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "url_param_escape",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "string",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "video_tag",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "media",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "weight_with_unit",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "format",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "where",
+      "downstream_present": true,
+      "ruby_core_present": true,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "array",
+      "action": "retain_fix_semantics",
+      "rationale": "Existing Ruby core filter; matching names do not certify behavior.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts",
+        "https://github.com/Shopify/liquid/blob/4e39ae4cc3da73921923c0669e0fc84a66b2f696/lib/liquid/standardfilters.rb",
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "where_exp",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    },
+    {
+      "name": "within",
+      "downstream_present": false,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "documented_in_reviewed_hosted_sources",
+      "hosted_category": "collection",
+      "action": "add_hosted",
+      "rationale": "Documented hosted name missing from the pinned downstream inventory.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/Shopify/theme-liquid-docs/blob/5dffe0f7ca76f902f212a602478bc8f5ce0c893a/ai/liquid.mdc"
+      ]
+    },
+    {
+      "name": "xml_escape",
+      "downstream_present": true,
+      "ruby_core_present": false,
+      "hosted_documentation_status": "not_established_by_reviewed_hosted_sources",
+      "hosted_category": null,
+      "action": "flag_for_removal",
+      "rationale": "Neither baseline supports this name in the reviewed inventories; recheck authoritative hosted data before deletion.",
+      "execution_status": "not_tested",
+      "sources": [
+        "https://github.com/chr33s/liquid/blob/06cf826acaa51fc50f8a16dbe8e64fe4ca2e9263/src/filters/index.ts"
+      ]
+    }
+  ],
+  "deletion_gate": "The 27 names remain flagged, not proved absent from every Shopify dialect. Validate complete authoritative data and actual aliases before applying destructive removals.",
+  "no_tests_run": true,
+  "core_scope_review": {
+    "review": "3f0e71a R8",
+    "removed_from_core": {
+      "tags": [
+        "layout"
+      ],
+      "filters": [
+        "hmac_sha256",
+        "json",
+        "sha256"
+      ],
+      "now": "registered by the shopify_theme profile only"
+    },
+    "hosted_subsystem": "Additional functionality, not a JavaScript/Ruby interop requirement: every tag, filter and limit of the shopify_theme profile is flagged for removal under the original core-only target.",
+    "options_flagged_for_removal": {
+      "names": [
+        "tagDelimiterLeft",
+        "tagDelimiterRight",
+        "outputDelimiterLeft",
+        "outputDelimiterRight",
+        "trimTagLeft",
+        "trimTagRight",
+        "trimOutputLeft",
+        "trimOutputRight",
+        "greedy",
+        "keyValueSeparator",
+        "orderedFilterParameters"
+      ],
+      "decision": "Template-dialect options with no reference twin. Flagged, not removed: dropping public options is a major-version break."
+    },
+    "retained_host_adaptations": "Promises/generators, typed/module packaging, controlled filesystems, prototype defenses, runtime-specific algorithms, render-local filters, strictVariables/strictFilters, catchAllErrors."
+  }
+}

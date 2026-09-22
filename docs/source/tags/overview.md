@@ -2,18 +2,20 @@
 title: Tags
 description: Description and demo for each Liquid tag
 children:
+  - ./inline_comment.md
   - ./assign.md
   - ./capture.md
   - ./case.md
   - ./comment.md
   - ./cycle.md
   - ./decrement.md
+  - ./doc.md
   - ./echo.md
   - ./for.md
   - ./if.md
+  - ./ifchanged.md
   - ./include.md
   - ./increment.md
-  - ./inline_comment.md
   - ./layout.md
   - ./liquid.md
   - ./raw.md
@@ -22,16 +24,18 @@ children:
   - ./unless.md
 ---
 
-LiquidJS implements business-logic independent tags that are typically implemented in [shopify/liquid][shopify/liquid]. This section contains the specification and demos for all the tags implemented by LiquidJS.
+LiquidJS implements the tags of the reference [shopify/liquid][shopify/liquid] engine. This section contains the specification and demos for each of them.
 
-There are a dozen tags supported by LiquidJS, including all tags in [shopify/liquid][shopify/liquid]. These tags can be categorized into these groups:
+These tags are available in both profiles:
 
 Category | Purpose | Tags
 --- | --- | ---
 Iteration | iterate over a collection | `for`, `cycle`, `tablerow`
-Control Flow | control the execution branch of template rendering | `if`, `unless`, `elsif`, `else`, `case`, `when`
+Control Flow | control the execution branch of template rendering | `if`, `unless`, `elsif`, `else`, `case`, `when`, `ifchanged`
 Variable | define and alter variables | `assign`, `increment`, `decrement`, `capture`, `echo`
-File | include another template or extend a layout template | `render`, `include`, `layout`
-Language | temporarily disable LiquidJS syntax | `#`, `raw`, `comment`, `liquid`
+File | include another template | `render`, `include`
+Language | temporarily disable LiquidJS syntax, or document a template | `#`, `raw`, `comment`, `doc`, `liquid`
+
+The [Shopify theme profile](../tutorials/shopify-theme-profile.md) adds `layout`, `paginate`, `section`, `sections`, `content_for`, `schema`, `style`, `stylesheet`, `javascript` and `form`.
 
 [shopify/liquid]: https://github.com/Shopify/liquid

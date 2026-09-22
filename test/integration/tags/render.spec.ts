@@ -28,33 +28,85 @@ describe('tags/render', function () {
     const html = await liquid.renderFile('/current.html')
     expect(html).toBe('barfoobar')
   })
-  it('should support template string', async function () {
+  it('T14: a quoted filename with Liquid delimiters is a literal name', async function () {
     mock({
       '/current.html': 'bar{% render "bar/{{name}}" %}bar',
+      '/bar/{{name}}.html': 'literal',
       '/bar/foo.html': 'foo'
     })
     const html = await liquid.renderFile('/current.html', { name: 'foo.html' })
-    expect(html).toBe('barfoobar')
+    expect(html).toBe('barliteralbar')
   })
 
-  it('should throw when not specified', function () {
+  it('T13: a variable filename is rejected', async function () {
+    mock({
+      '/parent.html': '{% render name %}',
+      '/foo.html': 'foo'
+    })
+    return expect(liquid.renderFile('/parent.html', { name: 'foo.html' })).rejects.toThrow(
+      /Template name must be a quoted string/
+    )
+  })
+
+  it('T15: render binds "with" under the snippet basename', async function () {
+    mock({
+      '/index.html': '{% render "cards/item" with product %}',
+      '/cards/item.html': 'item:{{ item }}'
+    })
+    const html = await liquid.renderFile('/index.html', { product: 'shoe' })
+    expect(html).toBe('item:shoe')
+  })
+
+  it('T17: render-for iterations are isolated from each other', async function () {
+    mock({
+      '/index.html': '{% render "item" for colors as color %}',
+      '/item.html': '{{ seen }}{% assign seen = "X" %}{% increment c %}'
+    })
+    const html = await liquid.renderFile('/index.html', { colors: ['red', 'green'] })
+    expect(html).toBe('00')
+  })
+
+  it('T18: include is disabled inside render, and restored afterwards', async function () {
+    mock({
+      '/index.html': '{% render "outer" %}|{% include "leaf" %}',
+      '/outer.html': '{% include "leaf" %}',
+      '/leaf.html': 'leaf'
+    })
+    await expect(liquid.renderFile('/index.html')).rejects.toThrow('include usage is not allowed in this context')
+    const html = await liquid.renderFile('/index.html', {}, { renderErrors: 'inline' })
+    expect(html).toBe('Liquid error (/outer.html line 1): include usage is not allowed in this context|leaf')
+  })
+
+  it('T18: the disabled state is restored after a failure inside render', async function () {
+    mock({
+      '/index.html': '{% render "boom" %}',
+      '/boom.html': '{{ 1 | throws }}',
+      '/leaf.html': 'leaf'
+    })
+    liquid.registerFilter('throws', () => {
+      throw new Error('boom')
+    })
+    await expect(liquid.renderFile('/index.html')).rejects.toThrow('boom')
+    await expect(liquid.renderFile('/index.html', {})).rejects.toThrow('boom')
+    mock({ '/index2.html': '{% include "leaf" %}', '/leaf.html': 'leaf' })
+    await expect(liquid.renderFile('/index2.html')).resolves.toBe('leaf')
+  })
+
+  it('should throw when not specified', async function () {
     mock({
       '/parent.html': '{%render%}'
     })
     return liquid.renderFile('/parent.html').catch(function (e) {
-      expect(e.name).toBe('TokenizationError')
-      expect(e.message).toMatch(/illegal file path/)
+      expect(e.name).toBe('ParseError')
+      expect(e.message).toMatch(/Template name must be a quoted string/)
     })
   })
 
-  it('should throw when not exist', function () {
+  it('should throw when not exist', async function () {
     mock({
-      '/parent.html': '{%render not-exist%}'
+      '/parent.html': '{%render "not-exist"%}'
     })
-    return liquid.renderFile('/parent.html').catch(function (e) {
-      expect(e.name).toBe('RenderError')
-      expect(e.message).toMatch(/illegal file path/)
-    })
+    return expect(liquid.renderFile('/parent.html')).rejects.toThrow(/Failed to lookup/)
   })
 
   it('should support render with relative path', async function () {
@@ -86,11 +138,10 @@ describe('tags/render', function () {
 
   it('should allow argument reassignment', async function () {
     mock({
-      '/parent.html': '{% render child.html, color: "red" %}',
+      '/parent.html': '{% render "child.html", color: "red" %}',
       '/child.html': '{% assign color = "green" %}{{ color }}'
     })
-    const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-    const html = await staticLiquid.renderFile('parent.html')
+    const html = await new Liquid({ root: '/' }).renderFile('parent.html')
     return expect(html).toBe('green')
   })
 
@@ -120,13 +171,13 @@ describe('tags/render', function () {
     const html = await liquid.renderFile('with.html')
     expect(html).toBe('color:, with:foo')
   })
-  it('should treat as normal key if with value not specified', async () => {
+  it('a bare with binds nothing, as in the reference', async () => {
     mock({
       '/with.html': '{% render "color" with, shape: "rect" %}',
       '/color.html': 'color:{{color}}, with:{{with}}, shape:{{shape}}'
     })
     const html = await liquid.renderFile('with.html')
-    expect(html).toBe('color:, with:true, shape:rect')
+    expect(html).toBe('color:, with:, shape:rect')
   })
   it('should support with...as', async function () {
     mock({
@@ -167,21 +218,21 @@ describe('tags/render', function () {
     const html = await liquid.renderFile('index.html', { colors: new MockIterable() })
     expect(html).toBe('1: red\n2: green\n')
   })
-  it('should support for <non-array> as', async function () {
+  it('should render a non-iterable for binding once, without a forloop', async function () {
     mock({
       '/index.html': '{% render "item" for "green" as color %}',
       '/item.html': '{{forloop.index}}: {{color}}\n'
     })
     const html = await liquid.renderFile('index.html')
-    expect(html).toBe('1: green\n')
+    expect(html).toBe(': green\n')
   })
-  it('should support for without as', async function () {
+  it('T16: for without as binds each item under the snippet basename', async function () {
     mock({
       '/index.html': '{% render "item" for colors %}',
-      '/item.html': '{{forloop.index}}: {{color}}\n'
+      '/item.html': '{{forloop.index}}: {{item}}\n'
     })
     const html = await liquid.renderFile('index.html', { colors: ['red', 'green'] })
-    expect(html).toBe('1: \n2: \n')
+    expect(html).toBe('1: red\n2: green\n')
   })
   it('should support for...as with other parameters', async function () {
     mock({
@@ -248,27 +299,27 @@ describe('tags/render', function () {
   })
   it('should support relative reference', async function () {
     mock({
-      '/foo/coo/parent.html': 'X{% render ../bar/child.html, color:"red" %}Y',
+      '/foo/coo/parent.html': 'X{% render "../bar/child.html", color:"red" %}Y',
       '/foo/bar/child.html': 'child with {{color}}'
     })
-    const staticLiquid = new Liquid({ dynamicPartials: false, root: '/foo' })
+    const staticLiquid = new Liquid({ root: '/foo' })
     const html = await staticLiquid.renderFile('coo/parent.html')
     expect(html).toBe('Xchild with redY')
   })
-  it('should disable relative reference if specified', () => {
+  it('should disable relative reference if specified', async () => {
     mock({
-      '/foo/coo/parent.html': 'X{% render ../bar/child.html, color:"red" %}Y',
+      '/foo/coo/parent.html': 'X{% render "../bar/child.html", color:"red" %}Y',
       '/foo/bar/child.html': 'child with {{color}}'
     })
-    const staticLiquid = new Liquid({ dynamicPartials: false, root: '/foo', relativeReference: false })
+    const staticLiquid = new Liquid({ root: '/foo', relativeReference: false })
     return expect(staticLiquid.renderFile('coo/parent.html')).rejects.toThrow(/Failed to lookup/)
   })
-  it('should throw not found if relative reference out of root', () => {
+  it('should throw not found if relative reference out of root', async () => {
     mock({
-      '/foo/parent.html': 'X{% render ../bar/child.html, color:"red" %}Y',
+      '/foo/parent.html': 'X{% render "../bar/child.html", color:"red" %}Y',
       '/bar/child.html': 'child with {{color}}'
     })
-    const staticLiquid = new Liquid({ dynamicPartials: false, root: '/foo', partials: '/foo' })
+    const staticLiquid = new Liquid({ root: '/foo', partials: '/foo' })
     return expect(staticLiquid.renderFile('parent.html')).rejects.toThrow(/Failed to lookup "..\/bar\/child.html"/)
   })
 
@@ -293,66 +344,48 @@ describe('tags/render', function () {
     })
   })
 
-  describe('static partial', function () {
-    let staticLiquid: Liquid
+  describe('template name resolution', function () {
+    let engine: Liquid
     beforeEach(() => {
-      staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
+      engine = new Liquid({ root: '/' })
     })
     it('should support filename with extension', async function () {
       mock({
-        '/parent.html': 'X{% render child.html color:"red" %}Y',
+        '/parent.html': 'X{% render "child.html" color:"red" %}Y',
         '/child.html': 'child with {{color}}'
       })
-      const html = await staticLiquid.renderFile('parent.html')
+      const html = await engine.renderFile('parent.html')
       expect(html).toBe('Xchild with redY')
     })
 
     it('should support parent paths', async function () {
       mock({
-        '/parent.html': 'X{% render bar/./../foo/child.html %}Y',
+        '/parent.html': 'X{% render "bar/./../foo/child.html" %}Y',
         '/foo/child.html': 'child'
       })
-      const html = await staticLiquid.renderFile('parent.html')
+      const html = await engine.renderFile('parent.html')
       expect(html).toBe('XchildY')
     })
 
     it('should support subpaths', async function () {
       mock({
-        '/parent.html': 'X{% render foo/child.html %}Y',
+        '/parent.html': 'X{% render "foo/child.html" %}Y',
         '/foo/child.html': 'child'
       })
-      const html = await staticLiquid.renderFile('parent.html')
+      const html = await engine.renderFile('parent.html')
       expect(html).toBe('XchildY')
     })
 
     it('should support comma separated arguments', async function () {
       mock({
-        '/parent.html': 'X{% render child.html, color:"red" %}Y',
+        '/parent.html': 'X{% render "child.html", color:"red" %}Y',
         '/child.html': 'child with {{color}}'
       })
-      const html = await staticLiquid.renderFile('parent.html')
+      const html = await engine.renderFile('parent.html')
       expect(html).toBe('Xchild with redY')
     })
-
-    it('should support template string', async function () {
-      mock({
-        '/current.html': 'bar{% render bar/{{name}} %}bar',
-        '/bar/foo.html': 'foo'
-      })
-      const html = await staticLiquid.renderFile('/current.html', { name: 'foo.html' })
-      expect(html).toBe('barfoobar')
-    })
-
-    it('should support filters in template string', async function () {
-      mock({
-        '/current.html': 'bar{% render bar/{{name | append: ".html"}} %}bar',
-        '/bar/foo.html': 'foo'
-      })
-      const html = await staticLiquid.renderFile('/current.html', { name: 'foo' })
-      expect(html).toBe('barfoobar')
-    })
   })
-  describe('sync support', function () {
+  describe('partial bindings', function () {
     it('should support quoted string', async function () {
       mock({
         '/current.html': 'bar{% render "bar/foo.html" %}bar',
@@ -361,21 +394,14 @@ describe('tags/render', function () {
       const html = await liquid.renderFile('/current.html')
       expect(html).toBe('barfoobar')
     })
-    it('should support value string', async function () {
+    it('should reject a value string', async function () {
       mock({
         '/current.html': 'bar{% render name %}bar',
         '/bar/foo.html': 'foo'
       })
-      const html = await liquid.renderFile('/current.html', { name: '/bar/foo.html' })
-      expect(html).toBe('barfoobar')
-    })
-    it('should support template string', async function () {
-      mock({
-        '/current.html': 'bar{% render "/bar/{{name}}" %}bar',
-        '/bar/foo.html': 'foo'
-      })
-      const html = await liquid.renderFile('/current.html', { name: '/foo.html' })
-      expect(html).toBe('barfoobar')
+      await expect(liquid.renderFile('/current.html', { name: '/bar/foo.html' })).rejects.toThrow(
+        /Template name must be a quoted string/
+      )
     })
     it('should support with', async function () {
       mock({
@@ -387,11 +413,10 @@ describe('tags/render', function () {
     })
     it('should support filename with extension', async function () {
       mock({
-        '/parent.html': 'X{% render child.html color:"red" %}Y',
+        '/parent.html': 'X{% render "child.html" color:"red" %}Y',
         '/child.html': 'child with {{color}}'
       })
-      const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = await staticLiquid.renderFile('parent.html')
+      const html = await new Liquid({ root: '/' }).renderFile('parent.html')
       expect(html).toBe('Xchild with redY')
     })
   })

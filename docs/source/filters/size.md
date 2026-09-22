@@ -37,3 +37,5 @@ You can use `size` with dot notation when you need to use the filter inside a ta
   This is a big website!
 {% endif %}
 ```
+
+An integer's size is `8`, its byte size in the reference engine, and a decimal's size is `0`: `{{ 12 | size }}` is `8`. A string answers `.size` too, but not an index: `{{ "abc".size }}` is `3`, while `{{ "abc"[0] }}` is empty.

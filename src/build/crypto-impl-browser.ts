@@ -1,5 +1,9 @@
-function bufferToHex(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
+import { blake3 as blake3Bytes } from '../filters/hosted/blake3'
+import { toBytes } from '../util/bytes'
+import { md5 as md5Bytes } from '../filters/hosted/md5'
+
+function bufferToHex(buffer: ArrayBuffer | Uint8Array): string {
+  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
   let hex = ''
   for (let i = 0; i < bytes.length; i++) {
     hex += bytes[i].toString(16).padStart(2, '0')
@@ -8,20 +12,37 @@ function bufferToHex(buffer: ArrayBuffer): string {
 }
 
 export async function sha256(str: string): Promise<string> {
-  const data = new TextEncoder().encode(str)
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  return bufferToHex(digest)
+  return digest('SHA-256', str)
+}
+
+export async function sha1(str: string): Promise<string> {
+  return digest('SHA-1', str)
+}
+
+export function md5(str: string): string {
+  return bufferToHex(md5Bytes(toBytes(str)))
+}
+
+export function blake3(str: string): string {
+  return bufferToHex(blake3Bytes(toBytes(str)))
 }
 
 export async function hmacSha256(str: string, key: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(key),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(str))
-  return bufferToHex(signature)
+  return hmac('SHA-256', str, key)
 }
+
+export async function hmacSha1(str: string, key: string): Promise<string> {
+  return hmac('SHA-1', str, key)
+}
+
+async function digest(algorithm: string, str: string): Promise<string> {
+  const data = toBytes(str)
+  return bufferToHex(await crypto.subtle.digest(algorithm, data))
+}
+
+async function hmac(hash: string, str: string, key: string): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey('raw', toBytes(key), { name: 'HMAC', hash }, false, ['sign'])
+  return bufferToHex(await crypto.subtle.sign('HMAC', cryptoKey, toBytes(str)))
+}
+
+export { bufferToHex as toHex }

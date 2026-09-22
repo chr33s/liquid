@@ -106,6 +106,8 @@ Starts the `tablerow` after a specific index.
 {% endtablerow %}
 ```
 
+`cols`, `limit` and `offset` are read loosely, like Ruby's `to_i`: `nil` or `'x'` is `0`, and `'2x'` is `2`. A string collection is a single item, whatever the `offset` and `limit`, and a `nil` or `false` collection renders nothing.
+
 ### range
 
 Defines a range of numbers to loop through. The range can be defined by both literal and variable numbers.

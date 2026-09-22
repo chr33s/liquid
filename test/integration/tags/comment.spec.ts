@@ -1,17 +1,9 @@
 import { Liquid } from '../../../src/liquid'
 describe('tags/comment', function () {
   const liquid = new Liquid()
-  it('should ignore nested comments', async function () {
-    const src = 'before{% comment %}a{% comment %}b{% endcomment %}c{% endcomment %}after'
-    expect(await liquid.parseAndRender(src)).toBe('beforeafter')
-    expect(await liquid.parseAndRender(src)).toBe('beforeafter')
-    await expect(async () => await liquid.parseAndRender('{% comment %}{% comment %}{% endcomment %}')).rejects.toThrow(
-      'not closed'
-    )
-  })
-  it('should support empty content', function () {
+  it('a raw tag inside a comment has to close, as in the reference', function () {
     const src = '{% comment %}{% raw%}'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/{% comment %} not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow("'raw' tag was never closed")
   })
   it('should ignore plain string', async function () {
     const src = 'My name is {% comment %}super{% endcomment %} Shopify.'

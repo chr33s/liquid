@@ -1,37 +1,28 @@
 import { FilterImpl } from '../template'
-import { stringify } from '../util/underscore'
+import { isNil, stringify, toValue } from '../util/underscore'
 
 const escapeMap: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
   '>': '&gt;',
-  '"': '&#34;',
+  '"': '&quot;',
   "'": '&#39;'
-}
-const unescapeMap: Record<string, string> = {
-  '&amp;': '&',
-  '&lt;': '<',
-  '&gt;': '>',
-  '&#34;': '"',
-  '&#39;': "'"
 }
 
 export function escape(this: FilterImpl, str: string) {
+  // nil stays nil, so `{% if value | escape %}` stays falsy, as in the reference
+  if (isNil(toValue(str))) return str
   str = stringify(str)
   return str.replace(/&|<|>|"|'/g, m => escapeMap[m])
 }
 
-export function xml_escape(this: FilterImpl, str: string) {
+export function h(this: FilterImpl, str: string) {
   return escape.call(this, str)
 }
 
-function unescape(this: FilterImpl, str: string) {
-  str = stringify(str)
-  return str.replace(/&(amp|lt|gt|#34|#39);/g, m => unescapeMap[m])
-}
-
 export function escape_once(this: FilterImpl, str: string) {
-  return escape.call(this, unescape.call(this, str))
+  // escape everything, then restore entities that were already escaped
+  return escape.call(this, stringify(str)).replace(/&amp;([a-zA-Z]+|#\d+);/g, '&$1;')
 }
 
 export function newline_to_br(this: FilterImpl, v: string) {

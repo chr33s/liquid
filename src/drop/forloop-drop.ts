@@ -1,13 +1,20 @@
-import { Drop } from './drop'
+import { Drop, hideMembers } from './drop'
+
+const HIDDEN = hideMembers('i', 'next')
 
 export class ForloopDrop extends Drop {
   protected i = 0
   public name: string
   public length: number
-  public constructor(length: number, collection: string, variable: string) {
+  public parentloop?: ForloopDrop
+  public constructor(length: number, collection: string, variable: string, parentloop?: ForloopDrop) {
     super()
     this.length = length
     this.name = `${variable}-${collection}`
+    this.parentloop = parentloop
+  }
+  public hiddenMembers() {
+    return HIDDEN
   }
   public next() {
     this.i++
@@ -31,6 +38,6 @@ export class ForloopDrop extends Drop {
     return this.length - this.i - 1
   }
   public valueOf() {
-    return JSON.stringify(this)
+    return JSON.stringify({ i: this.i, length: this.length, name: this.name })
   }
 }

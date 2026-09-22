@@ -7,6 +7,8 @@ LiquidJS operators are very simple and different. There are 2 types of operators
 * Comparison operators: `==`, `!=`, `>`, `<`, `>=`, `<=`
 * Logical operators: `not`, `or`, `and`, `contains`
 
+`<`, `>`, `<=` and `>=` compare numbers with numbers and strings with strings. As in the reference engine, a comparison is false when either side is `nil` or a boolean, and comparing a number with a string raises `comparison of Integer with String failed` (or `comparison of String with 1 failed` when the string is on the left).
+
 Thus arithmetic operators are not supported and you cannot add two numbers like this `{{a + b}}`. Instead, use a filter: `{{ a | plus: b}}`. Actually `+` is a valid variable name in LiquidJS.
 
 ## Logical Operators
@@ -46,7 +48,7 @@ Input
 
 ### contains
 
-Checks if a string contains a substring, or if an array contains an element.
+Checks if a string contains a substring, if an array contains an element, or if a hash has a string key. `contains nil` and `contains false` are always false, even for an array that holds `nil`.
 
 Input
 ```liquid

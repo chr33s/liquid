@@ -1,57 +1,33 @@
 import { isFalsy } from '../render/boolean'
-import { identify, isArray, isString, toValue } from '../util/underscore'
+import { isArray, isString, toArray, toValue } from '../util/underscore'
+import { LiquidRange } from '../util/sequence'
 import { FilterImpl } from '../template'
 
 function defaultFilter<T1 extends boolean, T2>(
   this: FilterImpl,
   value: T1,
   defaultValue: T2,
-  ...args: Array<[string, any]>
+  options?: Record<string, unknown>
 ): T1 | T2 {
-  value = toValue(value)
-  if (isArray(value) || isString(value)) return value.length ? value : defaultValue
-  if (value === false && new Map(args).get('allow_false')) return false as T1
-  return isFalsy(value, this.context) ? defaultValue : value
+  const resolved = toValue(value)
+  if (isArray(resolved) || isString(resolved)) return resolved.length ? value : defaultValue
+  if (resolved === false && toValue(options?.allow_false)) return false as T1
+  if (isEmptyObject(resolved)) return defaultValue
+  return isFalsy(resolved, this.context) ? defaultValue : value
 }
 
-function json(this: FilterImpl, value: any, space = 0) {
-  return JSON.stringify(value, undefined, space)
+function isEmptyObject(value: any): boolean {
+  if (value === null || typeof value !== 'object') return false
+  if (value instanceof Map || value instanceof Set) return value.size === 0
+  const proto = Object.getPrototypeOf(value)
+  if (proto !== Object.prototype && proto !== null) return false
+  return Object.keys(value).length === 0
 }
 
-function inspect(this: FilterImpl, value: any, space = 0) {
-  const ancestors: object[] = []
-  return JSON.stringify(
-    value,
-    function (this: unknown, _key: unknown, value: any) {
-      if (typeof value !== 'object' || value === null) {
-        return value
-      }
-      // `this` is the object that value is contained in, i.e., its direct parent.
-      while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) ancestors.pop()
-      if (ancestors.includes(value)) {
-        return '[Circular]'
-      }
-      ancestors.push(value)
-      return value
-    },
-    space
-  )
-}
-
-function to_integer(value: any) {
-  return Number(value)
-}
-
-const raw = {
-  raw: true,
-  handler: identify
+export function json(this: FilterImpl, value: any, space = 0) {
+  return JSON.stringify(toValue(value) instanceof LiquidRange ? toArray(value) : value, undefined, space)
 }
 
 export default {
-  default: defaultFilter,
-  raw,
-  jsonify: json,
-  to_integer,
-  json,
-  inspect
+  default: defaultFilter
 }

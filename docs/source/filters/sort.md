@@ -28,3 +28,5 @@ An optional argument specifies which property of the array's items to use for so
   <h4>{{ product.title }}</h4>
 {% endfor %}
 ```
+
+Numbers sort with numbers and strings with strings, and `nil` sorts last. Items that cannot be ordered against each other, like a number and a string, raise `cannot sort values of incompatible types`; use [sort_natural](./sort_natural.md) to order them as text.

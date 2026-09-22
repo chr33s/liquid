@@ -40,3 +40,7 @@ Output
 ```text
 Hey Anonymous!
 ```
+
+Only the first `else` renders: an `elsif` or `else` after it is parsed but never reached, and any text after `else` inside the tag is ignored, as in the reference engine.
+
+A block whose branches hold only whitespace, `assign`, `capture` and comments is blank: its whitespace is not written. The same holds for `unless`, `case` and `for`.

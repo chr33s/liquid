@@ -1,51 +1,30 @@
-import { stringify } from '../util/underscore'
+import { isNil, stringify, toValue } from '../util/underscore'
 
-export const url_decode = (x: string) => decodeURIComponent(stringify(x).replace(/\+/g, ' '))
-export const url_encode = (x: string) => encodeURIComponent(stringify(x)).replace(/%20/g, '+')
-export const cgi_escape = (x: string) =>
-  encodeURIComponent(stringify(x))
-    .replace(/%20/g, '+')
-    .replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase())
-export const uri_escape = (x: string) => encodeURI(stringify(x)).replace(/%5B/g, '[').replace(/%5D/g, ']')
-
-const rSlugifyDefault = /[^\p{M}\p{L}\p{Nd}]+/gu
-const rSlugifyReplacers = {
-  raw: /\s+/g,
-  default: rSlugifyDefault,
-  pretty: /[^\p{M}\p{L}\p{Nd}._~!$&'()+,;=@]+/gu,
-  ascii: /[^A-Za-z0-9]+/g,
-  latin: rSlugifyDefault,
-  none: null
-}
-
-export function slugify(str: string, mode: keyof typeof rSlugifyReplacers = 'default', cased = false): string {
-  str = stringify(str)
-
-  const replacer = rSlugifyReplacers[mode]
-  if (replacer) {
-    if (mode === 'latin') str = removeAccents(str)
-    str = str.replace(replacer, '-').replace(/^-|-$/g, '')
+export function url_decode(x: string) {
+  const chars = [...stringify(x).replace(/\+/g, ' ')]
+  const bytes: number[] = []
+  const encoder = new TextEncoder()
+  for (let i = 0; i < chars.length; i++) {
+    const hex = chars[i] === '%' ? chars.slice(i + 1, i + 3).join('') : undefined
+    if (hex !== undefined && /^[0-9a-fA-F]{2}$/.test(hex)) {
+      bytes.push(parseInt(hex, 16))
+      i += 2
+    } else {
+      // a malformed escape is left as written, as the reference does
+      for (const byte of encoder.encode(chars[i])) bytes.push(byte)
+    }
   }
-
-  return cased ? str : str.toLowerCase()
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bytes))
+  } catch {
+    throw new Error('invalid byte sequence')
+  }
 }
 
-function removeAccents(str: string): string {
-  return str
-    .replace(/[àáâãäå]/g, 'a')
-    .replace(/[æ]/g, 'ae')
-    .replace(/[ç]/g, 'c')
-    .replace(/[èéêë]/g, 'e')
-    .replace(/[ìíîï]/g, 'i')
-    .replace(/[ð]/g, 'd')
-    .replace(/[ñ]/g, 'n')
-    .replace(/[òóôõöø]/g, 'o')
-    .replace(/[ùúûü]/g, 'u')
-    .replace(/[ýÿ]/g, 'y')
-    .replace(/[ß]/g, 'ss')
-    .replace(/[œ]/g, 'oe')
-    .replace(/[þ]/g, 'th')
-    .replace(/[ẞ]/g, 'SS')
-    .replace(/[Œ]/g, 'OE')
-    .replace(/[Þ]/g, 'TH')
-}
+// CGI-style escaping: unlike encodeURIComponent, `!'()*` are escaped too
+export const url_encode = (x: string) =>
+  isNil(toValue(x))
+    ? x
+    : encodeURIComponent(stringify(x))
+        .replace(/%20/g, '+')
+        .replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase())

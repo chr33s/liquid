@@ -35,9 +35,9 @@ describe('tags/include', function () {
     const html = await liquid.renderFile('/current.html', { name: 'foo.html' })
     return expect(html).toBe('barfoobar')
   })
-  it('should allow escape in template string', async function () {
+  it('should allow a quoted string in a template string', async function () {
     mock({
-      '/current.html': 'bar{% include "bar/{{name | append: \\".html\\"}}" %}bar',
+      '/current.html': `bar{% include "bar/{{name | append: '.html'}}" %}bar`,
       '/bar/foo.html': 'foo'
     })
     const html = await liquid.renderFile('/current.html', { name: 'foo' })
@@ -48,7 +48,8 @@ describe('tags/include', function () {
     mock({
       '/parent.html': '{%include , %}'
     })
-    return liquid.renderFile('/parent.html').catch(function (e) {
+    const warn = new Liquid({ root: '/', extname: '.html', errorMode: 'warn' })
+    return warn.renderFile('/parent.html').catch(function (e) {
       expect(e.name).toBe('TokenizationError')
       expect(e.message).toMatch(/illegal file path, file:.*parent.html, line:1, col:11/)
     })
@@ -60,7 +61,7 @@ describe('tags/include', function () {
     })
     return liquid.renderFile('/parent.html').catch(function (e) {
       expect(e.name).toBe('RenderError')
-      expect(e.message).toMatch(/illegal file path "undefined"/)
+      expect(e.message).toMatch(/Argument error in tag 'include' - Illegal template name/)
     })
   })
 
@@ -162,57 +163,6 @@ describe('tags/include', function () {
     return expect(html).toBe('This is a person <p>Joe Shmoe<br/>City: Dallas</p>')
   })
 
-  describe('static partial', function () {
-    it('should support filename with extension', async function () {
-      mock({
-        '/parent.html': 'X{% include child.html color:"red" %}Y',
-        '/child.html': 'child with {{color}}'
-      })
-      const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = await staticLiquid.renderFile('parent.html')
-      return expect(html).toBe('Xchild with redY')
-    })
-
-    it('should support parent paths', async function () {
-      mock({
-        '/parent.html': 'X{% include bar/./../foo/child.html %}Y',
-        '/foo/child.html': 'child'
-      })
-      const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = await staticLiquid.renderFile('parent.html')
-      return expect(html).toBe('XchildY')
-    })
-
-    it('should support subpaths', async function () {
-      mock({
-        '/parent.html': 'X{% include foo/child.html %}Y',
-        '/foo/child.html': 'child'
-      })
-      const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = await staticLiquid.renderFile('parent.html')
-      return expect(html).toBe('XchildY')
-    })
-
-    it('should support comma separated arguments', async function () {
-      mock({
-        '/parent.html': 'X{% include child.html, color:"red" %}Y',
-        '/child.html': 'child with {{color}}'
-      })
-      const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = await staticLiquid.renderFile('parent.html')
-      return expect(html).toBe('Xchild with redY')
-    })
-
-    it('should support single liquid output', async function () {
-      mock({
-        '/parent.html': 'X{% include {{child}}, color:"red" %}Y',
-        '/child.html': 'child with {{color}}'
-      })
-      const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = await staticLiquid.renderFile('parent.html', { child: 'child.html' })
-      return expect(html).toBe('Xchild with redY')
-    })
-  })
   describe('sync support', function () {
     it('should support quoted string', async function () {
       mock({
@@ -237,63 +187,6 @@ describe('tags/include', function () {
       })
       const html = await liquid.renderFile('with.html')
       return expect(html).toBe('color:red, shape:rect')
-    })
-    it('should support filename with extension', async function () {
-      mock({
-        '/parent.html': 'X{% include child.html color:"red" %}Y',
-        '/child.html': 'child with {{color}}'
-      })
-      const staticLiquid = new Liquid({ dynamicPartials: false, root: '/' })
-      const html = await staticLiquid.renderFile('parent.html')
-      return expect(html).toBe('Xchild with redY')
-    })
-  })
-
-  describe('Jekyll include', function () {
-    beforeEach(function () {
-      liquid = new Liquid({
-        root: '/',
-        extname: '.html',
-        jekyllInclude: true
-      })
-    })
-    it('should support Jekyll style include', async function () {
-      mock({
-        '/current.html': '{% include bar/foo.html content="FOO" %}',
-        '/bar/foo.html': '{{include.content}}-{{content}}'
-      })
-      const html = await liquid.renderFile('/current.html')
-      return expect(html).toBe('FOO-')
-    })
-    it('should support Jekyll style include with other whitespace before filename', async function () {
-      mock({
-        '/current.html': '{% include bar/foo.html\r\n\ntitle="TITLE"\tcontent="FOO" %}',
-        '/bar/foo.html': '{{include.title}}={{include.content}}-{{content}}'
-      })
-      const html = await liquid.renderFile('/current.html')
-      return expect(html).toBe('TITLE=FOO-')
-    })
-    it('should support multiple parameters', async function () {
-      mock({
-        '/current.html': '{% include bar/foo.html header="HEADER" content="CONTENT" %}',
-        '/bar/foo.html': '<h2>{{include.header}}</h2>{{include.content}}'
-      })
-      const html = await liquid.renderFile('/current.html')
-      return expect(html).toBe('<h2>HEADER</h2>CONTENT')
-    })
-    it('should support dynamicPartials=true', async function () {
-      mock({
-        '/current.html': '{% include "bar/foo.html" content="FOO" %}',
-        '/bar/foo.html': '{{include.content}}-{{content}}'
-      })
-      liquid = new Liquid({
-        root: '/',
-        extname: '.html',
-        jekyllInclude: true,
-        dynamicPartials: true
-      })
-      const html = await liquid.renderFile('/current.html')
-      return expect(html).toBe('FOO-')
     })
   })
 })

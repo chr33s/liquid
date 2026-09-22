@@ -49,9 +49,10 @@ describe('LiquidOptions#fs', function () {
   })
   it('should render from in-memory templates', async () => {
     const engine = new Liquid({
+      profile: 'shopify_theme',
       templates: {
         entry: '{% layout "main" %}entry',
-        main: 'header {% block %}{% endblock %} footer'
+        main: 'header {{ content_for_layout }} footer'
       }
     })
     expect(await engine.renderFile('entry')).toEqual('header entry footer')
@@ -68,12 +69,13 @@ describe('LiquidOptions#fs', function () {
   })
   it('should ignore root/layouts/partials', async () => {
     const engine = new Liquid({
+      profile: 'shopify_theme',
       root: '/foo/bar/',
       layouts: '/foo/bar/',
       partials: '/foo/bar/',
       templates: {
         entry: '{% layout "main" %}entry',
-        main: 'header {% block %}{% endblock %} footer'
+        main: 'header {{ content_for_layout }} footer'
       }
     })
     expect(await engine.renderFile('entry')).toEqual('header entry footer')

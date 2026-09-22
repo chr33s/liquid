@@ -257,7 +257,7 @@ class ExampleTag extends Tag {
     const stream = parser.parseStream(remainTokens)
       .on('tag:endexample', () => { stream.stop() })
       .on('template', (tpl) => this.templates.push(tpl))
-      .on('end', () => { throw new Error(`tag ${token.getText()} not closed`) })
+      .on('end', () => { throw new Error(`'${token.name}' tag was never closed`) })
 
     stream.start()
   }

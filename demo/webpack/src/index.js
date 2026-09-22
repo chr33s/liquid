@@ -1,4 +1,4 @@
-import { Liquid } from '@chr33s/liquid'
+import { Liquid, LayoutTag } from '@chr33s/liquid'
 
 const engine = new Liquid({
   extname: '.liquid',
@@ -10,6 +10,9 @@ const engine = new Liquid({
   // partial files for `{% include %}` and `{% render %}`
   partials: process.cwd() + '/partials'
 })
+
+// `layout` belongs to the hosted dialect; a core engine registers it itself
+engine.registerTag('layout', LayoutTag)
 
 const ctx = {
   todos: ['fork and clone', 'make it better', 'make a pull request']

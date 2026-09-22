@@ -4,19 +4,8 @@
  * * prefer stringify() to String() since `undefined`, `null` should eval ''
  */
 
-// Han (Chinese) characters: \u4E00-\u9FFF
-// Additional Han characters: \uF900-\uFAFF (CJK Compatibility Ideographs)
-// Additional Han characters: \u3400-\u4DBF (CJK Unified Ideographs Extension A)
-// Katakana (Japanese): \u30A0-\u30FF
-// Hiragana (Japanese): \u3040-\u309F
-// Hangul (Korean): \uAC00-\uD7AF
 import { FilterImpl } from '../template'
-import { assert, stringify } from '../util'
-
-const rCJKWord = /[\u4E00-\u9FFF\uF900-\uFAFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/gu
-
-// Word boundary followed by word characters (for detecting words)
-const rNonCJKWord = /[^\u4E00-\u9FFF\uF900-\uFAFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF\s]+/gu
+import { assert, isNil, stringify, toInteger, toValue } from '../util'
 
 export function append(this: FilterImpl, v: string, arg: string) {
   assert(arguments.length === 2, 'append expect 2 arguments')
@@ -88,11 +77,40 @@ export function rstrip(this: FilterImpl, str: string, chars?: string) {
 
 export function split(this: FilterImpl, v: string, arg: string) {
   const str = stringify(v)
-  const arr = str.split(stringify(arg))
+  const sep = stringify(arg)
+  // a single space separates on whitespace runs and drops leading blanks,
+  // as the reference String#split does
+  if (sep === ' ') return awkSplit(str)
+  const arr = str.split(sep)
   // align to ruby split, which is the behavior of shopify/liquid
   // see: https://ruby-doc.org/core-2.4.0/String.html#method-i-split
   while (arr.length && arr[arr.length - 1] === '') arr.pop()
   return arr
+}
+
+/** Ruby's `split(" ")` splits on ASCII whitespace only, not on a non-breaking space. */
+const ASCII_WHITESPACE = /[ \t\n\v\f\r]/
+
+function awkSplit(str: string, limit = Infinity): string[] {
+  const words: string[] = []
+  let i = 0
+  while (i < str.length) {
+    while (i < str.length && ASCII_WHITESPACE.test(str[i])) i++
+    if (i >= str.length) {
+      // with a limit, trailing whitespace leaves an empty last field
+      if (limit !== Infinity && words.length && i > 0) words.push('')
+      break
+    }
+    if (words.length === limit - 1) {
+      words.push(str.slice(i))
+      return words
+    }
+    let j = i
+    while (j < str.length && !ASCII_WHITESPACE.test(str[j])) j++
+    words.push(str.slice(i, j))
+    i = j
+  }
+  return words
 }
 
 export function strip(this: FilterImpl, v: string, chars?: string) {
@@ -127,15 +145,53 @@ export function replace(this: FilterImpl, v: string, pattern: string, replacemen
   const str = stringify(v)
   pattern = stringify(pattern)
   replacement = stringify(replacement)
-  const parts = str.split(pattern)
-  return parts.join(replacement)
+  if (pattern === '') {
+    // an empty pattern matches at every position, including both ends
+    let out = ''
+    let at = 0
+    for (const char of [...str, '']) {
+      out += substitute(replacement, str, at, 0) + char
+      at += char.length
+    }
+    return out
+  }
+  let out = ''
+  let from = 0
+  for (let at = str.indexOf(pattern); at !== -1; at = str.indexOf(pattern, from)) {
+    out += str.slice(from, at) + substitute(replacement, str, at, pattern.length)
+    from = at + pattern.length
+  }
+  return out + str.slice(from)
 }
 
 export function replace_first(this: FilterImpl, v: string, arg1: string, arg2: string) {
   const str = stringify(v)
-  arg1 = stringify(arg1)
-  arg2 = stringify(arg2)
-  return str.replace(arg1, () => arg2)
+  const pattern = stringify(arg1)
+  const at = str.indexOf(pattern)
+  if (at === -1) return str
+  return str.slice(0, at) + substitute(stringify(arg2), str, at, pattern.length) + str.slice(at + pattern.length)
+}
+
+/**
+ * A replacement as Ruby's `gsub` and `sub` read it: `\0` and `\&` insert the
+ * match, `` \` `` and `\'` the text before and after it, a group reference
+ * nothing, and `\\` a backslash.
+ */
+function substitute(replacement: string, str: string, at: number, length: number): string {
+  if (!replacement.includes('\\')) return replacement
+  return replacement.replace(/\\(k<[^>]*>|.)?/gs, (escape, code?: string) => {
+    if (code === undefined) return escape
+    if (code === '0' || code === '&') return str.slice(at, at + length)
+    if (code === '`') return str.slice(0, at)
+    if (code === "'") return str.slice(at + length)
+    if (code === '\\') return '\\'
+    if (/^[1-9+]$/.test(code)) return ''
+    // Ruby raises an IndexError here, which the reference reports as an internal error
+    if (code.startsWith('k<')) {
+      throw Object.assign(new Error('internal'), { cause: `undefined group name reference: ${code.slice(2, -1)}` })
+    }
+    return escape
+  })
 }
 
 export function replace_last(this: FilterImpl, v: string, arg1: string, arg2: string) {
@@ -147,57 +203,26 @@ export function replace_last(this: FilterImpl, v: string, arg1: string, arg2: st
   return str.substring(0, index) + replacement + str.substring(index + pattern.length)
 }
 
-export function truncate(this: FilterImpl, v: string, l = 50, o = '...') {
+export function truncate(this: FilterImpl, v: string, length: unknown = 50, o = '...') {
+  if (isNil(toValue(v))) return v
   const str = stringify(v)
+  const l = Number(toInteger(length))
   o = stringify(o)
-  if (str.length <= l) return v
-  return str.substring(0, l - o.length) + o
+  const chars = [...str]
+  const ellipsis = [...o]
+  if (chars.length <= l) return str
+  return chars.slice(0, Math.max(0, l - ellipsis.length)).join('') + o
 }
 
-export function truncatewords(this: FilterImpl, v: string, words = 15, o = '...') {
+export function truncatewords(this: FilterImpl, v: string, count: unknown = 15, o = '...') {
+  if (isNil(toValue(v))) return v
   const str = stringify(v)
   o = stringify(o)
-  const arr = str.trimStart().split(/\s+/)
+  let words = Math.min(Number(toInteger(count)), str.length + 1)
   if (words <= 0) words = 1
-  let ret = arr.slice(0, words).join(' ')
-  if (arr.length >= words) ret += o
-  return ret
-}
-
-export function normalize_whitespace(this: FilterImpl, v: string) {
-  const str = stringify(v)
-  return str.replace(/\s+/g, ' ')
-}
-
-export function number_of_words(this: FilterImpl, input: string, mode?: 'cjk' | 'auto') {
-  const str = stringify(input)
-  input = str.trim()
-  if (!input) return 0
-  switch (mode) {
-    case 'cjk':
-      // Count CJK characters and words
-      return (input.match(rCJKWord) || []).length + (input.match(rNonCJKWord) || []).length
-    case 'auto':
-      // Count CJK characters, if none, count words
-      return rCJKWord.test(input)
-        ? input.match(rCJKWord)!.length + (input.match(rNonCJKWord) || []).length
-        : input.split(/\s+/).length
-    default:
-      // Count words only
-      return input.split(/\s+/).length
-  }
-}
-
-export function array_to_sentence_string(this: FilterImpl, array: unknown[], connector = 'and') {
-  connector = stringify(connector)
-  switch (array.length) {
-    case 0:
-      return ''
-    case 1:
-      return array[0]
-    case 2:
-      return `${array[0]} ${connector} ${array[1]}`
-    default:
-      return `${array.slice(0, -1).join(', ')}, ${connector} ${array[array.length - 1]}`
-  }
+  const wordlist = awkSplit(str, words + 1)
+  // nothing was cut off: the input is returned untouched, whitespace included
+  if (wordlist.length <= words) return str
+  wordlist.pop()
+  return wordlist.join(' ') + o
 }

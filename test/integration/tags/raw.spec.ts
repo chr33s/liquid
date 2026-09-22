@@ -8,7 +8,7 @@ describe('tags/raw', function () {
   })
   it('should throw when not closed', async function () {
     const p = liquid.parseAndRender('{% raw %}')
-    return expect(p).rejects.toThrow(/{% raw %} not closed/)
+    return expect(p).rejects.toThrow("'raw' tag was never closed")
   })
   it('should output filters as it is', async function () {
     const src = '{% raw %}{{ 5 | plus: 6 }}{% endraw %} is equal to 11.'

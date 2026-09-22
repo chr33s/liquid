@@ -61,8 +61,9 @@ describe('Issues', function () {
     expect(html).toBe('hello foo')
   })
   it('Unexpected behavior when string literals contain }} #288', async () => {
-    const engine = new Liquid()
-    const html = await engine.parseAndRender(`{{ '{{' }}{{ '}}' }}`)
+    // an output ends at the first `}}`, quoted or not, as in the reference; `warn` mode reads quoted text
+    expect(await new Liquid().parseAndRender(`{{ '{{' }}{{ '}}' }}`)).toBe("{{' }}")
+    const html = await new Liquid({ errorMode: 'warn' }).parseAndRender(`{{ '{{' }}{{ '}}' }}`)
     expect(html).toBe('{{}}')
   })
   it('Support function calls #222', async () => {
@@ -138,7 +139,7 @@ describe('Issues', function () {
     await Promise.all(
       Array(5)
         .fill(0)
-        .map(x => engine.parseAndRender("{% render 'template' %}"))
+        .map(async x => await engine.parseAndRender("{% render 'template' %}"))
     )
     expect(exists).toHaveBeenCalledTimes(1)
     expect(readFile).toHaveBeenCalledTimes(1)
@@ -152,25 +153,6 @@ describe('Issues', function () {
     return expect(engine.render(tpl, { now: new Date('2019-02-01T00:00:00.000Z') })).resolves.toBe(
       'Welcome to 2019-02-01'
     )
-  })
-  it('Support Jekyll-like includes #433', async () => {
-    const engine = new Liquid({
-      dynamicPartials: false,
-      relativeReference: false,
-      root: '/tmp',
-      fs: {
-        async readFile(file: string) {
-          return `CONTENT for ${file}`
-        },
-        async exists(file: string) {
-          return true
-        },
-        resolve: (dir: string, file: string) => dir + '/' + file
-      }
-    })
-    const tpl = engine.parse('{% include prefix/{{ my_variable | append: "-bar" }}/suffix %}')
-    const html = await engine.render(tpl, { my_variable: 'foo' })
-    expect(html).toBe('CONTENT for /tmp/prefix/foo-bar/suffix')
   })
   it('should prevent path traversal in dynamic include with restricted root, #851', () => {
     const projectRoot = resolvePath(__dirname, '../..')
@@ -212,7 +194,7 @@ describe('Issues', function () {
   })
   it('Liquidjs divided_by not compatible with Ruby/Shopify Liquid #465', async () => {
     const engine = new Liquid({ ownPropertyOnly: true })
-    const html = await engine.parseAndRender('{{ 5 | divided_by: 3, true }}')
+    const html = await engine.parseAndRender('{{ 5 | divided_by: 3 }}')
     expect(html).toBe('1')
   })
   it('url_encode throws on undefined value #479', async () => {
@@ -224,7 +206,7 @@ describe('Issues', function () {
     expect(html).toBe('')
   })
   it('filters that should not throw #481', async () => {
-    const engine = new Liquid()
+    const engine = new Liquid({ profile: 'shopify_theme' })
     const tpl = engine.parse(`
       {{ foo | join }}
       {{ foo | map: "k" }}
@@ -233,14 +215,14 @@ describe('Issues', function () {
       {{ foo | newline_to_br }}
       {{ foo | strip_html }}
       {{ foo | truncatewords }}
-      {{ foo | concat | json }}
+      {{ foo | concat: bar | json }}
     `)
-    const html = await engine.render(tpl, { foo: undefined })
+    const html = await engine.render(tpl, { foo: undefined, bar: [] })
     expect(html.trim()).toBe('[]')
   })
   it('concat should always return an array #481', async () => {
-    const engine = new Liquid()
-    const html = await engine.parseAndRender(`{{ foo | concat | json }}`)
+    const engine = new Liquid({ profile: 'shopify_theme' })
+    const html = await engine.parseAndRender(`{{ foo | concat: bar | json }}`, { bar: [] })
     expect(html).toBe('[]')
   })
   it('Access array items from the right with negative indexes #486', async () => {
@@ -272,7 +254,8 @@ describe('Issues', function () {
     expect(html).toHaveLength(38894)
   })
   it('should throw parse error for invalid assign expression #519', () => {
-    const engine = new Liquid()
+    // lax mode reads it as the reference's lax parser does; the other modes reject it
+    const engine = new Liquid({ errorMode: 'warn' })
     expect(() => engine.parse('{% assign headshot = https://testurl.com/not_enclosed_in_quotes.jpg %}')).toThrow(
       /expected "|" before filter, line:1, col:27/
     )
@@ -373,7 +356,7 @@ describe('Issues', function () {
     // sample: Thursday, February 2, 2023 at 6:25 pm +0000
     expect(html).toMatch(/\w+, \w+ \d+, \d\d\d\d at \d+:\d\d [ap]m [-+]\d\d\d\d/)
   })
-  it('Add support for Not operator #575', async () => {
+  it('the not operator is not Liquid #575', async () => {
     const liquid = new Liquid()
     const tpl = `
     {% if link and not button %}
@@ -382,8 +365,8 @@ describe('Issues', function () {
       <div>Lot more code here</div>
     {% endif %}`
     const ctx = { link: 'https://example.com', button: false }
-    const html = await liquid.parseAndRender(tpl, ctx)
-    expect(html.trim()).toBe('<a href="https://example.com">Lot more code here</a>')
+    // lax mode reads `not button` as the reference does: `not` compared by the unknown operator `button`
+    await expect(liquid.parseAndRender(tpl, ctx)).rejects.toThrow('Unknown operator button')
   })
   it('strip multiline content of <style> #70', async () => {
     const str = `
@@ -425,9 +408,9 @@ describe('Issues', function () {
     expect(html).toEqual(expected)
   })
   it('should throw missing ":" after filter name #610', async () => {
-    const engine = new Liquid()
+    const engine = new Liquid({ errorMode: 'warn' })
     const fn = async () => await engine.parseAndRender("{%- assign module = '' | split '' -%}")
-    await expect(fn).rejects.toThrow(/expected ":" after filter name/)
+    await expect(fn()).rejects.toThrow(/expected ":" after filter name/)
   })
   it('Single or double quote breaks comments #628', async () => {
     const template = `{%- liquid
@@ -469,16 +452,11 @@ describe('Issues', function () {
   })
   it('Should not render anything after an else branch #670', async () => {
     const engine = new Liquid()
-    await expect(
-      async () =>
-        await engine.parseAndRender('{% assign value = "this" %}{% if false %}{% else %}{% else %}{% endif %}')
-    ).rejects.toThrow('duplicated else')
+    expect(await engine.parseAndRender('{% if false %}{% else %}first{% else %}second{% endif %}')).toBe('first')
   })
   it('Should not render an elseif after an else branch #672', async () => {
     const engine = new Liquid()
-    await expect(
-      async () => await engine.parseAndRender('{% if false %}{% else %}{% elsif true %}{% endif %}')
-    ).rejects.toThrow('unexpected elsif after else')
+    expect(await engine.parseAndRender('{% if false %}{% else %}else{% elsif true %}elsif{% endif %}')).toBe('else')
   })
   it('10.10.1 Operator: contains regression #675', async () => {
     const engine = new Liquid()
@@ -528,33 +506,6 @@ describe('Issues', function () {
     })
     const result = await engine.parseAndRender(`\n{{ "foo" | pos }}`)
     expect(result).toEqual('\n[2,12] foo')
-  })
-  it('group_by_exp fails with object as input #785', async () => {
-    const site = {
-      tags: {
-        CPP: ['page0'],
-        PHP: ['page0', 'page2'],
-        JavaScript: ['page1', 'page2', 'page3'],
-        CSharp: ['page2', 'page4']
-      }
-    }
-    const tpl = `
-      {%- assign tags_by_size = site.tags | group_by_exp: 'tag', 'tag[1].size' | sort: 'name' | reverse -%}
-      {%- for tags_with_size in tags_by_size -%}
-        {%- for tag in tags_with_size.items -%}
-          {%- assign tag_name = tag[0] %}
-          {{ tag_name }} <sup>{{ tags_with_size.name }}</sup> Posts:
-          {%- for post in tag[1] -%}{{post}},{%- endfor -%}
-        {%- endfor -%}
-      {%- endfor -%}
-    `
-    const engine = new Liquid()
-    const html = await engine.parseAndRender(tpl, { site })
-    expect(html).toEqual(`
-          JavaScript <sup>3</sup> Posts:page1,page2,page3,
-          PHP <sup>2</sup> Posts:page0,page2,
-          CSharp <sup>2</sup> Posts:page2,page4,
-          CPP <sup>1</sup> Posts:page0,`)
   })
   it('if tag condition, the token args is empty #796', () => {
     const tpl = 'Hello, {% if name  %} {{ name }} {% else %} user {% endif %}'

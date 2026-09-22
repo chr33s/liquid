@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "liquid-spec", git: "https://github.com/Shopify/liquid-spec.git", ref: "84bf25e0edbca5f7e530574788b0f875ab331f50"
+gem "liquid", git: "https://github.com/Shopify/liquid.git", ref: "4e39ae4cc3da73921923c0669e0fc84a66b2f696"
+gem "activesupport"
+gem "bigdecimal"

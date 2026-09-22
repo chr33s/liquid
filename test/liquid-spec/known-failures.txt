@@ -1,0 +1,47 @@
+# Fixtures of the pinned Shopify/liquid-spec corpus this engine does not pass in a profile.
+# A fixture named for the strict contract fails when the runner runs it as strict2, and one named
+# for strict2 when it runs as strict; each passes in the profile it is named for.
+# In the shopify_theme profile: the shopify_theme_dawn fixtures render Dawn snippets, locale
+# translations and theme settings the corpus does not ship; a nil and an empty filesystem, and
+# the keys `x` and `x.liquid`, reach the server alike over JSON-RPC; the unconventional-names and
+# jwt recordings depend on Shopify file system and string semantics Ruby Liquid does not share;
+# and the subcontext recording needs a Ruby context class.
+# Regenerate with `npm run test:spec -- --update-known-failures`; never add a name to hide a regression.
+assign_if_body_shows_error_text_strict2 [error_mode=strict]
+blank_for_body_shows_error_text_strict2 [error_mode=strict]
+blank_for_body_suppresses_error_text_strict [error_mode=strict2]
+blank_if_body_shows_error_text_strict2 [error_mode=strict]
+blank_if_body_suppresses_error_text_strict [error_mode=strict2]
+blank_unless_body_shows_error_text_strict2 [error_mode=strict]
+blank_unless_body_suppresses_error_text_strict [error_mode=strict2]
+capture_if_body_shows_error_text_strict2 [error_mode=strict]
+collections-all-footer
+collections-all-header
+collections-all-main-collection-banner
+collections-all-main-collection-product-grid
+comment_if_body_shows_error_text_strict2 [error_mode=strict]
+index-collage
+index-featured-collection
+index-footer
+index-header
+index-image-banner
+index-multicolumn
+index-rich-text
+index-video
+pages-contact-contact-form
+pages-contact-footer
+pages-contact-header
+pages-contact-main-page
+products-synergistic-wooden-car-footer
+products-synergistic-wooden-car-header
+products-synergistic-wooden-car-image-with-text
+products-synergistic-wooden-car-main-product
+products-synergistic-wooden-car-multicolumn
+products-synergistic-wooden-car-product-recommendations
+RecordedTest#test_compiles_files_with_unconventional_names_52e6df11b
+RecordedTest#test_include_tag_with_disallowed_includes_and_no_line_number_93c59f75
+RecordedTest#test_jwt_0b15043ff
+RecordedTest#test_static_includes_delegates_to_file_system_4bc51e66c
+RecordedTest#test_static_render_delegates_to_file_system_a3f69e304
+RecordedTest#test_subcontext_enter_fails_and_leaves_runtime_in_good_state_ec4f06d3a [error_mode=strict2]
+whitespace_if_body_shows_error_text_strict2 [error_mode=strict]

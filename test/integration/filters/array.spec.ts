@@ -1,5 +1,9 @@
 import { test, render } from '../../stub/render'
 import { Liquid } from '../../../src/liquid'
+
+/** `json` belongs to the hosted dialect. */
+const HOSTED = { profile: 'shopify_theme' } as const
+
 describe('filters/array', function () {
   const engine = new Liquid()
   describe('index', function () {
@@ -19,7 +23,9 @@ describe('filters/array', function () {
     })
     it('should throw when comma missing', async () => {
       const src = '{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}' + '{{ beatles | join " and " }}'
-      return expect(render(src)).rejects.toThrow('expected ":" after filter name, line:1, col:83')
+      return expect(new Liquid({ errorMode: 'warn' }).parseAndRender(src)).rejects.toThrow(
+        'expected ":" after filter name, line:1, col:83'
+      )
     })
   })
   describe('split', () => {
@@ -46,19 +52,21 @@ describe('filters/array', function () {
       return test('{{post | map: "category"}}', { post }, 'foo')
     })
     it('should allow nil results in strictVariables mode', async function () {
-      const engine = new Liquid({ strictVariables: true })
+      const engine = new Liquid({ strictVariables: true, profile: 'shopify_theme' })
       const ctx = {
         posts: [{ category: 'foo' }, { title: 'bar' }]
       }
       const result = await engine.parseAndRender('{{posts | map: "category" | json}}', ctx)
       expect(result).toEqual('["foo",null]')
     })
-    it('should support nested property', function () {
+    it('F04: should treat a dotted property as a literal key', function () {
       const tpl = '{{ arr | map: "name.first" | join }}'
-      const a = { name: { first: 'Alice' } }
-      const b = { name: { first: 'Bob' } }
-      const c = { name: { first: 'Carol' } }
-      return test(tpl, { arr: [a, b, c] }, 'Alice Bob Carol')
+      const a = { 'name.first': 'Alice', name: { first: 'nope' } }
+      const b = { 'name.first': 'Bob' }
+      return test(tpl, { arr: [a, b] }, 'Alice Bob')
+    })
+    it('F07: should flatten nested arrays', function () {
+      return test('{{ arr | map: "a" | join: "," }}', { arr: [[{ a: 1 }], [[{ a: 2 }]]] }, '1,2')
     })
   })
   describe('sum', () => {
@@ -70,8 +78,8 @@ describe('filters/array', function () {
       const ages = [21, null, -4, '4.5', 13.25, undefined, 0].map(x => ({ age: x }))
       return test('{{ages | sum: "age"}}', { ages }, '34.75')
     })
-    it('should support sum with nested property', function () {
-      const ages = [21, null, -4, '4.5', 13.25, undefined, 0].map(x => ({ age: { first: x } }))
+    it('F04: should treat a dotted sum property as a literal key', function () {
+      const ages = [21, null, -4, '4.5', 13.25, undefined, 0].map(x => ({ 'age.first': x }))
       return test('{{ages | sum: "age.first"}}', { ages }, '34.75')
     })
     it('should support non-array input', function () {
@@ -90,13 +98,13 @@ describe('filters/array', function () {
       const input = [1, null, { quantity: 2 }]
       return test('{{input | sum}}', { input }, '1')
     })
-    it('should coerce true to 1', function () {
+    it('should read a non-numeric item as 0, as the reference', function () {
       const input = [1, true, null, { quantity: 2 }]
-      return test('{{input | sum}}', { input }, '2')
+      return test('{{input | sum}}', { input }, '1')
     })
-    it('should not support nested arrays', function () {
+    it('F07: should flatten nested arrays', function () {
       const ages = [1, [2, [3, 4]]]
-      return test('{{ages | sum}}', { ages }, '1')
+      return test('{{ages | sum}}', { ages }, '10')
     })
   })
   describe('compact', () => {
@@ -119,78 +127,14 @@ describe('filters/array', function () {
       await test('{{ undefinedValue | concat: arr | join: "," }}', scope, 'foo,bar')
       await test('{{ nullValue | concat: arr | join: "," }}', scope, 'foo,bar')
     })
-    it('should ignore nil right value', async () => {
-      const scope = { nullValue: null }
-      await test('{{ nullValue | concat | join: "," }}', scope, '')
-      await test('{{ nullValue | concat: nil | join: "," }}', scope, '')
-    })
-  })
-
-  describe('push', () => {
-    it('should push arg value', async () => {
-      const scope = { val: ['hey'], arg: 'foo' }
-      await test('{{ val | push: arg | join: "," }}', scope, 'hey,foo')
-    })
-    it('should not change original array', async () => {
-      const scope = { val: ['hey'], arg: 'foo' }
-      await test('{{ val | push: arg | join: "," }} {{ val | push: arg | join: "," }}', scope, 'hey,foo hey,foo')
-    })
-    it('should support undefined left value', async () => {
-      const scope = { arg: 'foo' }
-      await test('{{ notDefined | push: arg | join: "," }}', scope, 'foo')
-    })
-    it('should ignore nil left value', async () => {
-      const scope = { undefinedValue: undefined, nullValue: null, arg: 'foo' }
-      await test('{{ undefinedValue | push: arg | join: "," }}', scope, 'foo')
-      await test('{{ nullValue | push: arg | join: "," }}', scope, 'foo')
-    })
-    it('should support nil right value', async () => {
-      const scope = { nullValue: [] }
-      await test('{{ nullValue | push | size }}', scope, '1')
-      await test('{{ nullValue | push: nil | size }}', scope, '1')
-    })
-  })
-
-  describe('pop', () => {
-    it('should support pop', async () => {
-      const scope = { val: ['hey', 'you'] }
-      await test('{{ val | pop | join: "," }}', scope, 'hey')
-    })
-    it('should not change original array', async () => {
-      const scope = { val: ['hey', 'you'] }
-      await test('{{ val | pop | join: "," }} {{ val| join: "," }}', scope, 'hey hey,you')
-    })
-    it('should support nil left value', async () => {
-      await test('{{ notDefined | pop | join: "," }}', {}, '')
-    })
-  })
-
-  describe('unshift', () => {
-    it('should support unshift', async () => {
-      const scope = { val: ['you'] }
-      await test('{{ val | unshift: "hey" | join: ", " }}', scope, 'hey, you')
-    })
-    it('should not change original array', async () => {
-      const scope = { val: ['you'] }
-      await test('{{ val | unshift: "hey" | join: "," }} {{ val | join: "," }}', scope, 'hey,you you')
-    })
-    it('should support nil right value', async () => {
-      const scope = { val: [] }
-      await test('{{ val | unshift: nil | size }}', scope, '1')
-    })
-  })
-
-  describe('shift', () => {
-    it('should support pop', async () => {
-      const scope = { val: ['hey', 'you'] }
-      await test('{{ val | shift }}', scope, 'you')
-    })
-    it('should not change original array', async () => {
-      const scope = { val: ['hey', 'you'] }
-      await test('{{ val | shift }} {{ val | join: ","}}', scope, 'you hey,you')
-    })
-    it('should support nil left value', async () => {
-      await test('{{ notDefined | pop }}', {}, '')
+    it('F11: should reject a non-array right value', async () => {
+      const engine = new Liquid()
+      await expect(engine.parseAndRender('{{ arr | concat: nil }}', { arr: [1] })).rejects.toThrow(
+        'concat filter requires an array argument'
+      )
+      await expect(engine.parseAndRender('{{ arr | concat: "x" }}', { arr: [1] })).rejects.toThrow(
+        'concat filter requires an array argument'
+      )
     })
   })
   describe('reverse', function () {
@@ -202,18 +146,6 @@ describe('filters/array', function () {
       const html = await render('{{ arr | join: "" }}', scope)
       expect(html).toBe('abc')
     })
-  })
-  describe('sample', function () {
-    it('should return one item if count not specified', async () => {
-      const template = '{{ "hello,world" | split: "," | sample }}'
-      const result = await engine.parseAndRender(template)
-      expect(result).toMatch(/hello|world/)
-    })
-    it('should return full array sample even if excess count', () =>
-      test('{{ "hello,world" | split: "," | sample: 10 | size }}', '2'))
-    it('should return partial array sample', () => test('{{ "hello,world" | split: "," | sample: 1 | size }}', '5'))
-    it('should sample nil value', () => test('{{ nil | sample: 2 }}', ''))
-    it('should sample string characters', () => test('{{ "aaa" | sample: 2 }}', 'aa'))
   })
   describe('size', function () {
     it('should return string length', () => test('{{ "Ground control to Major Tom." | size }}', '28'))
@@ -269,11 +201,11 @@ describe('filters/array', function () {
       const arr = [{ name: 'Bob' }, { name: 'Carol' }, { name: 'Alice' }]
       return test(tpl, { arr }, 'Alice Bob Carol')
     })
-    it('should support sort by nested property', function () {
+    it('F04: should sort by a literal dotted key', function () {
       const tpl = '{{ arr | sort: "name.first" | map: "name.first" | join }}'
-      const a = { name: { first: 'Alice' } }
-      const b = { name: { first: 'Bob' } }
-      const c = { name: { first: 'Carol' } }
+      const a = { 'name.first': 'Alice' }
+      const b = { 'name.first': 'Bob' }
+      const c = { 'name.first': 'Carol' }
       return test(tpl, { arr: [b, c, a, c] }, 'Alice Bob Carol Carol')
     })
     it('should not change the original array', () => {
@@ -300,13 +232,12 @@ describe('filters/array', function () {
         '[aa][bb][cc][]'
       )
     })
-    it('should handle mixed-type items', async () => {
+    it('should reject mixed-type items, as in the reference', async () => {
       const arr = ['40', null, 30, undefined, true, false, 0, 'str', 50]
-      await test(
-        '{% assign sorted = arr | sort %}{% for item in sorted %}[{{ item }}]{% endfor %}',
-        { arr },
-        '[false][0][true][30][40][str][50][][]'
+      await expect(render('{% assign sorted = arr | sort %}', { arr })).rejects.toThrow(
+        'cannot sort values of incompatible types'
       )
+      await test('{{ arr | sort | join: "," }}', { arr: [3, null, 1.5, 2] }, '1.5,2,3,')
     })
   })
   describe('sort_natural', function () {
@@ -437,19 +368,20 @@ describe('filters/array', function () {
         `
       )
     })
-    it('should support filter by null property', function () {
+    it('a null target selects by truthiness, as the reference does', function () {
       return test(
-        `{% assign untyped_products = products | where: "type", null %}
-        Untyped products:
-        {% for product in untyped_products -%}
+        `{% assign typed_products = products | where: "type", null %}
+        Typed products:
+        {% for product in typed_products -%}
         - {{ product.title }}
         {% endfor %}`,
         { products },
         `
-        Untyped products:
-        - Coffee mug
-        - Limited edition sneakers
-        - Boring sneakers
+        Typed products:
+        - Vacuum
+        - Spatula
+        - Television
+        - Garlic press
         `
       )
     })
@@ -487,10 +419,10 @@ describe('filters/array', function () {
         `
       )
     })
-    it('should support nested property', async function () {
+    it('F04: should treat a dotted property as a literal key', async function () {
       const authors = [
-        { name: 'Alice', books: { year: 2019 } },
-        { name: 'Bob', books: { year: 2018 } }
+        { name: 'Alice', 'books.year': 2019, books: { year: 1900 } },
+        { name: 'Bob', 'books.year': 2018 }
       ]
       return test(
         `{% assign recentAuthors = authors | where: 'books.year', 2019 %}
@@ -510,14 +442,14 @@ describe('filters/array', function () {
     })
     it('should normalize non-array input', async () => {
       const scope = { obj: { foo: 'FOO' } }
-      await test('{{obj | where: "foo", "FOO" }}', scope, '[object Object]')
+      await test('{{obj | where: "foo", "FOO" }}', scope, '{"foo"=>"FOO"}')
       await test('{{obj | where: "foo", "BAR" }}', scope, '')
     })
-    it('should support nested dynamic property', function () {
+    it('F04: a bracketed path is a literal key too', function () {
       const products = [
-        { meta: { details: { class: 'A' } }, order: 1 },
-        { meta: { details: { class: 'B' } }, order: 2 },
-        { meta: { details: { class: 'B' } }, order: 3 }
+        { 'meta.details["class"]': 'A', order: 1 },
+        { 'meta.details["class"]': 'B', order: 2 },
+        { 'meta.details["class"]': 'B', order: 3 }
       ]
       return test(
         `{% assign selected = products | where: 'meta.details["class"]', exp %}
@@ -531,114 +463,22 @@ describe('filters/array', function () {
         `
       )
     })
-    it('should support escape in property', function () {
-      const array = [
-        { foo: { "'": 'foo' }, order: 1 },
-        { foo: { "'": 'foo' }, order: 2 },
-        { foo: { "'": 'bar' }, order: 3 }
-      ]
-      return test(
-        `{% assign selected = array | where: 'foo["\\'"]', "foo" %}
-        {% for item in selected -%}
-        - {{ item.order }}
-        {% endfor %}`,
-        { array },
-        `
-        - 1
-        - 2
-        `
-      )
-    })
-    it('should render none if args not specified', function () {
-      return test(
-        `{% assign kitchen_products = products | where %}
-        Kitchen products:
-        {% for product in kitchen_products -%}
-        - {{ product.title }}
-        {% endfor %}`,
-        { products },
-        `
-        Kitchen products:
-        `
+    it('F12: should reject a missing property argument', function () {
+      return expect(render('{{ products | where }}', { products: [] })).rejects.toThrow(
+        'wrong number of arguments (given 1, expected 2..3)'
       )
     })
     it('should support nil as target', () => {
       const scope = { list: [{ foo: 'FOO' }, { bar: 'BAR', type: 2 }] }
-      return test('{{list | where: "type", nil | json}}', scope, '[{"foo":"FOO"}]')
+      return test('{{list | where: "type", nil | json}}', scope, '[{"bar":"BAR","type":2}]', HOSTED)
     })
     it('should support empty as target', async () => {
       const scope = { pages: [{ tags: ['FOO'] }, { tags: [] }, { title: 'foo' }] }
-      await test('{{pages | where: "tags", empty | json}}', scope, '[{"tags":[]}]')
+      await test('{{pages | where: "tags", empty | json}}', scope, '[{"tags":[]}]', HOSTED)
     })
     it('should not match string with array', async () => {
       const scope = { objs: [{ foo: ['FOO', 'bar'] }] }
-      await test('{{objs | where: "foo", "FOO" | json}}', scope, '[]')
-    })
-    describe('jekyll style', () => {
-      it('should filter arrays by inclusion', async () => {
-        const scope = { objs: [{ foo: ['FOO', 'bar'] }] }
-        await test('{{objs | where: "foo", "FOO" | json}}', scope, '[{"foo":["FOO","bar"]}]', { jekyllWhere: true })
-      })
-      it('should support empty as target', async () => {
-        const scope = { pages: [{ tags: ['FOO'] }, { tags: [] }, { title: 'foo' }] }
-        await test('{{pages | where: "tags", empty | json}}', scope, '[{"tags":[]}]', { jekyllWhere: true })
-      })
-      it('should filter by undefined when target is omitted', async () => {
-        await test(
-          '{{products | where: "type" | map: "title" | join: ","}}',
-          { products },
-          'Coffee mug,Limited edition sneakers,Boring sneakers',
-          { jekyllWhere: true }
-        )
-      })
-      it('should filter plainly when target is undefined', async () => {
-        await test(
-          '{{products | where: "type", notdefined | map: "title" | join: ","}}',
-          { products },
-          'Coffee mug,Limited edition sneakers,Boring sneakers',
-          { jekyllWhere: true }
-        )
-      })
-    })
-  })
-  describe('where_exp', function () {
-    const products = [
-      { title: 'Vacuum', type: 'living room' },
-      { title: 'Spatula', type: 'kitchen' },
-      { title: 'Television', type: 'living room' },
-      { title: 'Garlic press', type: 'kitchen' },
-      { title: 'Coffee mug', available: true },
-      { title: 'Limited edition sneakers', available: false },
-      { title: 'Boring sneakers', available: true }
-    ]
-    it('should support filter by exp', function () {
-      return test(
-        `{% assign kitchen_products = products | where_exp: "item", "item.type == 'kitchen'" %}
-        Kitchen products:
-        {% for product in kitchen_products -%}
-        - {{ product.title }}
-        {% endfor %}`,
-        { products },
-        `
-        Kitchen products:
-        - Spatula
-        - Garlic press
-        `
-      )
-    })
-    it('should be aware context', function () {
-      const tpl = `{% assign kitchen_products = products | where_exp: "item", "item.type == target" %}
-        Kitchen products:
-        {% for product in kitchen_products -%}
-        - {{ product.title }}
-        {% endfor %}`
-      const scope = { products, target: 'kitchen' }
-      const html = `
-        Kitchen products:
-        - Spatula
-        - Garlic press
-        `
-      return test(tpl, scope, html)
+      await test('{{objs | where: "foo", "FOO" | json}}', scope, '[]', HOSTED)
     })
   })
   describe('reject', function () {
@@ -703,126 +543,6 @@ describe('filters/array', function () {
         `
       )
     })
-    describe('jekyll style', () => {
-      it('should filter arrays by exclusion', async () => {
-        const scope = { objs: [{ foo: ['FOO', 'bar'] }, { foo: ['bar', 'baz'] }, { foo: ['FOO'] }] }
-        await test('{{objs | reject: "foo", "FOO" | json}}', scope, '[{"foo":["bar","baz"]}]', { jekyllWhere: true })
-      })
-      it('should filter by undefined when target is omitted', async () => {
-        await test(
-          '{{products | reject: "type" | map: "title" | join: ","}}',
-          { products },
-          'Vacuum,Spatula,Television,Garlic press',
-          { jekyllWhere: true }
-        )
-      })
-    })
-  })
-  describe('reject_exp', function () {
-    const products = [
-      { title: 'Vacuum', type: 'living room' },
-      { title: 'Spatula', type: 'kitchen' },
-      { title: 'Television', type: 'living room' },
-      { title: 'Garlic press', type: 'kitchen' },
-      { title: 'Coffee mug', available: true },
-      { title: 'Limited edition sneakers', available: false },
-      { title: 'Boring sneakers', available: true }
-    ]
-    it('should support reject by exp', function () {
-      return test(
-        `{% assign kitchen_products = products | reject_exp: "item", "item.type != 'kitchen'" %}
-        Kitchen products:
-        {% for product in kitchen_products -%}
-        - {{ product.title }}
-        {% endfor %}`,
-        { products },
-        `
-        Kitchen products:
-        - Spatula
-        - Garlic press
-        `
-      )
-    })
-  })
-  describe('group_by', function () {
-    const members = [
-      { graduation_year: 2003, name: 'Jay' },
-      { graduation_year: 2003, name: 'John' },
-      { graduation_year: 2004, name: 'Jack' }
-    ]
-    it('should support group by property', function () {
-      const expected = [
-        {
-          name: 2003,
-          items: [
-            { graduation_year: 2003, name: 'Jay' },
-            { graduation_year: 2003, name: 'John' }
-          ]
-        },
-        {
-          name: 2004,
-          items: [{ graduation_year: 2004, name: 'Jack' }]
-        }
-      ]
-      return test(`{{ members | group_by: "graduation_year" | json}}`, { members }, JSON.stringify(expected))
-    })
-  })
-  describe('group_by_exp', function () {
-    const members = [
-      { graduation_year: 2013, name: 'Jay' },
-      { graduation_year: 2014, name: 'John' },
-      { graduation_year: 2009, name: 'Jack' }
-    ]
-    const postsByTags = {
-      CPP: ['page0'],
-      PHP: ['page0', 'page2'],
-      JavaScript: ['page1', 'page2', 'page3'],
-      CSharp: ['page2', 'page4']
-    }
-    it('should support group by expression', function () {
-      const expected = [
-        {
-          name: '201',
-          items: [
-            { graduation_year: 2013, name: 'Jay' },
-            { graduation_year: 2014, name: 'John' }
-          ]
-        },
-        {
-          name: '200',
-          items: [{ graduation_year: 2009, name: 'Jack' }]
-        }
-      ]
-      return test(
-        `{{ members | group_by_exp: "item", "item.graduation_year | truncate: 3, ''" | json}}`,
-        { members },
-        JSON.stringify(expected)
-      )
-    })
-    it('should group key/values in plain object', function () {
-      const expected = [
-        {
-          name: 3,
-          items: [['JavaScript', ['page1', 'page2', 'page3']]]
-        },
-        {
-          name: 2,
-          items: [
-            ['PHP', ['page0', 'page2']],
-            ['CSharp', ['page2', 'page4']]
-          ]
-        },
-        {
-          name: 1,
-          items: [['CPP', ['page0']]]
-        }
-      ]
-      return test(
-        `{{ postsByTags | group_by_exp: "tag", "tag[1].size" | sort: 'name' | reverse | json}}`,
-        { postsByTags },
-        JSON.stringify(expected)
-      )
-    })
   })
   describe('has', function () {
     const members = [
@@ -839,33 +559,6 @@ describe('filters/array', function () {
     it('should return false if not found', function () {
       return test(`{{ members | has: "graduation_year", 2018 | json }}`, { members }, `false`)
     })
-    describe('jekyll style', () => {
-      it('should select array by inclusion', async () => {
-        const scope = { objs: [{ foo: ['FOO', 'bar'] }] }
-        await test('{{objs | has: "foo", "FOO" | json}}', scope, 'true', { jekyllWhere: true })
-      })
-      it('should support empty as target', async () => {
-        const scope = { pages: [{ tags: ['FOO'] }, { tags: [] }, { title: 'foo' }] }
-        await test('{{pages | has: "tags", empty | json}}', scope, 'true', { jekyllWhere: true })
-      })
-      it('should search plainly when target is undefined', async () => {
-        await test('{{members | has: "age", notdefined}}', { members }, 'true', { jekyllWhere: true })
-        await test('{{members | has: "name", notdefined}}', { members }, 'false', { jekyllWhere: true })
-      })
-    })
-  })
-  describe('has_exp', function () {
-    const members = [
-      { graduation_year: 2013, name: 'Jay' },
-      { graduation_year: 2014, name: 'John' },
-      { graduation_year: 2014, name: 'Jack' }
-    ]
-    it('should support has by expression', function () {
-      return test(`{{ members | has_exp: "item", "item.graduation_year == 2014" | json }}`, { members }, `true`)
-    })
-    it('should return false if not found', function () {
-      return test(`{{ members | has_exp: "item", "item.graduation_year == 2018" | json }}`, { members }, `false`)
-    })
   })
   describe('find', function () {
     const members = [
@@ -874,53 +567,23 @@ describe('filters/array', function () {
       { graduation_year: 2014, name: 'Jack', age: 13 }
     ]
     it('should support find with no value', function () {
-      return test(`{{ members | find: "age" | json }}`, { members }, `{"graduation_year":2014,"name":"Jack","age":13}`)
+      return test(
+        `{{ members | find: "age" | json }}`,
+        { members },
+        `{"graduation_year":2014,"name":"Jack","age":13}`,
+        HOSTED
+      )
     })
     it('should support find by property', function () {
       return test(
         `{{ members | find: "graduation_year", 2014 | json }}`,
         { members },
-        `{"graduation_year":2014,"name":"John"}`
+        `{"graduation_year":2014,"name":"John"}`,
+        HOSTED
       )
     })
     it('should render none if not found', function () {
       return test(`{{ members | find: "graduation_year", 2018 | json }}`, { members }, ``)
-    })
-    describe('jekyll style', () => {
-      it('should select array by inclusion', async () => {
-        const scope = { objs: [{ foo: ['FOO', 'bar'] }] }
-        await test('{{objs | find: "foo", "FOO" | json}}', scope, '{"foo":["FOO","bar"]}', { jekyllWhere: true })
-      })
-      it('should support empty as target', async () => {
-        const scope = { pages: [{ tags: ['FOO'] }, { tags: [] }, { title: 'foo' }] }
-        await test('{{pages | find: "tags", empty | json}}', scope, '{"tags":[]}', { jekyllWhere: true })
-      })
-      it('should search plainly when target is undefined', async () => {
-        await test(
-          '{{members | find: "age", notdefined | json}}',
-          { members },
-          '{"graduation_year":2013,"name":"Jay"}',
-          { jekyllWhere: true }
-        )
-        await test('{{members | find: "name", notdefined | json}}', { members }, '', { jekyllWhere: true })
-      })
-    })
-  })
-  describe('find_exp', function () {
-    const members = [
-      { graduation_year: 2013, name: 'Jay' },
-      { graduation_year: 2014, name: 'John' },
-      { graduation_year: 2014, name: 'Jack' }
-    ]
-    it('should support find by expression', function () {
-      return test(
-        `{{ members | find_exp: "item", "item.graduation_year == 2014" | json }}`,
-        { members },
-        `{"graduation_year":2014,"name":"John"}`
-      )
-    })
-    it('should render none if not found', function () {
-      return test(`{{ members | find_exp: "item", "item.graduation_year == 2018" | json }}`, { members }, ``)
     })
   })
   describe('find_index', function () {
@@ -937,33 +600,6 @@ describe('filters/array', function () {
     })
     it('should render none if not found', function () {
       return test(`{{ members | find_index: "graduation_year", 2018 | json }}`, { members }, ``)
-    })
-    describe('jekyll style', () => {
-      it('should select array by inclusion', async () => {
-        const scope = { objs: [{ foo: ['FOO', 'bar'] }] }
-        await test('{{objs | find_index: "foo", "FOO" | json}}', scope, '0', { jekyllWhere: true })
-      })
-      it('should support empty as target', async () => {
-        const scope = { pages: [{ tags: ['FOO'] }, { tags: [] }, { title: 'foo' }] }
-        await test('{{pages | find_index: "tags", empty | json}}', scope, '1', { jekyllWhere: true })
-      })
-      it('should search plainly when target is undefined', async () => {
-        await test('{{members | find_index: "age", notdefined | json}}', { members }, '0', { jekyllWhere: true })
-        await test('{{members | find_index: "name", notdefined | json}}', { members }, '', { jekyllWhere: true })
-      })
-    })
-  })
-  describe('find_index_exp', function () {
-    const members = [
-      { graduation_year: 2013, name: 'Jay' },
-      { graduation_year: 2014, name: 'John' },
-      { graduation_year: 2014, name: 'Jack' }
-    ]
-    it('should support find_index by expression', function () {
-      return test(`{{ members | find_index_exp: "item", "item.graduation_year == 2014" | json }}`, { members }, `1`)
-    })
-    it('should render none if not found', function () {
-      return test(`{{ members | find_index_exp: "item", "item.graduation_year == 2018" | json }}`, { members }, ``)
     })
   })
 })

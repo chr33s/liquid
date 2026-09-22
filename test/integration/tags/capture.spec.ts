@@ -20,11 +20,13 @@ describe('tags/capture', function () {
   })
   it('should throw on invalid identifier', function () {
     const src = '{% capture = %}{%endcapture%}'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow('invalid capture name, line:1, col:12')
+    return expect(liquid.parseAndRender(src)).rejects.toThrow(
+      "Syntax Error in 'capture' - Valid syntax: capture [var], line:1, col:1"
+    )
   })
   it('should throw when capture not closed', function () {
     const src = '{%capture c%}{{c}}'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/tag .* not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow("'capture' tag was never closed")
   })
   it('should support Promise rendering', async function () {
     const src = '{% capture f %}{{"a" | capitalize}}{%endcapture%}{{f}}'

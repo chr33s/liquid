@@ -66,6 +66,6 @@ describe('tags/liquid', function () {
       'endfor',
       '-%}'
     ].join('\r')
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow("'for' tag was never closed")
   })
 })

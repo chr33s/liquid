@@ -1,3 +1,4 @@
+import { LayoutTag } from '../../../src/tags'
 import { Liquid, Context, Tag, Emitter, toPromise } from '../../../src'
 import { drainStream } from '../../stub/stream'
 
@@ -132,22 +133,38 @@ describe('operation lifecycle', () => {
 })
 
 describe('Web text streams', () => {
+  it('streams hosted sections through the default layout under backpressure', async () => {
+    const engine = new Liquid({
+      profile: 'shopify_theme',
+      templates: {
+        theme: '<main>{{ content_for_layout }}</main>',
+        'sections/hero': '{% style %}{{ text }}{% endstyle %}',
+        index: '{% section "hero" %}'
+      }
+    })
+    const scope = { text: 'x'.repeat(200_000) }
+    const expected = await engine.renderFile('index', scope)
+    expect(await drainStream(await engine.renderFileToStream('index', scope))).toBe(expected)
+  })
+
   it('matches buffered layouts, captures and partials', async () => {
     const engine = new Liquid({
       templates: {
-        theme: '<main>{% block %}{% endblock %}</main>',
+        theme: '<main>{{ content_for_layout }}</main>',
         part: '{{ value }}'
       }
     })
+    engine.registerTag('layout', LayoutTag)
     const templates = engine.parse(
       '{% layout "theme" %}{% capture x %}hi{% endcapture %}{{ x }}{% render "part", value: "🌍" %}'
     )
     expect(await drainStream(engine.renderToStream(templates))).toBe(await engine.render(templates))
   })
 
-  it('streams inherited blocks and block.super through the same sink', async () => {
-    const engine = new Liquid({ templates: { base: '<main>{% block body %}parent{% endblock %}</main>' } })
-    const templates = engine.parse('{% layout "base" %}{% block body %}{{ block.super }}{{ text }}{% endblock %}')
+  it('streams layout content through the same sink', async () => {
+    const engine = new Liquid({ templates: { base: '<main>parent{{ content_for_layout }}</main>' } })
+    engine.registerTag('layout', LayoutTag)
+    const templates = engine.parse('{% layout "base" %}{{ text }}')
     const scope = { text: '🌍'.repeat(40_000) }
     const expected = '<main>parent' + scope.text + '</main>'
     expect(await engine.render(templates, scope)).toBe(expected)
@@ -158,11 +175,12 @@ describe('Web text streams', () => {
     '{% for item in (1..2) %}{{ 1 | wait }}{% endfor %}',
     '{% tablerow item in (1..2) %}{{ 1 | wait }}{% endtablerow %}',
     '{% include "part" item: "inner" %}',
-    '{% layout "base" %}{% block body %}{{ 1 | wait }}{% endblock %}'
+    '{% layout "base" %}{{ 1 | wait }}'
   ])('unwinds restored tag scopes on cancellation: %s', async template => {
     const engine = new Liquid({
-      templates: { part: '{{ 1 | wait }}', base: '{% block body %}parent{% endblock %}' }
+      templates: { part: '{{ 1 | wait }}', base: '{{ content_for_layout }}' }
     })
+    engine.registerTag('layout', LayoutTag)
     const ctx = new Context({ item: 'outer', block: 'outer' }, engine.options)
     const entered = deferred<void>()
     engine.registerFilter('wait', () => {

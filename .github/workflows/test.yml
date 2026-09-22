@@ -36,6 +36,43 @@ jobs:
         with:
           name: test-npm-logs-${{ matrix.os }}-${{ matrix.node-version }}
           path: ~/.npm/_logs
+  spec:
+    name: Acceptance (Shopify/liquid-spec)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '4.0'
+      - name: Install dependencies
+        run: npm ci
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-ubuntu-latest
+          path: dist
+      - name: Run liquid-spec
+        run: npm run test:spec -- --report liquid-spec-report.json
+      - name: Archive report
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: liquid-spec-report
+          path: liquid-spec-report.json
+      - name: Differential test against the reference
+        run: npm run test:diff -- --report liquid-diff-report.json
+      - name: Archive differential report
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: liquid-diff-report
+          path: liquid-diff-report.json
   demo:
     name: Demo Check
     runs-on: ubuntu-latest

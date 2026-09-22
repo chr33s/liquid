@@ -22,7 +22,7 @@ describe('tags/unless', function () {
   })
   it('should reject when tag not closed', function () {
     const src = '{% unless 1 > 2 %}yes'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/tag {% unless 1 > 2 %} not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow("'unless' tag was never closed")
   })
   it('should render unless when predicate yields false and else undefined', async function () {
     const src = '{% unless 1 > 2 %}yes{%endunless%}'

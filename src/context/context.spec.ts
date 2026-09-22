@@ -62,7 +62,8 @@ describe('Context', function () {
       expect(await ctx.get(['zoo', 'size'])).toEqual(4)
     })
     it('should return undefined if not have a size', async function () {
-      expect(await ctx.get(['one', 'size'])).toBeUndefined()
+      // an integer answers its byte size, as in the reference
+      expect(await ctx.get(['one', 'size'])).toBe(8)
       expect(await ctx.get(['non-exist', 'size'])).toBeUndefined()
     })
     it('should read .first of array', async function () {

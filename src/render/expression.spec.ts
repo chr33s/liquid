@@ -2,7 +2,10 @@ import { Tokenizer } from '../parser'
 import { Drop } from '../drop'
 import { QuotedToken } from '../tokens'
 import { Context } from '../context'
-import { toPromise } from '../util'
+import { toPromise, toArray, toValue, LiquidRange } from '../util'
+import { defaultOperators } from './operator'
+import { defaultOptions } from '../liquid-options'
+import { isFalsy } from './boolean'
 import { evalQuotedToken } from './expression'
 
 describe('Expression', function () {
@@ -122,9 +125,10 @@ describe('Expression', function () {
   })
 
   describe('escape', () => {
-    it('should escape quote', async function () {
-      const ctx = new Context({ quote: '"' })
-      expect(await toPromise(create('"\\"" == quote').evaluate(ctx, false))).toBe(true)
+    it('should read a string literal without escapes, as the reference', async function () {
+      const ctx = new Context({ quote: '"', slash: '\\n' })
+      expect(await toPromise(create(`'"' == quote`).evaluate(ctx, false))).toBe(true)
+      expect(await toPromise(create('"\\n" == slash').evaluate(ctx, false))).toBe(true)
     })
     it('should escape square bracket', async function () {
       const ctx = new Context({ obj: { ']': 'bracket' } })
@@ -192,12 +196,16 @@ describe('Expression', function () {
       const ctx = new Context({ 'foo bar': { coo: 'FOO BAR' } })
       expect(await toPromise(create('["foo bar"].coo').evaluate(ctx, false))).toBe('FOO BAR')
     })
-    it('should support not', async function () {
-      expect(await toPromise(create('not 1 < 2').evaluate(ctx))).toBe(false)
+    it('should not register a unary not by default', async function () {
+      expect(await toPromise(create('not 1 < 2').evaluate(ctx))).toBe(undefined)
     })
-    it('not should have higher precedence than and/or', async function () {
-      expect(await toPromise(create('not 1 < 2 or not 1 > 2').evaluate(ctx))).toBe(true)
-      expect(await toPromise(create('not 1 < 2 and not 1 > 2').evaluate(ctx))).toBe(false)
+    it('should support a registered unary not', async function () {
+      const operators = { ...defaultOperators, not: (v: any, c: Context) => isFalsy(toValue(v), c) }
+      const notCtx = new Context({}, { ...defaultOptions, operators })
+      const withNot = (str: string) => new Tokenizer(str, operators).readExpression()
+      expect(await toPromise(withNot('not 1 < 2').evaluate(notCtx))).toBe(false)
+      expect(await toPromise(withNot('not 1 < 2 or not 1 > 2').evaluate(notCtx))).toBe(true)
+      expect(await toPromise(withNot('not 1 < 2 and not 1 > 2').evaluate(notCtx))).toBe(false)
     })
     it('should allow variable as squared sub property key', async function () {
       const ctx = new Context({ foo: { bar: 'BAR' }, key: 'bar' })
@@ -211,8 +219,8 @@ describe('Expression', function () {
       const ctx = new Context({ foo: { bar: 'BAR', key: 'bar' } })
       expect(await toPromise(create('foo[foo["key"]]').evaluate(ctx))).toBe('BAR')
     })
-    it('should allow string as property read variable', async function () {
-      expect(await toPromise(create('"foo"[2]').evaluate(ctx))).toBe('o')
+    it('should not index a string, as in the reference', async function () {
+      expect(await toPromise(create('"foo"[2]').evaluate(ctx))).toBeUndefined()
     })
     it('should allow range as property read variable', async function () {
       expect(await toPromise(create('(3..5).size').evaluate(ctx))).toBe(3)
@@ -221,18 +229,24 @@ describe('Expression', function () {
 
   describe('range', function () {
     const ctx = new Context({ two: 2, num: { one: 1, two: 2 } })
+    const items = async (src: string) => toArray(await toPromise(create(src).evaluate(ctx, false)))
     it('should eval range expression', async function () {
-      expect(await toPromise(create('(2..4)').evaluate(ctx, false))).toEqual([2, 3, 4])
-      expect(await toPromise(create('(two..4)').evaluate(ctx, false))).toEqual([2, 3, 4])
+      expect(await items('(2..4)')).toEqual([2, 3, 4])
+      expect(await items('(two..4)')).toEqual([2, 3, 4])
     })
     it('should allow property access expression as variables', async function () {
-      expect(await toPromise(create('(num.one..num.two)').evaluate(ctx))).toEqual([1, 2])
-      expect(await toPromise(create('(num.one .. two)').evaluate(ctx))).toEqual([1, 2])
+      expect(await items('(num.one..num.two)')).toEqual([1, 2])
+      expect(await items('(num.one .. two)')).toEqual([1, 2])
     })
     it('should allow blanks in range', async function () {
-      expect(await toPromise(create('(3 ..5)').evaluate(ctx))).toEqual([3, 4, 5])
-      expect(await toPromise(create('(3 .. 5)').evaluate(ctx))).toEqual([3, 4, 5])
-      expect(await toPromise(create('( 3 .. 5 )').evaluate(ctx))).toEqual([3, 4, 5])
+      expect(await items('(3 ..5)')).toEqual([3, 4, 5])
+      expect(await items('(3 .. 5)')).toEqual([3, 4, 5])
+      expect(await items('( 3 .. 5 )')).toEqual([3, 4, 5])
+    })
+    it('should not materialize a huge range', async function () {
+      const range = (await toPromise(create('(1..100000000000)').evaluate(ctx, false))) as LiquidRange
+      expect(range.length).toBe(100000000000)
+      expect([...range.slice(0, 3)]).toEqual([1, 2, 3])
     })
     it('should throw if .. not matched', async function () {
       expect(() => create('(3.5')).toThrow('invalid range syntax')
@@ -250,9 +264,9 @@ describe('Expression', function () {
     it('should return false for "1==2"', async () => {
       expect(await toPromise(create('1==2').evaluate(ctx, false))).toBe(false)
     })
-    it('should escape quote', async function () {
+    it('should read a string literal without escapes', async function () {
       const ctx = new Context({ quote: '"' })
-      expect(await toPromise(create('"\\"" == quote').evaluate(ctx, false))).toBe(true)
+      expect(await toPromise(create(`'"' == quote`).evaluate(ctx, false))).toBe(true)
     })
     it('should allow nested property access', async function () {
       const ctx = new Context({ obj: { foo: 'FOO' }, keys: { "what's this": 'foo' } })

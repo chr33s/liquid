@@ -11,6 +11,7 @@ import {
   IdentifierToken
 } from '../tokens'
 import { Tokenizer } from './tokenizer'
+import { defaultOptions } from '../liquid-options'
 import { defaultOperators } from '../render/operator'
 import { createTrie } from '../util/operator-trie'
 
@@ -143,10 +144,10 @@ describe('Tokenizer', function () {
       expect(tokens[0]).toHaveProperty('name', 'raw')
       expect((tokens[1] as any).getContent()).toBe(' {%endraw {%raw%} ')
     })
-    it('should throw when {% raw %} not closed', function () {
+    it('marks an unclosed {% raw %} to fail when it is parsed', function () {
       const html = '{%raw%} {%endraw {%raw%}'
-      const tokenizer = new Tokenizer(html)
-      expect(() => tokenizer.readTopLevelTokens()).toThrow('raw "{%raw%} {%endraw {%raw%}" not closed, line:1, col:8')
+      const tokens = new Tokenizer(html).readTopLevelTokens()
+      expect((tokens[0] as TagToken).malformed?.message).toBe("'raw' tag was never closed, line:1, col:8")
     })
     it('should read output token', function () {
       const html = '<p>{{foo | date: "%Y-%m-%d"}}</p>'
@@ -216,23 +217,23 @@ describe('Tokenizer', function () {
       expect(output).toBeInstanceOf(OutputToken)
       expect(output.content).toBe('obj["my:property with anything"]')
     })
-    it('should throw if tag not closed', function () {
+    it('marks an unclosed tag to fail when it is parsed', function () {
       const html = '{% assign foo = bar {{foo}}'
-      const tokenizer = new Tokenizer(html)
-      expect(() => tokenizer.readTopLevelTokens()).toThrow(
-        'tag "{% assign foo = bar {{foo}}" not closed, line:1, col:1'
+      const tokens = new Tokenizer(html).readTopLevelTokens()
+      expect((tokens[0] as TagToken).malformed?.message).toBe(
+        "Tag '{% assign foo = bar {{foo}}' was not properly terminated with regexp: /\\%\\}/, line:1, col:1"
       )
     })
     it('should throw if output not closed', function () {
       const tokenizer = new Tokenizer('{{name}')
-      expect(() => tokenizer.readTopLevelTokens()).toThrow(/output "{{name}" not closed/)
+      expect(() => tokenizer.readTopLevelTokens()).toThrow("Variable '{{name}' was not properly terminated")
     })
   })
   describe('#readOutputToken()', () => {
-    it('should skip quoted delimiters', function () {
+    it('should skip quoted delimiters in warn mode', function () {
       const html = '{{ "%} {%" | append: "}} {{" }}'
       const tokenizer = new Tokenizer(html)
-      const token = tokenizer.readOutputToken()
+      const token = tokenizer.readOutputToken({ ...defaultOptions, errorMode: 'warn' })
 
       expect(token).toBeInstanceOf(OutputToken)
       expect(token.content).toBe('"%} {%" | append: "}} {{"')
@@ -495,18 +496,15 @@ describe('Tokenizer', function () {
       expect(rhs).toBeInstanceOf(PropertyAccessToken)
       expect(rhs.getText()).toEqual('var')
     })
-    it('should read expression `"\\\'" == "\\""`', () => {
-      const exp = new Tokenizer('"\\\'" == "\\""').readExpressionTokens()
+    it('should read expression `"\'" == \'"\'` without escapes', () => {
+      const exp = new Tokenizer(`"'" == '"'`).readExpressionTokens()
       const [lhs, equals, rhs] = exp
 
       expect(lhs).toBeInstanceOf(QuotedToken)
-      expect(lhs.getText()).toEqual('"\\\'"')
-
+      expect((lhs as QuotedToken).content).toEqual("'")
       expect(equals).toBeInstanceOf(OperatorToken)
-      expect(equals.getText()).toBe('==')
-
       expect(rhs).toBeInstanceOf(QuotedToken)
-      expect(rhs.getText()).toEqual('"\\""')
+      expect((rhs as QuotedToken).content).toEqual('"')
     })
   })
   describe('#matchTrie()', function () {

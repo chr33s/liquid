@@ -9,10 +9,12 @@ export class ParseStream<T extends Token = TopLevelToken> {
   private handlers: Record<string, (arg: any) => void> = {}
   private stopRequested = false
   private parseToken: ParseToken<T>
+  private checkBranch?: (token: T) => void
 
-  public constructor(tokens: T[], parseToken: ParseToken<T>) {
+  public constructor(tokens: T[], parseToken: ParseToken<T>, checkBranch?: (token: T) => void) {
     this.tokens = tokens
     this.parseToken = parseToken
+    this.checkBranch = checkBranch
   }
   public on<T2 extends Template | T | undefined>(
     name: string,
@@ -30,7 +32,9 @@ export class ParseStream<T extends Token = TopLevelToken> {
     let token: T | undefined
     while (!this.stopRequested && (token = this.tokens.shift())) {
       if (this.trigger('token', token)) continue
-      if (isTagToken(token) && this.trigger(`tag:${token.name}`, token)) {
+      if (isTagToken(token) && this.handlers[`tag:${token.name}`]) {
+        this.checkBranch?.(token)
+        this.trigger(`tag:${token.name}`, token)
         continue
       }
       const template = this.parseToken(token, this.tokens)

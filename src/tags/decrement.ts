@@ -1,5 +1,6 @@
 import { Tag, Liquid, TopLevelToken, Emitter, TagToken, Context } from '..'
 import { IdentifierToken } from '../tokens'
+import { counterName } from './increment'
 import { isNumber, stringify } from '../util'
 
 export default class extends Tag {
@@ -7,7 +8,7 @@ export default class extends Tag {
   private variable: string
   constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
     super(token, remainTokens, liquid)
-    this.identifier = this.tokenizer.readIdentifier()
+    this.identifier = (token.parsed as IdentifierToken | undefined) ?? counterName(token, liquid)
     this.variable = this.identifier.content
   }
   *render(context: Context, emitter: Emitter) {

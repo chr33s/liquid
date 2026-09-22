@@ -9,6 +9,7 @@ const strictEngine = new Liquid({
   strictFilters: true
 })
 const strictCatchingEngine = new Liquid({
+  errorMode: 'warn',
   catchAllErrors: true,
   strictVariables: true,
   strictFilters: true
@@ -24,14 +25,14 @@ describe('error', function () {
     it('should throw TokenizationError when tag illegal', async function () {
       await expect(engine.parseAndRender('{% . a %}', {})).rejects.toMatchObject({
         name: 'TokenizationError',
-        message: expect.stringContaining('illegal tag syntax')
+        message: expect.stringContaining("Unknown tag '{% . a %}'")
       })
     })
     it('should contain template content in err.message', async function () {
       const html = ['1st', '2nd', 'X{% . a %} Y', '4th']
       const message = ['   1| 1st', '   2| 2nd', '>> 3| X{% . a %} Y', '          ^', '   4| 4th', 'TokenizationError']
       await expect(engine.parseAndRender(html.join('\n'))).rejects.toMatchObject({
-        message: 'illegal tag syntax, tag name expected, line:3, col:5',
+        message: "Unknown tag '{% . a %}', line:3, col:5",
         stack: expect.stringContaining(message.join('\n')),
         name: 'TokenizationError'
       })
@@ -46,14 +47,14 @@ describe('error', function () {
     })
     it('should contain stack in err.stack', async function () {
       await expect(engine.parseAndRender('{% . a %}')).rejects.toMatchObject({
-        message: expect.stringContaining('illegal tag syntax'),
+        message: expect.stringContaining("Unknown tag '{% . a %}'"),
         stack: expect.stringContaining('at Liquid.parse')
       })
     })
     describe('captureStackTrace compatibility', function () {
       it('should be empty when captureStackTrace undefined', async function () {
         await expect(engine.parseAndRender('{% . a %}')).rejects.toMatchObject({
-          stack: expect.stringContaining('illegal tag syntax')
+          stack: expect.stringContaining("Unknown tag '{% . a %}'")
         })
         await expect(engine.parseAndRender('{% . a %}')).rejects.toMatchObject({
           stack: expect.not.stringContaining('at Object.parse')
@@ -63,7 +64,7 @@ describe('error', function () {
     it('should throw error with [line, col] if tag unmatched', async function () {
       await expect(engine.parseAndRender('1\n2\nfoo{% assign a = 4 }\n4')).rejects.toMatchObject({
         name: 'TokenizationError',
-        message: 'tag "{% assign a = 4 }\\n4" not closed, line:3, col:4'
+        message: "Tag '{% assign a = 4 }\n4' was not properly terminated with regexp: /\\%\\}/, line:3, col:4"
       })
     })
   })
@@ -71,7 +72,8 @@ describe('error', function () {
     let engine: Liquid
     beforeEach(function () {
       engine = new Liquid({
-        root: '/'
+        root: '/',
+        profile: 'shopify_theme'
       })
       engine.registerTag('throwingTag', ThrowingTag)
       engine.registerTag('rejectingTag', RejectingTag)
@@ -128,9 +130,15 @@ describe('error', function () {
     })
     it('should contain original error info for {% layout %}', async function () {
       mock({
-        '/throwing-tag.html': ['1st', '2nd', '3rd', 'X{%throwingTag%} Y', '5th', '{%block%}{%endblock%}', '7th'].join(
-          '\n'
-        )
+        '/throwing-tag.html': [
+          '1st',
+          '2nd',
+          '3rd',
+          'X{%throwingTag%} Y',
+          '5th',
+          '{{ content_for_layout }}',
+          '7th'
+        ].join('\n')
       })
       const html = '{%layout "throwing-tag.html"%}'
       const message = [
@@ -139,7 +147,7 @@ describe('error', function () {
         '>> 4| X{%throwingTag%} Y',
         '       ^',
         '   5| 5th',
-        '   6| {%block%}{%endblock%}',
+        '   6| {{ content_for_layout }}',
         '   7| 7th',
         'RenderError'
       ]
@@ -213,20 +221,30 @@ describe('error', function () {
         ]
       })
     })
-    it('should catch parse errors from filter/tag', async function () {
-      const template = '{{"foo" | nonExistFilter }} {% nonExistTag %}'
+    it('should catch parse errors from tags', async function () {
+      const template = '{% nonExistTag %} {% alsoNonExistTag %}'
       return expect(strictCatchingEngine.parseAndRender(template)).rejects.toMatchObject({
         name: 'LiquidErrors',
         message: '2 errors found, line:1, col:1',
         errors: [
           {
             name: 'ParseError',
-            message: 'undefined filter: nonExistFilter, line:1, col:1'
+            message: "Unknown tag 'nonExistTag', line:1, col:1"
           },
           {
             name: 'ParseError',
-            message: 'tag "nonExistTag" not found, line:1, col:29'
+            message: "Unknown tag 'alsoNonExistTag', line:1, col:19"
           }
+        ]
+      })
+    })
+    it('E01: undefined filters are reported at render time', async function () {
+      const template = '{{"foo" | nonExistFilter }}{{"bar" | alsoNonExist }}'
+      return expect(strictCatchingEngine.parseAndRender(template)).rejects.toMatchObject({
+        name: 'LiquidErrors',
+        errors: [
+          { name: 'RenderError', message: expect.stringContaining('undefined filter: nonExistFilter') },
+          { name: 'RenderError', message: expect.stringContaining('undefined filter: alsoNonExist') }
         ]
       })
     })
@@ -237,20 +255,20 @@ describe('error', function () {
       engine = new Liquid()
       engine.registerTag('throwsOnParse', ThrowsOnParseTag)
     })
-    it('should throw ParseError when filter not defined', async function () {
+    it('E01: should throw RenderError when filter not defined', async function () {
       await expect(strictEngine.parseAndRender('{{1 | a}}')).rejects.toMatchObject({
-        name: 'ParseError',
+        name: 'RenderError',
         message: expect.stringContaining('undefined filter: a')
       })
     })
     it('should throw ParseError when tag not closed', async function () {
       await expect(engine.parseAndRender('{% if true %}')).rejects.toMatchObject({
         name: 'ParseError',
-        message: expect.stringContaining('tag {% if true %} not closed')
+        message: expect.stringContaining("'if' tag was never closed")
       })
     })
     it('should throw ParseError when tag value not specified', async function () {
-      await expect(engine.parseAndRender('{% if %}{% endif %}')).rejects.toMatchObject({
+      await expect(new Liquid({ errorMode: 'warn' }).parseAndRender('{% if %}{% endif %}')).rejects.toMatchObject({
         name: 'TokenizationError',
         message: 'invalid value expression: "", line:1, col:6'
       })
@@ -262,16 +280,16 @@ describe('error', function () {
       })
     })
     it('should throw ParseError when tag not found', async function () {
-      const src = '{%if true%}\naaa{%endif%}\n{% -a %}\n3'
+      const src = '{%if true%}\naaa{%endif%}\n{% b %}\n3'
       await expect(engine.parseAndRender(src)).rejects.toMatchObject({
         name: 'ParseError',
-        message: expect.stringContaining('tag "-a" not found')
+        message: expect.stringContaining("Unknown tag 'b'")
       })
     })
     it('should throw ParseError when tag not exist', async function () {
       await expect(engine.parseAndRender('{% a %}')).rejects.toMatchObject({
         name: 'ParseError',
-        message: expect.stringContaining('tag "a" not found')
+        message: expect.stringContaining("Unknown tag 'a'")
       })
     })
     it('should contain template context in err.stack', async function () {
@@ -284,11 +302,11 @@ describe('error', function () {
         '   5| 5th',
         '   6| 6th',
         '   7| 7th',
-        'ParseError: tag "a" not found'
+        "ParseError: Unknown tag 'a'"
       ]
       await expect(engine.parseAndRender(html.join('\n'))).rejects.toMatchObject({
         name: 'ParseError',
-        message: 'tag "a" not found, line:4, col:2',
+        message: "Unknown tag 'a', line:4, col:2",
         stack: expect.stringContaining(message.join('\n'))
       })
     })
@@ -300,18 +318,18 @@ describe('error', function () {
         '       ^',
         '   3| 3rd',
         '   4| 4th',
-        'ParseError: tag "a" not found'
+        "ParseError: Unknown tag 'a'"
       ]
       await expect(engine.parseAndRender(html.join('\n'))).rejects.toMatchObject({
-        message: 'tag "a" not found, line:2, col:2',
+        message: "Unknown tag 'a', line:2, col:2",
         stack: expect.stringContaining(message.join('\n'))
       })
     })
     it('should contain stack in err.stack', async function () {
-      await expect(engine.parseAndRender('{% -a %}')).rejects.toMatchObject({
-        stack: expect.stringContaining('ParseError: tag "-a" not found')
+      await expect(engine.parseAndRender('{% b %}')).rejects.toMatchObject({
+        stack: expect.stringContaining("ParseError: Unknown tag 'b'")
       })
-      await expect(engine.parseAndRender('{% -a %}')).rejects.toMatchObject({
+      await expect(engine.parseAndRender('{% b %}')).rejects.toMatchObject({
         stack: expect.stringMatching(/at .*:\d+:\d+\)/)
       })
     })
@@ -320,7 +338,8 @@ describe('error', function () {
     let engine: Liquid
     beforeEach(function () {
       engine = new Liquid({
-        root: '/'
+        root: '/',
+        profile: 'shopify_theme'
       })
       engine.registerTag('throwingTag', ThrowingTag)
     })

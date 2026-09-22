@@ -1,7 +1,7 @@
 <html>
   <head><meta name="title" content="{{title}}"></head>
   <body>
-    {% block %}{% endblock %}
+    {{ content_for_layout }}
     {% render "footer.liquid" %}
   </body>
 </html>

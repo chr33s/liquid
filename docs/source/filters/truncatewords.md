@@ -43,3 +43,7 @@ Output
 ```text
 Ground control to
 ```
+
+### Nil and arguments
+
+`nil` input stays `nil`. Words are split on ASCII whitespace only, so a non-breaking space does not end a word. The word count is read like Ruby's `Integer()`: a decimal like `2.9` or a string like `"x"` raises `invalid integer`.

@@ -6,7 +6,7 @@
 
 import { FilterImpl } from '../template'
 import { stringify } from '../util'
-import { base64Encode, base64Decode } from './base64-impl'
+import { base64Encode, base64Decode, base64UrlSafeEncode, base64UrlSafeDecode } from './base64-impl'
 
 export function base64_encode(this: FilterImpl, value: string | Buffer): string {
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
@@ -17,6 +17,16 @@ export function base64_encode(this: FilterImpl, value: string | Buffer): string 
 }
 
 export function base64_decode(this: FilterImpl, value: string): string {
-  const str = stringify(value)
-  return base64Decode(str)
+  return base64Decode(stringify(value))
+}
+
+export function base64_url_safe_encode(this: FilterImpl, value: string | Buffer): string {
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
+    return value.toString('base64url')
+  }
+  return base64UrlSafeEncode(stringify(value))
+}
+
+export function base64_url_safe_decode(this: FilterImpl, value: string): string {
+  return base64UrlSafeDecode(stringify(value))
 }

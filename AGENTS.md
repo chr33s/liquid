@@ -24,13 +24,15 @@ npm test
 npm run lint           # oxlint + oxfmt --check
 npm run format         # oxfmt
 npm run typecheck      # tsc --noEmit over src + test
-npm run check          # build + build:docs + test + lint + typecheck + perf:diff (manual)
+npm run check          # build + build:docs + test + test:spec + test:diff + lint + typecheck + perf:diff (manual)
 npm run build:docs     # typedoc -> .local/wiki, then check:docs
 npm run publish:docs   # push .local/wiki to the wiki repo (git credentials, or GITHUB_TOKEN in CI)
 npm run perf:diff
+npm run test:spec      # Shopify/liquid-spec conformance, four profiles (Ruby; gated in CI)
+npm run test:diff      # seeded random templates vs the pinned Ruby engine (gated in CI)
 ```
 
-PR CI (`pull_request`): build, lint, test, coverage, performance, docs. Docs render and validate on PRs; the wiki is published only from `main`.
+PR CI (`pull_request`): build, lint, test, coverage, performance, docs, liquid-spec and differential tests. Docs render and validate on PRs; the wiki is published only from `main`.
 
 PR titles: conventional format (`feat:`, `fix:`, `docs:`, …) — checked by CI. Releases on `main` use semantic-release from merged commits.
 

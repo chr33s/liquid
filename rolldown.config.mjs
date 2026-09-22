@@ -49,7 +49,15 @@ const browserCrypto = {
     './crypto-impl': '../build/crypto-impl-browser'
   }
 }
-const browserShims = [replace(browserFS), replace(browserBase64), replace(browserCrypto)]
+const browserHostedCrypto = {
+  include: './src/filters/hosted/crypto.ts',
+  delimiters: ['', ''],
+  preventAssignment: true,
+  values: {
+    '../crypto-impl': '../../build/crypto-impl-browser'
+  }
+}
+const browserShims = [replace(browserFS), replace(browserBase64), replace(browserCrypto), replace(browserHostedCrypto)]
 
 const nodeEsm = {
   output: {

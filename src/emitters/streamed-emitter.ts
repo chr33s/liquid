@@ -1,4 +1,4 @@
-import { stringify, Limiter, Operation } from '../util'
+import { stringifyOutput, Limiter, Operation } from '../util'
 import { Emitter } from './emitter'
 
 export class StreamedEmitter implements Emitter {
@@ -43,7 +43,7 @@ export class StreamedEmitter implements Emitter {
       this.owner.abort(error)
       throw error
     }
-    const text = stringify(value)
+    const text = stringifyOutput(value)
     this.outputLengthLimit?.use(text.length)
     const task = this.accept(text)
     this.pending = task

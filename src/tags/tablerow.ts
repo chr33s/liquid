@@ -1,4 +1,14 @@
-import { isValueToken, toEnumerable } from '../util'
+import {
+  isNil,
+  isValueToken,
+  toValue,
+  toSequence,
+  seqAt,
+  sliceSequence,
+  toLooseInteger,
+  isString,
+  LiquidRange
+} from '../util'
 import {
   ValueToken,
   Liquid,
@@ -14,7 +24,8 @@ import {
 } from '..'
 import { TablerowloopDrop } from '../drop/tablerowloop-drop'
 import { Parser } from '../parser'
-import { Arguments } from '../template'
+import type { LoopMarkup } from '../parser/strict2'
+import { Arguments, blankBodies } from '../template'
 
 export default class extends Tag {
   variable: string
@@ -23,18 +34,19 @@ export default class extends Tag {
   collection: ValueToken
   constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
-    const variable = this.tokenizer.readIdentifier()
+    const parsed = tagToken.parsed as LoopMarkup | undefined
+    const variable = parsed?.variable ?? this.tokenizer.readIdentifier()
     this.tokenizer.skipBlank()
 
-    const predicate = this.tokenizer.readIdentifier()
-    const collectionToken = this.tokenizer.readValue()
-    if (predicate.content !== 'in' || !collectionToken) {
+    const predicate = parsed ? 'in' : this.tokenizer.readIdentifier().content
+    const collectionToken = parsed?.collection ?? this.tokenizer.readValue()
+    if (predicate !== 'in' || !collectionToken) {
       throw new Error(`illegal tag: ${tagToken.getText()}`)
     }
 
     this.variable = variable.content
     this.collection = collectionToken
-    this.args = new Hash(this.tokenizer, liquid.options.keyValueSeparator)
+    this.args = new Hash(parsed?.hash ?? this.tokenizer, liquid.options.keyValueSeparator)
     this.templates = []
 
     let p
@@ -44,43 +56,51 @@ export default class extends Tag {
       .on('tag:endtablerow', () => stream.stop())
       .on('template', (tpl: Template) => p.push(tpl))
       .on('end', () => {
-        throw new Error(`tag ${tagToken.getText()} not closed`)
+        throw new Error(`'${tagToken.name}' tag was never closed`)
       })
 
     stream.start()
+    this.blank = blankBodies([this.templates], false)
   }
+  public readonly blank: boolean;
 
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
-    let collection = toEnumerable(yield evalToken(this.collection, ctx))
+    const raw = yield evalToken(this.collection, ctx)
+    if (isNil(toValue(raw)) || toValue(raw) === false) return
     const args = (yield this.args.render(ctx)) as Record<string, any>
-    const offset = args.offset || 0
-    const limit = args.limit === undefined ? collection.length : args.limit
+    // an attribute that is given counts even when nil, which reads as 0
+    const given = (name: string) => name in this.args.hash
+    let collection = toSequence(raw)
+    const from = given('offset') ? toLooseInteger(args.offset) : 0
+    const to = given('limit') ? from + toLooseInteger(args.limit) : undefined
+    // a string is one item, whatever the offset and limit
+    if (!isString(toValue(raw))) collection = sliceSequence(collection, from, to)
 
-    collection = collection.slice(offset, offset + limit)
-    if (!collection.length) return
-
-    if (!this.templates.length) return
-
-    const cols = args.cols || collection.length
-
+    const cols = given('cols') ? toLooseInteger(args.cols) : collection.length
     const r = this.liquid.renderer
     const tablerowloop = new TablerowloopDrop(collection.length, cols, this.collection.getText(), this.variable)
+    ctx.depthLimit.use(1)
     const scope = ctx.push({ tablerowloop })
 
     try {
+      yield emitter.write('<tr class="row1">\n')
       for (let idx = 0; idx < collection.length; idx++, tablerowloop.next()) {
-        scope[this.variable] = collection[idx]
-        if (tablerowloop.col0() === 0) {
-          if (tablerowloop.row() !== 1) yield emitter.write('</tr>')
-          yield emitter.write(`<tr class="row${tablerowloop.row()}">`)
-        }
+        if (collection instanceof LiquidRange) ctx.templateLimit.use(1)
+        scope[this.variable] = seqAt(collection, idx)
         yield emitter.write(`<td class="col${tablerowloop.col()}">`)
-        yield r.renderTemplates(this.templates, ctx, emitter)
+        ctx.continueCalled = ctx.breakCalled = false
+        if (this.templates.length) yield r.renderTemplates(this.templates, ctx, emitter)
         yield emitter.write('</td>')
+        if (ctx.breakCalled) break
+        if (tablerowloop.col_last() && !tablerowloop.last()) {
+          yield emitter.write(`</tr>\n<tr class="row${tablerowloop.row() + 1}">`)
+        }
       }
-      if (collection.length) yield emitter.write('</tr>')
+      yield emitter.write('</tr>\n')
     } finally {
+      ctx.continueCalled = ctx.breakCalled = false
       ctx.pop()
+      ctx.depthLimit.release(1)
     }
   }
 

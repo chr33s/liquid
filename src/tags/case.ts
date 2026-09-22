@@ -13,31 +13,32 @@ import {
   ParseStream
 } from '..'
 import { Parser } from '../parser'
+import { markupOf, tagMarkup, type ParsedMarkup } from '../parser/strict2'
 import { equals } from '../render'
-import { Arguments } from '../template'
+import { ParseError } from '../util'
+import { Arguments, blankBodies } from '../template'
 
 export default class extends Tag {
   value: Value
-  branches: { values: ValueToken[]; templates: Template[] }[] = []
+  /** The `when` and `else` blocks in source order; an `else` block has no values. */
+  branches: { values: ValueToken[]; templates: Template[]; else?: boolean }[] = []
+  /** The templates of the first `else` block. */
   elseTemplates: Template[] = []
   constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
-    this.value = new Value(this.tokenizer.readFilteredValue(), this.liquid)
+    const parsed = tagToken.parsed as ParsedMarkup<'case'> | undefined
+    this.value = new Value(parsed ?? this.tokenizer.readFilteredValue(), this.liquid)
     this.elseTemplates = []
 
     let p: Template[] = []
-    let elseCount = 0
+    const leading = p
     const stream: ParseStream = parser
       .parseStream(remainTokens)
       .on('tag:when', (token: TagToken) => {
-        if (elseCount > 0) {
-          return
-        }
-
         p = []
 
-        const values: ValueToken[] = []
-        while (!token.tokenizer.end()) {
+        const values: ValueToken[] = (token.parsed as ParsedMarkup<'when'> | undefined) ?? []
+        while (!token.parsed && !token.tokenizer.end()) {
           values.push(token.tokenizer.readValueOrThrow())
           token.tokenizer.skipBlank()
           if (token.tokenizer.peek() === ',') {
@@ -51,39 +52,46 @@ export default class extends Tag {
           templates: p
         })
       })
-      .on('tag:else', () => {
-        elseCount++
-        p = this.elseTemplates
+      .on('tag:else', (token: TagToken) => {
+        try {
+          tagMarkup.else(markupOf(token), { parent: 'case' })
+        } catch (e) {
+          throw new ParseError(e as Error, token)
+        }
+        p = []
+        if (!this.branches.some(branch => branch.else)) this.elseTemplates = p
+        this.branches.push({ values: [], templates: p, else: true })
       })
       .on('tag:endcase', () => stream.stop())
-      .on('template', (tpl: Template) => {
-        if (p !== this.elseTemplates || elseCount === 1) {
-          p.push(tpl)
-        }
-      })
+      .on('template', (tpl: Template) => p.push(tpl))
       .on('end', () => {
-        throw new Error(`tag ${tagToken.getText()} not closed`)
+        throw new Error(`'${tagToken.name}' tag was never closed`)
       })
 
     stream.start()
+    this.blank = blankBodies([leading, ...this.branches.map(branch => branch.templates)], true)
   }
+  public readonly blank: boolean;
 
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     const r = this.liquid.renderer
     const target = toValue(yield this.value.value(ctx, ctx.opts.lenientIf))
+    // as in the reference, every matching `when` renders, and an `else` renders
+    // when no `when` before it has matched
     let branchHit = false
     for (const branch of this.branches) {
+      if (branch.else) {
+        if (!branchHit) yield r.renderTemplates(branch.templates, ctx, emitter)
+        continue
+      }
       for (const valueToken of branch.values) {
         const value = yield evalToken(valueToken, ctx, ctx.opts.lenientIf)
+        // each matching value renders the body, as in the reference
         if (equals(target, value)) {
           yield r.renderTemplates(branch.templates, ctx, emitter)
           branchHit = true
-          break
         }
       }
-    }
-    if (!branchHit) {
-      yield r.renderTemplates(this.elseTemplates, ctx, emitter)
     }
   }
 
@@ -93,10 +101,6 @@ export default class extends Tag {
   }
 
   public *children(): Generator<unknown, Template[]> {
-    const templates = this.branches.flatMap(b => b.templates)
-    if (this.elseTemplates) {
-      templates.push(...this.elseTemplates)
-    }
-    return templates
+    return this.branches.flatMap(b => b.templates)
   }
 }

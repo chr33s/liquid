@@ -4,7 +4,7 @@ title: strip_html
 
 **Since:** v1.9.1
 
-Removes any HTML tags from a string.
+Removes any HTML tags from a string. As in the reference engine, `<script>`, `<style>` and `<!-- -->` blocks are removed with their contents first, then any remaining `<...>` tag.
 
 > **Not safe for HTML output**
 >

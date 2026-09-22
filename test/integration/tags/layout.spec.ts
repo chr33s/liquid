@@ -1,24 +1,25 @@
 import { Liquid } from '../../../src/liquid'
+import { LayoutTag } from '../../../src/tags'
+
+/** `layout` belongs to the hosted dialect; these tests register it on a core engine. */
+function withLayout(options?: ConstructorParameters<typeof Liquid>[0]) {
+  const engine = new Liquid(options)
+  engine.registerTag('layout', LayoutTag)
+  return engine
+}
 import { mock, restore } from '../../stub/mockfs'
 
 describe('tags/layout', function () {
   let liquid: Liquid
   beforeEach(function () {
-    liquid = new Liquid({
+    liquid = withLayout({
       root: '/',
       extname: '.html'
     })
   })
   afterEach(restore)
 
-  it('should throw when block not closed', function () {
-    mock({
-      '/parent.html': 'parent'
-    })
-    const src = '{% layout "parent" %}{%block%}A'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/tag {%block%} not closed/)
-  })
-  it('should throw when filename not specified', function () {
+  it('should throw when filename not specified', async function () {
     mock({
       '/parent.html': '{%layout%}'
     })
@@ -27,7 +28,7 @@ describe('tags/layout', function () {
       expect(e.message).toMatch(/illegal file path/)
     })
   })
-  it('should throw when filename resolved to falsy', function () {
+  it('should throw when filename resolved to falsy', async function () {
     mock({
       '/parent.html': '{%layout foo%}'
     })
@@ -37,187 +38,91 @@ describe('tags/layout', function () {
     })
   })
   it('should handle layout none', async function () {
-    const src = '{% layout none %}' + '{%block a%}A{%endblock%}' + 'B'
+    const src = '{% layout none %}AB'
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('AB')
   })
-  describe('anonymous block', function () {
-    it('should handle anonymous block', async function () {
-      mock({
-        '/parent.html': 'X{%block%}{%endblock%}Y'
-      })
-      const src = '{% layout "parent.html" %}{%block%}A{%endblock%}'
-      const html = await liquid.parseAndRender(src)
-      return expect(html).toBe('XAY')
-    })
-    it('should handle top level contents as anonymous block', async function () {
-      mock({
-        '/parent.html': 'X{%block%}{%endblock%}Y'
-      })
-      const src = '{% layout "parent.html" %}A'
-      const html = await liquid.parseAndRender(src)
-      return expect(html).toBe('XAY')
-    })
-  })
-  it('should handle named blocks', async function () {
+  it('should insert the page body at content_for_layout', async function () {
     mock({
-      '/parent.html': 'X{% block "a"%}{% endblock %}Y{% block b%}{%endblock%}Z'
+      '/parent.html': 'X{{ content_for_layout }}Y'
     })
-    const src = '{% layout "parent.html" %}' + '{%block a%}A{%endblock%}' + '{%block b%}B{%endblock%}'
+    const src = '{% layout "parent.html" %}A'
     const html = await liquid.parseAndRender(src)
-    return expect(html).toBe('XAYBZ')
+    return expect(html).toBe('XAY')
+  })
+  it('should insert the page body once', async function () {
+    mock({
+      '/parent.html': 'X{{ content_for_layout }}Y{{ content_for_layout }}Z'
+    })
+    const html = await liquid.parseAndRender('{% layout "parent.html" %}A')
+    return expect(html).toBe('XAYAZ')
   })
   it('should support `options.layouts`', async () => {
     mock({
-      '/layouts/parent.html': 'X{% block "a"%}{%endblock%}Y'
+      '/layouts/parent.html': 'X{{ content_for_layout }}Y'
     })
-    const src = '{% layout "parent.html" %}{%block a%}A{%endblock%}'
-    const liquid = new Liquid({ layouts: '/layouts' })
+    const src = '{% layout "parent.html" %}A'
+    const liquid = withLayout({ layouts: '/layouts' })
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('XAY')
   })
   it('should use `layouts` if specified', async function () {
     mock({
-      '/layouts/parent.html': 'LAYOUTS {%block%}{%endblock%}',
-      '/root/parent.html': 'ROOT {%block%}{%endblock%}',
-      '/root/main.html': '{% layout parent.html %}{%block%}A{%endblock%}'
+      '/layouts/parent.html': 'LAYOUTS {{ content_for_layout }}',
+      '/root/parent.html': 'ROOT {{ content_for_layout }}',
+      '/root/main.html': '{% layout "parent.html" %}A'
     })
-    const staticLiquid = new Liquid({ root: '/root', layouts: '/layouts', dynamicPartials: false })
-    const html = await staticLiquid.renderFile('main.html')
+    const engine = withLayout({ root: '/root', layouts: '/layouts' })
+    const html = await engine.renderFile('main.html')
     return expect(html).toBe('LAYOUTS A')
-  })
-
-  it('should support block.super', async function () {
-    mock({
-      '/parent.html': '{% block css %}<link href="base.css" rel="stylesheet">{% endblock %}'
-    })
-    const src =
-      '{% layout "parent.html" %}' + '{%block css%}{{block.super}}<link href="extra.css" rel="stylesheet">{%endblock%}'
-    const html = await liquid.parseAndRender(src)
-    const output = '<link href="base.css" rel="stylesheet"><link href="extra.css" rel="stylesheet">'
-    return expect(html).toBe(output)
-  })
-  it('should pass block.super as a string', async function () {
-    mock({
-      '/parent.html': '{% block css %}<link href="base.css" rel="stylesheet">{% endblock %}'
-    })
-    const src =
-      '{% layout "parent.html" %}' + '{%block css%}{{block.super}}<meta basesize={{block.super | size}}>{%endblock%}'
-    const html = await liquid.parseAndRender(src)
-    const output = '<link href="base.css" rel="stylesheet"><meta basesize=39>'
-    return expect(html).toBe(output)
-  })
-  it('should support block.super while strictVariables', async function () {
-    mock({
-      '/parent.html': '{% block css %}<link href="base.css" rel="stylesheet">{% endblock %}'
-    })
-    const src =
-      '{% layout "parent.html" %}' + '{%block css%}{{block.super}}<link href="extra.css" rel="stylesheet">{%endblock%}'
-    const html = await liquid.parseAndRender(src, undefined, { strictVariables: true })
-    const output = '<link href="base.css" rel="stylesheet"><link href="extra.css" rel="stylesheet">'
-    return expect(html).toBe(output)
-  })
-  it('should render block.super to empty if no parent exists', async function () {
-    mock({
-      '/parent.html': '{% block css %}{{block.super}}<link href="base.css" rel="stylesheet">{% endblock %}'
-    })
-    const src =
-      '{% layout "parent.html" %}' + '{%block css%}{{block.super}}<link href="extra.css" rel="stylesheet">{%endblock%}'
-    const html = await liquid.parseAndRender(src)
-    const output = '<link href="base.css" rel="stylesheet"><link href="extra.css" rel="stylesheet">'
-    return expect(html).toBe(output)
-  })
-  it('should support nested block.super', async function () {
-    mock({
-      '/root.html': '{% block css %}<link href="root.css" rel="stylesheet">{% endblock %}',
-      '/parent.html':
-        '{% layout "root.html" %}{% block css %}{{block.super}}<link href="parent.css" rel="stylesheet">{% endblock %}'
-    })
-    const src =
-      '{% layout "parent.html" %}{%block css%}{{block.super}}<link href="extra.css" rel="stylesheet">{%endblock%}'
-    const html = await liquid.parseAndRender(src)
-    const output =
-      '<link href="root.css" rel="stylesheet"><link href="parent.css" rel="stylesheet"><link href="extra.css" rel="stylesheet">'
-    return expect(html).toBe(output)
   })
   it('should support variable as layout name', async function () {
     mock({
-      '/parent.html': 'X{% block "a"%}{% endblock %}Y'
+      '/parent.html': 'X{{ content_for_layout }}Y'
     })
-    const src = '{% layout parent %}{%block a%}A{%endblock%}'
+    const src = '{% layout parent %}A'
     const html = await liquid.parseAndRender(src, { parent: 'parent.html' })
     return expect(html).toBe('XAY')
   })
-  it('should support default block content', async function () {
+  it('should handle a layout that itself has a layout', async function () {
     mock({
-      '/parent.html': 'X{% block "a"%}A{% endblock %}Y{% block b%}B{%endblock%}Z'
-    })
-    const src = '{% layout "parent.html" %}{%block a%}a{%endblock%}'
-    const html = await liquid.parseAndRender(src)
-    return expect(html).toBe('XaYBZ')
-  })
-  it('should handle nested block', async function () {
-    mock({
-      '/grand.html': 'X{%block a%}G{%endblock%}Y',
-      '/parent.html': '{%layout "grand" %}{%block a%}P{%endblock%}',
-      '/main.html': '{%layout "parent"%}{%block a%}A{%endblock%}'
+      '/grand.html': 'X{{ content_for_layout }}Y',
+      '/parent.html': '{%layout "grand" %}P{{ content_for_layout }}',
+      '/main.html': '{%layout "parent"%}A'
     })
     const html = await liquid.renderFile('/main.html')
-    return expect(html).toBe('XAY')
-  })
-  it('should reject nested {% block %} with the same name (no OOM / hang)', function () {
-    mock({
-      '/layout.html':
-        '<header>{% block a %}default-a{% endblock %}</header>' +
-        '<main>{% block b %}default-b{% endblock %}</main>' +
-        '<footer>{% block c %}default-c{% endblock %}</footer>',
-      '/template.html':
-        '{% layout "layout" %}' +
-        '{% block a %}outer-a {% block a %}inner-a{% endblock %}{% endblock %}' +
-        '{% block b %}content-b{% endblock %}' +
-        '{% block c %}content-c{% endblock %}'
-    })
-    return expect(liquid.renderFile('/template.html')).rejects.toThrow(/block tag cannot be nested/)
-  })
-  it('should reject nested anonymous {% block %} (no OOM / hang)', function () {
-    mock({
-      '/parent.html': 'X{%block%}{%endblock%}Y'
-    })
-    const src = '{% layout "parent.html" %}{%block%}A{%block%}B{%endblock%}{%endblock%}'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/block tag cannot be nested/)
+    return expect(html).toBe('XPAY')
   })
   it('should not bleed scope into `include` layout', async function () {
     mock({
-      '/parent.html': 'X{%block a%}{%endblock%}Y{%block b%}{%endblock%}Z',
-      '/main.html':
-        '{%layout "parent"%}' + '{%block a%}A{%endblock%}' + '{%block b%}I{%include "included"%}J{%endblock%}',
-      '/included.html': '{%layout "parent"%}{%block a%}a{%endblock%}'
+      '/parent.html': 'X{{ content_for_layout }}Z',
+      '/main.html': '{%layout "parent"%}A{%include "included"%}J',
+      '/included.html': '{%layout "parent"%}a'
     })
     const html = await liquid.renderFile('main')
-    return expect(html).toBe('XAYIXaYZJZ')
+    return expect(html).toBe('XAXaZJZ')
   })
   it('should not bleed scope into `render` layout', async function () {
     mock({
-      '/parent.html': 'X{%block a%}{%endblock%}Y{%block b%}{%endblock%}Z',
-      '/main.html':
-        '{%layout "parent"%}' + '{%block a%}A{%endblock%}' + '{%block b%}I{%render "included"%}J{%endblock%}',
-      '/included.html': '{%layout "parent"%}{%block a%}a{%endblock%}'
+      '/parent.html': 'X{{ content_for_layout }}Z',
+      '/main.html': '{%layout "parent"%}A{%render "included"%}J',
+      '/included.html': '{%layout "parent"%}a'
     })
     const html = await liquid.renderFile('main')
-    return expect(html).toBe('XAYIXaYZJZ')
+    return expect(html).toBe('XAXaZJZ')
   })
   it('should support hash list', async function () {
     mock({
-      '/parent.html': '{{color}}{%block%}{%endblock%}',
-      '/main.html': '{% layout "parent.html" color:"black"%}{%block%}A{%endblock%}'
+      '/parent.html': '{{color}}{{ content_for_layout }}',
+      '/main.html': '{% layout "parent.html" color:"black"%}A'
     })
     const html = await liquid.renderFile('/main.html')
     return expect(html).toBe('blackA')
   })
   it('should support multiple hash', async function () {
     mock({
-      '/parent.html': '{{color}}{{bg}}{%block%}{%endblock%}',
-      '/main.html': '{% layout "parent.html" color:"black", bg:"red"%}{%block%}A{%endblock%}'
+      '/parent.html': '{{color}}{{bg}}{{ content_for_layout }}',
+      '/main.html': '{% layout "parent.html" color:"black", bg:"red"%}A'
     })
     const html = await liquid.renderFile('/main.html')
     return expect(html).toBe('blackredA')
@@ -225,71 +130,41 @@ describe('tags/layout', function () {
 
   it('should support relative reference', async function () {
     mock({
-      '/foo/bar/parent.html': '{{color}}{%block%}{%endblock%}',
-      '/foo/bar/main.html': '{% layout ./parent.html color:"black"%}{%block%}A{%endblock%}'
+      '/foo/bar/parent.html': '{{color}}{{ content_for_layout }}',
+      '/foo/bar/main.html': '{% layout "./parent.html" color:"black"%}A'
     })
-    const staticLiquid = new Liquid({ root: '/', dynamicPartials: false })
-    const html = await staticLiquid.renderFile('/foo/bar/main.html')
+    const engine = withLayout({ root: '/' })
+    const html = await engine.renderFile('/foo/bar/main.html')
     return expect(html).toBe('blackA')
   })
 
   it('should support relative root', async function () {
     mock({
-      [process.cwd() + '/foo/parent.html']: '{{color}}{%block%}{%endblock%}',
-      [process.cwd() + '/foo/bar/main.html']: '{% layout parent.html color:"black"%}{%block%}A{%endblock%}'
+      [process.cwd() + '/foo/parent.html']: '{{color}}{{ content_for_layout }}',
+      [process.cwd() + '/foo/bar/main.html']: '{% layout "parent.html" color:"black"%}A'
     })
-    const staticLiquid = new Liquid({ root: './foo', dynamicPartials: false })
-    const html = await staticLiquid.renderFile('bar/main.html')
+    const engine = withLayout({ root: './foo' })
+    const html = await engine.renderFile('bar/main.html')
     return expect(html).toBe('blackA')
   })
 
-  describe('static partial', function () {
-    it('should support filename with extension', async function () {
-      mock({
-        '/parent.html': '{{color}}{%block%}{%endblock%}',
-        '/main.html': '{% layout parent.html color:"black"%}{%block%}A{%endblock%}'
-      })
-      const staticLiquid = new Liquid({ root: '/', dynamicPartials: false })
-      const html = await staticLiquid.renderFile('/main.html')
-      return expect(html).toBe('blackA')
+  it('should support subpaths', async function () {
+    mock({
+      '/foo/parent.html': '{{color}}{{ content_for_layout }}',
+      '/main.html': '{% layout "foo/parent.html" color:"black"%}A'
     })
-
-    it('should support parent paths', async function () {
-      mock({
-        '/foo/parent.html': '{{color}}{%block%}{%endblock%}',
-        '/main.html': '{% layout bar/../foo/parent.html color:"black"%}{%block%}A{%endblock%}'
-      })
-      const staticLiquid = new Liquid({ root: '/', dynamicPartials: false })
-      const html = await staticLiquid.renderFile('/main.html')
-      return expect(html).toBe('blackA')
-    })
-
-    it('should support none', async function () {
-      mock({
-        '/main.html': '{% layout none %}foo'
-      })
-      const staticLiquid = new Liquid({ root: '/', dynamicPartials: false })
-      const html = await staticLiquid.renderFile('/main.html')
-      return expect(html).toBe('foo')
-    })
-
-    it('should support subpaths', async function () {
-      mock({
-        '/foo/parent.html': '{{color}}{%block%}{%endblock%}',
-        '/main.html': '{% layout foo/parent.html color:"black"%}{%block%}A{%endblock%}'
-      })
-      const staticLiquid = new Liquid({ root: '/', dynamicPartials: false })
-      const html = await staticLiquid.renderFile('/main.html')
-      return expect(html).toBe('blackA')
-    })
+    const engine = withLayout({ root: '/' })
+    const html = await engine.renderFile('/main.html')
+    return expect(html).toBe('blackA')
   })
+
   it('should support sync', async function () {
     mock({
-      '/grand.html': 'X{%block a%}G{%endblock%}Y',
-      '/parent.html': '{%layout "grand" %}{%block a%}P{%endblock%}',
-      '/main.html': '{%layout "parent"%}{%block a%}A{%endblock%}'
+      '/grand.html': 'X{{ content_for_layout }}Y',
+      '/parent.html': '{%layout "grand" %}P{{ content_for_layout }}',
+      '/main.html': '{%layout "parent"%}A'
     })
     const html = await liquid.renderFile('/main.html')
-    return expect(html).toBe('XAY')
+    return expect(html).toBe('XPAY')
   })
 })

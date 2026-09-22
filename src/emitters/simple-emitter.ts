@@ -1,4 +1,4 @@
-import { stringify, Limiter, Operation } from '../util'
+import { stringifyOutput, Limiter, Operation } from '../util'
 import { Emitter } from './emitter'
 
 export class SimpleEmitter implements Emitter {
@@ -14,7 +14,7 @@ export class SimpleEmitter implements Emitter {
 
   public write(html: any) {
     this.owner?.check()
-    const str = stringify(html)
+    const str = stringifyOutput(html)
     this.outputLengthLimit?.use(str.length)
     this.buffer += str
   }

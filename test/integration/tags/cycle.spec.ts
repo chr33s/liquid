@@ -3,8 +3,8 @@ describe('tags/cycle', function () {
   const liquid = new Liquid()
   it('should render falsy cycle values', async function () {
     const src = '{% for i in (1..4) %}[{% cycle true, false, nil, 0 %}]{% endfor %}'
-    expect(await liquid.parseAndRender(src)).toBe('[true][false][][0]')
-    expect(await liquid.parseAndRender(src)).toBe('[true][false][][0]')
+    expect(await liquid.parseAndRender(src)).toBe('[true][false][0][true]')
+    expect(await liquid.parseAndRender(src)).toBe('[true][false][0][true]')
   })
   it('should support cycle', async function () {
     const src = "{% cycle '1', '2', '3' %}"
@@ -12,7 +12,9 @@ describe('tags/cycle', function () {
     return expect(html).toBe('1231')
   })
   it('should throw when cycle candidates empty', function () {
-    return expect(liquid.parseAndRender('{%cycle%}')).rejects.toThrow('empty candidates: "{%cycle%}", line:1, col:8')
+    return expect(new Liquid({ errorMode: 'warn' }).parseAndRender('{%cycle%}')).rejects.toThrow(
+      'empty candidates: "{%cycle%}", line:1, col:8'
+    )
   })
   it('should support cycle in for block', async function () {
     const src = '{% for i in (1..5) %}{% cycle one, "e"%}{% endfor %}'

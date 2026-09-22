@@ -1,9 +1,9 @@
 import { Liquid } from '../../../src/liquid'
 describe('tags/case', function () {
   const liquid = new Liquid()
-  it('should reject if not closed', function () {
+  it('should reject if not closed', async function () {
     const src = '{% case "foo"%}'
-    return expect(liquid.parseAndRender(src)).rejects.toThrow(/{% case "foo"%} not closed/)
+    return expect(liquid.parseAndRender(src)).rejects.toThrow("'case' tag was never closed")
   })
   it('should hit the specified case', async function () {
     const src = '{% case "foo"%}' + '{% when "foo" %}foo{% when "bar"%}bar' + '{%endcase%}'
@@ -67,38 +67,38 @@ describe('tags/case', function () {
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('and or or')
   })
-  it('should not render anything after an else branch', async function () {
+  it('should render every else branch no when before it matched, as the reference', async function () {
     const html = await liquid.parseAndRender(
       '{% assign value = "this" %}' +
         '{% case true %}' +
         "{% when false %}don't show" +
         '{% else %}show {{ value }}' +
-        "{% else %}don't show" +
+        '{% else %}and this' +
         '{% endcase %}',
       {}
     )
-    expect(html).toEqual('show this')
+    expect(html).toEqual('show thisand this')
   })
-  it('should not render anything after an else branch even when first else branch is empty', async function () {
+  it('should render a later else branch when the first else branch is empty', async function () {
     const html = await liquid.parseAndRender(
-      '{% case true %}' + "{% when false %}don't show" + '{% else %}' + "{% else %}don't show" + '{% endcase %}',
+      '{% case true %}' + "{% when false %}don't show" + '{% else %}' + '{% else %}show' + '{% endcase %}',
       {}
     )
-    expect(html).toEqual('')
+    expect(html).toEqual('show')
   })
-  it("should not render anything after an else branch even when there are 'when' conditions", async () => {
+  it("should keep evaluating 'when' conditions after an else branch", async () => {
     const engine = new Liquid()
     const result = await engine.parseAndRender(
       '{% assign value = "this" %}' +
         '{% case true -%}' +
         "{% when false -%}don't show" +
         '{% else %}show {{ value }}' +
-        "{% else %}don't show" +
-        "{%- when true -%}don't show" +
+        '{% else %}, too' +
+        '{%- when true -%}, and this' +
         '{%- endcase %}',
       {}
     )
-    expect(result).toEqual('show this')
+    expect(result).toEqual('show this, too, and this')
   })
   it('should apply value equal for arrays', async () => {
     const engine = new Liquid()

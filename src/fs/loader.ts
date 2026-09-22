@@ -63,6 +63,7 @@ export class Loader {
   ): Generator<unknown, { filepath: string; source: string }, any> {
     const dirs = this.options[type]
     const fs = this.options.fs
+    let missing: unknown
     for (const filepath of this.candidates(file, dirs, currentFile)) {
       try {
         if (!(yield this.allowed(filepath, dirs, options))) continue
@@ -76,9 +77,10 @@ export class Loader {
       } catch (error) {
         options.signal?.throwIfAborted()
         if (!isMissing(error)) throw error
+        missing = error
       }
     }
-    throw this.lookupError(file, dirs)
+    throw missing ?? this.lookupError(file, dirs)
   }
 
   public *candidates(file: string, dirs: string[], currentFile?: string) {

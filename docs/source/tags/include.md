@@ -33,6 +33,8 @@ Variables defined in the parent's scope can be passed to the partial template by
 {% include 'name', my_variable: my_variable, my_other_variable: 'oranges' %}
 ```
 
+Parameters are evaluated in order, and a later one sees the earlier ones: in `{% include 'name' a: 1, b: a %}`, `b` is `1`. The parameters of [render](./render.md) stay independent of each other.
+
 ## The `with` Parameter
 
 A single object can be passed to a snippet by using the `with...as` syntax:
@@ -44,67 +46,31 @@ A single object can be passed to a snippet by using the `with...as` syntax:
 
 In the example above, the `product` variable in the partial template will hold the value of `featured_product` in the parent template.
 
+Without `with` or `for`, `include` binds the variable named like the template. If that variable is an array, the partial renders once per element:
+
+```liquid
+// item.liquid
+[{{ item }}]
+
+// with item = [1, 2, 3]
+{% include 'item' %}
+
+// result
+[1][2][3]
+```
+
+A name that evaluates to something other than a string raises `Argument error in tag 'include' - Illegal template name`.
+
+`include` is not allowed inside a partial rendered by [render](./render.md): it raises `include usage is not allowed in this context`.
+
 ## Outputs & Filters
 
 When filename is specified as literal string, it supports Liquid output and filter syntax. Useful when concatenating strings for a complex filename.
 
 ```liquid
-{% include "prefix/{{name | append: \".html\"}}" %}
+{% include "prefix/{{name | append: '.html'}}" %}
 ```
 
-> **Escaping**
+> **Quotes**
 >
-> In LiquidJS, `"` within quoted string literals need to be escaped by adding a slash before the quote, e.g. `\"`. Using Jekyll-like filenames can make this easier, see below.
-
-## Jekyll-like filenames
-
-Setting [dynamicPartials][dynamicPartials] to `false` will enable Jekyll-like filenames, where file names are specified as literal string without surrounding quotes. Liquid outputs and filters are also supported within that, for example:
-
-```liquid
-{% include prefix/{{ page.my_variable }}/suffix %}
-```
-
-This way, you don't need to escape `"` in the filename expression.
-
-```liquid
-{% include prefix/{{name | append: ".html"}} %}
-```
-
-## Jekyll `include`
-
-Since v9.33.0.
-
-[jekyllInclude][jekyllInclude] is used to enable Jekyll-like `include` syntax. Defaults to `false`, when set to `true`:
-
-- Filename will be static: `dynamicPartials` now defaults to `false` (instead of `true`). And you can set `dynamicPartials` back to `true`.
-- Use `=` instead of `:` to separate parameter key-values.
-- Parameters are under `include` variable instead of current scope.
-
-For example, the following template:
-
-```liquid
-{% include article.html header="HEADER" content="CONTENT" %}
-```
-
-`article.html` with the following content:
-
-```liquid
-<article>
-  <header>{{include.header}}</header>
-  {{include.content}}
-</article>
-```
-
-Note that we're referencing the first parameter by `include.header` instead of `header`. It will output the following:
-
-```html
-<article>
-  <header>HEADER</header>
-  CONTENT
-</article>
-```
-
-[extname]: /api/interfaces/LiquidOptions.html#extname
-[root]: /api/interfaces/LiquidOptions.html#root
-[dynamicPartials]: /api/interfaces/LiquidOptions.html#dynamicPartials
-[jekyllInclude]: /api/interfaces/LiquidOptions.html#jekyllInclude
+> String literals have no escape sequences, so a `\"` cannot appear inside a `"`-quoted name. Quote the inner string with the other kind of quote, as above.

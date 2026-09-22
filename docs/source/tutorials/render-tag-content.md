@@ -50,7 +50,7 @@ engine.registerTag('wrap', class WrapTag extends Tag {
       let tpl = liquid.parser.parseToken(token, remainTokens)
       this.tpls.push(tpl)
     }
-    if (!closed) throw new Error(`tag ${tagToken.getText()} not closed`)
+    if (!closed) throw new Error(`'${tagToken.name}' tag was never closed`)
   }
   * render(context, emitter) {
     yield emitter.write("<div class='wrapper'>")
@@ -74,7 +74,7 @@ constructor(tagToken, remainTokens, liquid) {
     .on('template', tpl => this.tpls.push(tpl))
     // note that we cannot use arrow function because we need `this`
     .on('tag:endwrap', function () { this.stop() })
-    .on('end', () => { throw new Error(`tag ${tagToken.getText()} not closed`) })
+    .on('end', () => { throw new Error(`'${tagToken.name}' tag was never closed`) })
     .start()
 }
 ```
@@ -116,7 +116,7 @@ engine.registerTag('repeat', class RepeatTag extends Tag {
     liquid.parser.parseStream(remainTokens)
       .on('template', tpl => this.tpls.push(tpl))
       .on('tag:endrepeat', function () { this.stop() })
-      .on('end', () => { throw new Error(`tag ${tagToken.getText()} not closed`) })
+      .on('end', () => { throw new Error(`'${tagToken.name}' tag was never closed`) })
       .start()
   }
   * render(context, emitter) {

@@ -12,61 +12,87 @@ import {
   TagToken,
   Context
 } from '..'
-import { BlockMode, Scope } from '../context'
+import { Scope } from '../context'
 import { Parser } from '../parser'
 import { Argument, Arguments, PartialScope } from '../template'
-import { isString, isValueToken } from '../util'
-import { parseFilePath, renderFilePath, ParsedFileName } from './render'
+import { isArray, isString, isValueToken } from '../util'
+import { basename, bindingOf, parseFilePath, renderFilePath, ParsedFileName, toFilePath } from './render'
+import type { ParsedMarkup } from '../parser/strict2'
 
 export default class extends Tag {
   private file: ParsedFileName
   private currentFile?: string
   private withVar?: ValueToken
+  private alias?: string
   private hash: Hash
   constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(token, remainTokens, liquid)
     const { tokenizer } = token
-    this.file = parseFilePath(tokenizer, this.liquid, parser)
     this.currentFile = token.file
+    const parsed = token.parsed as ParsedMarkup<'include'> | undefined
+    if (parsed) {
+      this.file = toFilePath(parsed.file, parser)
+      this.withVar = bindingOf(parsed.binding?.value)
+      this.alias = parsed.alias?.content
+      this.hash = new Hash(parsed.hash)
+      return
+    }
+    this.file = parseFilePath(tokenizer, this.liquid, parser)
 
     const begin = tokenizer.p
-    const withStr = tokenizer.readIdentifier()
-    if (withStr.content === 'with') {
+    const keyword = tokenizer.readIdentifier()
+    if (keyword.content === 'with' || keyword.content === 'for') {
       tokenizer.skipBlank()
       if (tokenizer.peek() !== ':') {
-        this.withVar = tokenizer.readValue()
+        this.withVar = bindingOf(tokenizer.readValue())
+        const beforeAs = tokenizer.p
+        const asStr = tokenizer.readIdentifier()
+        if (asStr.content === 'as') this.alias = tokenizer.readIdentifier().content
+        else tokenizer.p = beforeAs
       } else tokenizer.p = begin
     } else tokenizer.p = begin
 
-    this.hash = new Hash(tokenizer, liquid.options.jekyllInclude || liquid.options.keyValueSeparator)
+    this.hash = new Hash(tokenizer, liquid.options.keyValueSeparator)
   }
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
+    assert(
+      !(ctx.getRegister<string[]>('disabledTags', []) as string[]).includes('include'),
+      'include usage is not allowed in this context'
+    )
+    const { liquid, hash, withVar } = this
+    const { renderer } = liquid
+    const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
+    assert(isString(filepath), "Argument error in tag 'include' - Illegal template name")
     ctx.depthLimit.use(1)
-    try {
-      const { liquid, hash, withVar } = this
-      const { renderer } = liquid
-      const filepath = (yield renderFilePath(this.file, ctx, liquid)) as string
-      assert(filepath, () => `illegal file path "${filepath}"`)
 
-      const saved = ctx.saveRegister('blocks', 'blockMode')
-      ctx.setRegister('blocks', {})
-      ctx.setRegister('blockMode', BlockMode.OUTPUT)
+    try {
+      const templates = (yield liquid._parsePartialFile(
+        filepath,
+
+        this.currentFile,
+        ctx.operationOptions
+      )) as Template[]
+      const bound = this.alias ?? basename(filepath)
+      // without `with`/`for`, the variable named like the template is bound
+      const value = withVar ? yield evalToken(withVar, ctx) : yield ctx._get([filepath], false)
+      // the bindings belong to the scope this tag pushes, so that popping it
+      // takes them with it rather than leaving them in the root scope
+      const included: Scope = ctx.push({})
       try {
-        const scope = (yield hash.render(ctx)) as Scope
-        if (withVar) scope[filepath] = yield evalToken(withVar, ctx)
-        const templates = (yield liquid._parsePartialFile(
-          filepath,
-          this.currentFile,
-          ctx.operationOptions
-        )) as Template[]
-        ctx.push(ctx.opts.jekyllInclude ? { include: scope } : scope)
-        try {
+        for (const [key, token] of Object.entries(hash.hash)) {
+          included[key] = token === undefined ? true : yield evalToken(token, ctx)
+        }
+        if (isArray(value)) {
+          for (const item of value) {
+            included[bound] = item
+            yield renderer.renderTemplates(templates, ctx, emitter)
+          }
+        } else {
+          included[bound] = value
           yield renderer.renderTemplates(templates, ctx, emitter)
-        } finally {
-          ctx.pop()
         }
       } finally {
-        ctx.restoreRegister(saved)
+        ctx.pop()
       }
     } finally {
       ctx.depthLimit.release(1)
@@ -82,15 +108,9 @@ export default class extends Tag {
 
   public partialScope(): PartialScope | undefined {
     if (isString(this.file)) {
-      let names: Array<string | [string, Argument]>
-
-      if (this.liquid.options.jekyllInclude) {
-        names = ['include']
-      } else {
-        names = Object.keys(this.hash.hash)
-        if (this.withVar) {
-          names.push([this.file, this.withVar])
-        }
+      const names: Array<string | [string, Argument]> = Object.keys(this.hash.hash)
+      if (this.withVar) {
+        names.push([this.alias ?? basename(this.file), this.withVar])
       }
 
       return { name: this.file, isolated: false, scope: names }
