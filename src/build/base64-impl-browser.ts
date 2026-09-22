@@ -2,7 +2,12 @@ import { assertBase64 } from '../filters/base64-impl'
 import { fromBytes, toBytes } from '../util/bytes'
 
 export function base64Encode(str: string): string {
-  return btoa(String.fromCharCode(...toBytes(str)))
+  const bytes = toBytes(str)
+  let binary = ''
+  for (let offset = 0; offset < bytes.length; offset += 16_384) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 16_384))
+  }
+  return btoa(binary)
 }
 
 export function base64Decode(str: string): string {

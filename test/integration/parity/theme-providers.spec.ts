@@ -54,6 +54,95 @@ describe('parity: store, asset and form providers', function () {
 
   afterEach(restore)
 
+  it('awaits theme providers before rendering their results', async function () {
+    const engine = theme(
+      {},
+      {
+        assets: {
+          assetUrl: async path => `/assets/${path}`,
+          fileUrl: async path => `/files/${path}`,
+          shopifyAssetUrl: async path => `/shared/${path}`,
+          imageUrl: async (_image, options) => `/image-${options.width}`,
+          inlineAsset: async () => 'contents',
+          fontUrl: async () => '/font',
+          fontFace: async () => '@font-face{}',
+          fontModify: async () => 'modified'
+        },
+        appBlock: async () => '<aside>app</aside>',
+        store: {
+          formAction: async () => '/cart',
+          formInputs: async () => ({ form_type: 'cart' }),
+          platformMarkup: async name => `<${name} />`,
+          paginate: async () => ({ size: 2, slice: async () => ['one', 'two'] })
+        }
+      }
+    )
+    const cases = [
+      ['{{ "a" | asset_url }}', '/assets/a'],
+      ['{{ "a" | file_url }}', '/files/a'],
+      ['{{ "a" | global_asset_url }}', '/shared/a'],
+      ['{{ "a" | shopify_asset_url }}', '/shared/a'],
+      ['{{ "a" | image_url: width: 20 }}', '/image-20'],
+      ['{{ "a" | img_url: "small", width: 30 }}', '/image-30'],
+      ['{{ "a" | inline_asset_content }}', 'contents'],
+      ['{{ "a" | font_url }}', '/font'],
+      ['{{ "a" | font_face }}', '@font-face{}'],
+      ['{{ "a" | font_modify: "weight", "bold" }}', 'modified'],
+      ['{% render block %}', '<aside>app</aside>'],
+      ['{{ nil | payment_button }}', '<payment_button />'],
+      [
+        '{% form "cart" %}{% endform %}',
+        '<form method="post" action="/cart"><input type="hidden" name="form_type" value="cart" /></form>'
+      ],
+      ['{% paginate items by 2 %}{{ items | join: "," }}{% endpaginate %}', 'one,two']
+    ]
+    for (const [source, expected] of cases) {
+      expect(await engine.parseAndRender(source, { items: [], block: {} })).toBe(expected)
+    }
+  })
+
+  it.each(['asset_url', 'inline_asset_content', 'payment_button'])(
+    'reports an absent asynchronous %s result as a missing capability',
+    async filter => {
+      const engine = theme(
+        {},
+        {
+          assets: { assetUrl: async () => undefined, inlineAsset: async () => undefined },
+          store: { platformMarkup: async () => undefined }
+        }
+      )
+      await expect(engine.parseAndRender(`{{ "a" | ${filter} }}`)).rejects.toThrow(`unsupported capability "${filter}"`)
+    }
+  )
+
+  it('propagates provider rejections and cancels pending provider calls', async function () {
+    const controller = new AbortController()
+    let entered!: () => void
+    const ready = new Promise<void>(resolve => {
+      entered = resolve
+    })
+    const engine = theme(
+      {},
+      {
+        assets: {
+          fileUrl: async () => {
+            throw new Error('provider offline')
+          },
+          assetUrl: () => {
+            entered()
+            return new Promise<string>(() => {})
+          }
+        }
+      }
+    )
+    await expect(engine.parseAndRender('{{ "a" | file_url }}')).rejects.toThrow('provider offline')
+    const result = engine.parseAndRender('{{ "a" | asset_url }}', {}, { signal: controller.signal })
+    const rejected = expect(result).rejects.toBe('stop')
+    await ready
+    controller.abort('stop')
+    await rejected
+  })
+
   it('H21: each form type gets its action, method, hidden inputs and attributes', async function () {
     const engine = theme(
       { 'index.liquid': '{% form "cart", cart, class: "c", id: "f1" %}BODY{% endform %}' },

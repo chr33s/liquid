@@ -34,8 +34,8 @@ async function render() {
     .option('--root <path...>', 'directories from where to resolve partials and layouts (defaults to ".")')
     .option('--strict-filters', 'throw on undefined filters instead of skipping them')
     .option('--strict-variables', 'throw on undefined variables instead of rendering them as empty string')
-    .option('--tag-delimiter-left', 'left delimiter to use for liquid tags')
-    .option('--tag-delimiter-right', 'right delimiter to use for liquid tags')
+    .option('--tag-delimiter-left <string>', 'left delimiter to use for liquid tags')
+    .option('--tag-delimiter-right <string>', 'right delimiter to use for liquid tags')
     .option(
       '--timezone-offset <value>',
       'JavaScript timezone name or timezoneOffset value to use in date filter (defaults to local timezone)'

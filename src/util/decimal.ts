@@ -64,3 +64,15 @@ export function decimalModulo(a: number, b: number): number {
   const [x, y, scale] = align(toDecimal(a), toDecimal(b))
   return fromDecimal({ digits: x - y * floorDiv(x, y), scale })
 }
+
+export function decimalRound(value: number | bigint, precision: number): number | bigint {
+  const { digits, scale } = typeof value === 'bigint' ? { digits: value, scale: 0 } : toDecimal(value)
+  const shift = scale - precision
+  if (shift <= 0) return value
+  const magnitude = digits < 0n ? -digits : digits
+  if (shift > magnitude.toString().length) return precision > 0 && digits < 0n ? -0 : 0
+  const factor = 10n ** BigInt(shift)
+  const rounded = (magnitude / factor + ((magnitude % factor) * 2n >= factor ? 1n : 0n)) * (digits < 0n ? -1n : 1n)
+  if (precision <= 0) return rounded * 10n ** BigInt(-precision)
+  return rounded === 0n && digits < 0n ? -0 : fromDecimal({ digits: rounded, scale: precision })
+}

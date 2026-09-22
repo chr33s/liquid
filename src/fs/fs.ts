@@ -1,6 +1,7 @@
 import type { OperationOptions } from '../util/operation'
 
 export interface FileReadOptions extends OperationOptions {
+  tenant?: string
   sourceByteLimit?: number
   sourceCodeUnitLimit?: number
 }

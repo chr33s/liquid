@@ -24,6 +24,12 @@ describe('LiquidOptions#operators', function () {
     expect(second).toBe('False')
   })
 
+  it('should stop at the last complete operator when a longer operator does not match', async function () {
+    const engine = new Liquid({ operators: { ...defaultOperators, '>--': () => false } })
+    expect(await engine.parseAndRender('{{ 2 >-1 }}')).toBe('true')
+    expect(await engine.parseAndRender('{{ 2 >--1 }}')).toBe('false')
+  })
+
   it('should evaluate a custom operator with the correct precedence', async function () {
     const first = await engine.parseAndRender(
       '{% if "foo" isFooBar "bar" or "foo" == "bar" %}True{% else %}False{% endif %}'

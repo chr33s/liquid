@@ -5,6 +5,7 @@ import { escape } from '../filters/html'
 import { isHosted, type SectionDefinition, type SectionGroup, type ThemeBlock } from '../theme'
 import { ValueToken } from '../tokens'
 import Schema from './schema'
+import type { Arguments } from '../template'
 
 /**
  * `{% section 'name' %}` renders a section file with its own identity and
@@ -26,6 +27,10 @@ export default class extends Tag {
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     const type = stringify(toValue(yield evalToken(this.target, ctx)))
     yield* renderSection(this.liquid, ctx, emitter, { type, id: type }, this.currentFile)
+  }
+
+  public *arguments(): Arguments {
+    yield this.target
   }
 }
 

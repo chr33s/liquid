@@ -39,6 +39,16 @@ describe('utils/async', () => {
       const result = await toPromise(foo())
       expect(result).toBe('foo')
     })
+    it('should evaluate generators returned by asynchronous dependencies', async () => {
+      function* child() {
+        return 'child'
+      }
+      function* parent(): Generator<unknown, string, string> {
+        const value = yield Promise.resolve(child())
+        return `result:${value}`
+      }
+      expect(await toPromise(parent())).toBe('result:child')
+    })
     it('should reject Promise if dependency throws synchronously', async () => {
       function* foo(): Generator<Generator<never>> {
         return yield bar()

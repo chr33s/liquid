@@ -21,11 +21,16 @@ export function class_list(this: FilterImpl, v: unknown): string {
     .join(' ')
 }
 
-export function time_tag(this: FilterImpl, v: unknown, format: unknown, ...args: unknown[]): string {
+export function* time_tag(
+  this: FilterImpl,
+  v: unknown,
+  format: unknown,
+  ...args: unknown[]
+): Generator<unknown, string, unknown> {
   const options = keywords(args)
   const date = siblingFilter(this, 'date')
-  const text = stringify(date(v, format))
-  const datetime = stringify(date(v, String(options.get('datetime') ?? '%Y-%m-%dT%H:%M:%SZ')))
+  const text = stringify(yield date(v, format))
+  const datetime = stringify(yield date(v, String(options.get('datetime') ?? '%Y-%m-%dT%H:%M:%SZ')))
   return `<time datetime="${escape.call(this, datetime)}">${escape.call(this, text)}</time>`
 }
 
@@ -67,19 +72,27 @@ export function placeholder_svg_tag(this: FilterImpl, v: unknown, className?: un
   )}" viewBox="0 0 525.5 525.5"><title>${escape.call(this, name)}</title></svg>`
 }
 
-export function inline_asset_content(this: FilterImpl, v: unknown): string {
+export function* inline_asset_content(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
   const assets = requireProvider(
     this.context.theme.assets?.inlineAsset,
     'inline_asset_content',
     'no asset provider supplies theme asset contents',
     this.context.capabilities
   )
-  return stringify(assets.call(this.context.theme.assets, stringify(v)))
+  const content = yield assets.call(this.context.theme.assets, stringify(v))
+  return stringify(
+    requireProvider(
+      content,
+      'inline_asset_content',
+      'the asset provider returned no content',
+      this.context.capabilities
+    )
+  )
 }
 
-export function structured_data(this: FilterImpl, v: unknown): string {
+export function* structured_data(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
   const json = siblingFilter(this, 'json')
-  return `<script type="application/ld+json">${escapeScriptBody(stringify(json(toValue(v))))}</script>`
+  return `<script type="application/ld+json">${escapeScriptBody(stringify(yield json(toValue(v))))}</script>`
 }
 
 /**

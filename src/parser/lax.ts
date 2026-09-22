@@ -130,7 +130,7 @@ const CHECKS: Record<string, (tokenizer: Tokenizer, keyValueSeparator: string, c
       tokenizer.advance()
       tokenizer.skipBlank()
       if (tokenizer.end()) throw new Error('no values')
-    }
+    } else if (!tokenizer.end() && tokenizer.read() !== ',') throw new Error(',')
     while (!tokenizer.end()) {
       tokenizer.readValueOrThrow()
       tokenizer.skipBlank()

@@ -49,6 +49,7 @@ export class Context {
   public operation: Operation
   /** @internal */
   public operationActive = false
+  private lookupLifetime?: { owner: Operation; previous: Operation; pending: number }
   private readonly lookupSignal?: AbortSignal
   public get signal() {
     return this.operation.signal
@@ -180,19 +181,29 @@ export class Context {
     return this.lookup(this._get(paths))
   }
   private async lookup(value: IterableIterator<unknown>): Promise<unknown> {
-    if (this.operationActive) return drive(value, this.operation)
-    const previous = this.operation
-    const owner = new Operation(this.lookupSignal)
-    this.operation = owner
+    if (this.operationActive && !this.lookupLifetime) return this.operation.join(drive(value, this.operation))
+    const lifetime = (this.lookupLifetime ??= {
+      owner: new Operation(this.lookupSignal),
+      previous: this.operation,
+      pending: 0
+    })
+    this.operation = lifetime.owner
     this.operationActive = true
+    lifetime.pending++
     try {
-      const result = await drive(value, owner)
-      owner.check()
+      const result = await drive(value, lifetime.owner)
+      lifetime.owner.check()
       return result
     } finally {
-      owner.finish()
-      this.operation = previous
-      this.operationActive = false
+      if (--lifetime.pending === 0) {
+        await lifetime.owner.drain()
+        if (lifetime.pending === 0) {
+          lifetime.owner.finish()
+          this.operation = lifetime.previous
+          this.operationActive = false
+          this.lookupLifetime = undefined
+        }
+      }
     }
   }
   public *_get(

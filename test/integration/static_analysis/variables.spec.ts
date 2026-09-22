@@ -3,6 +3,16 @@ import { Liquid, Variable, analyze } from '../../../src'
 describe('Variable analysis', () => {
   const engine = new Liquid()
 
+  it.each([
+    ['{% form form_type, product, id: form_id %}{{ body }}{% endform %}', ['form_type', 'product', 'form_id', 'body']],
+    ['{% section target %}', ['target']],
+    ['{% sections group_name %}', ['group_name']],
+    ['{% content_for target, type: block_type, id: block_id %}', ['target', 'block_type', 'block_id']]
+  ])('reports hosted tag arguments in %s', async (source, expected) => {
+    const hosted = new Liquid({ profile: 'shopify_theme' })
+    expect(await hosted.globalVariables(source as string, { partials: false })).toEqual(expected)
+  })
+
   it('should report variables in output statements', async () => {
     const template = engine.parse('{{ a }}')
     const analysis = await analyze(template)
@@ -292,6 +302,40 @@ describe('Variable analysis', () => {
       globals: { b: [b] },
       locals: { a: [a] }
     })
+  })
+
+  it('should analyze the capture body before assigning the captured variable', async () => {
+    const analysis = await engine.parseAndAnalyze('{% capture a %}{{ a }}{% endcapture %}{{ a }}')
+    expect(analysis.globals.a).toHaveLength(1)
+    expect(analysis.globals.a[0].location.col).toBe(19)
+    expect(analysis.variables.a).toHaveLength(2)
+  })
+
+  it('should report dependencies of property access on literal and range values', async () => {
+    expect(await engine.globalVariables('{{ (low..high).size }}{{ "text"[index] }}{{ "text".size }}')).toEqual([
+      'low',
+      'high',
+      'index'
+    ])
+  })
+
+  it('should preserve include bindings when assigning a shadowed local', async () => {
+    const engine = new Liquid({ templates: { a: '{% assign a = 0 %}{{ a.value }}' } })
+    expect(await engine.globalFullVariables('{% include "a" with obj %}')).toEqual(['obj', 'obj.value'])
+  })
+
+  it('should follow aliases through nested renders', async () => {
+    const engine = new Liquid({
+      templates: { a: '{% render "b" with person as member %}', b: '{{ member.name }}' }
+    })
+    expect(await engine.globalFullVariables('{% render "a" with user as person %}')).toEqual(['user', 'user.name'])
+  })
+
+  it('should not report a rendered partial local passed into another partial as global', async () => {
+    const engine = new Liquid({
+      templates: { a: '{% assign local = 1 %}{% render "b" with local as value %}', b: '{{ value }}' }
+    })
+    expect(await engine.globalVariables('{% render "a" %}')).toEqual([])
   })
 
   it('should report variables from case tags', async () => {
@@ -650,6 +694,14 @@ describe('Variable analysis', () => {
     })
   })
 
+  it.each(['include', 'render', 'layout'])('should stop recursion at the first %s tag', async tag => {
+    const engine = new Liquid({ profile: 'shopify_theme', templates: { a: `{% ${tag} "a" %}{{ x }}` } })
+    const analysis = await engine.parseAndAnalyze(`{% ${tag} "a" %}`, undefined, {
+      signal: AbortSignal.timeout(1000)
+    })
+    expect(Object.keys(analysis.globals)).toEqual(['x'])
+  })
+
   it('should report variables from included templates with a bound variable', async () => {
     const engine = new Liquid({ templates: { a: '{{ x | append: y }}{{ a.foo }}' } })
     const template = engine.parse('{% include "a" with z %}') // z is aliased as a
@@ -707,7 +759,20 @@ describe('Variable analysis', () => {
     })
   })
 
-  it('should throw an error if a rendered template does not exist', async () => {
+  it.each(['include', 'layout'])('should report dynamic %s filenames', async tag => {
+    const engine = new Liquid({ profile: 'shopify_theme' })
+    expect(await engine.globalVariables(`{% ${tag} filename %}`, { partials: false })).toEqual(['filename'])
+    expect(await engine.globalVariables(`{% ${tag} "prefix/{{ filename }}" %}`, { partials: false })).toEqual([
+      'filename'
+    ])
+  })
+
+  it('should recognize the loop scope inside rendered templates', async () => {
+    const engine = new Liquid({ templates: { item: '{{ item }}{{ forloop.index }}' } })
+    expect(await engine.globalVariables('{% render "item" for items %}')).toEqual(['items'])
+  })
+
+  it('should throw an error if a rendered template does not exist', () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% render "b" %}')
 
@@ -753,6 +818,26 @@ describe('Variable analysis', () => {
       globals: { x },
       locals: {}
     })
+  })
+
+  it('should distinguish relative partials referenced from different directories', async () => {
+    const engine = new Liquid({
+      templates: {
+        'a/page': '{% render "./part" %}',
+        'a/part': '{{ first }}',
+        'b/page': '{% render "./part" %}',
+        'b/part': '{{ second }}'
+      }
+    })
+    expect(await engine.globalVariables('{% render "a/page" %}{% render "b/page" %}')).toEqual(['first', 'second'])
+  })
+
+  it('should let inner partial bindings shadow outer locals during analysis', async () => {
+    const engine = new Liquid({ templates: { a: '{{ a.value }}' } })
+    expect(await engine.globalFullVariables('{% assign a = 0 %}{% include "a" with obj %}')).toEqual([
+      'obj',
+      'obj.value'
+    ])
   })
 
   it('should handle templates that are rendered recursively', async () => {
@@ -946,12 +1031,12 @@ describe('Variable analysis', () => {
     const analysis = await analyze(template)
 
     const a = [new Variable(['a'], { row: 1, col: 20, file: 'a' })]
-    // const b = [new Variable(['b'], { row: 1, col: 31, file: 'b' })]
+    const b = [new Variable(['b'], { row: 1, col: 20, file: 'b' })]
     const c = [new Variable(['c'], { row: 1, col: 20, file: undefined })]
 
     expect(analysis).toStrictEqual({
-      variables: { a, c },
-      globals: { a, c },
+      variables: { a, b, c },
+      globals: { a, b, c },
       locals: {}
     })
   })

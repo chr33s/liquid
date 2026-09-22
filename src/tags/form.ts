@@ -1,6 +1,7 @@
 import { Liquid, Tag, Emitter, Hash, TagToken, TopLevelToken, Context, Template, ParseStream, evalToken } from '..'
 import { Parser } from '../parser'
-import { assert, isNil, stringify, toValue } from '../util'
+import { assert, isNil, isValueToken, stringify, toValue } from '../util'
+import type { Arguments } from '../template'
 import { escape } from '../filters/html'
 import { isHosted, requireProvider } from '../theme'
 import { ValueToken } from '../tokens'
@@ -72,13 +73,13 @@ export default class extends Tag {
     const store = requireProvider(ctx.theme.store, 'form', 'no store provider supplies form actions', ctx.capabilities)
     const action = stringify(
       requireProvider(
-        store.formAction?.(type, subject),
+        yield store.formAction?.(type, subject),
         'form.action',
         `the store provider has no action for form type "${type}"`,
         ctx.capabilities
       )
     )
-    const inputs = store.formInputs?.(type, subject) ?? {}
+    const inputs = ((yield store.formInputs?.(type, subject)) ?? {}) as Record<string, string>
     // every documented storefront form posts; the action distinguishes them
     const method = 'post'
 
@@ -111,6 +112,12 @@ export default class extends Tag {
 
   public *children(): Generator<unknown, Template[]> {
     return this.templates
+  }
+
+  public *arguments(): Arguments {
+    yield this.type
+    if (this.subject) yield this.subject
+    yield* Object.values(this.hash.hash).filter(isValueToken)
   }
 
   public blockScope(): Iterable<string> {

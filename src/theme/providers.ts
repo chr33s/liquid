@@ -23,16 +23,16 @@ export interface PaginatedSource<T = unknown> {
 
 export interface AssetProvider {
   /** CDN url for a theme asset, given its file name, e.g. `theme.css`. */
-  assetUrl?(path: string): string | undefined
+  assetUrl?(path: string): string | undefined | Promise<string | undefined>
   /** CDN url for a file uploaded to the shop. */
-  fileUrl?(path: string): string | undefined
+  fileUrl?(path: string): string | undefined | Promise<string | undefined>
   /** Url for a Shopify-hosted shared asset. */
-  shopifyAssetUrl?(path: string): string | undefined
+  shopifyAssetUrl?(path: string): string | undefined | Promise<string | undefined>
   /** Contents of a theme asset, for `inline_asset_content`. */
-  inlineAsset?(path: string): string | undefined
-  imageUrl?(image: unknown, options: Record<string, unknown>): string | undefined
-  fontUrl?(font: unknown, format?: string): string | undefined
-  fontFace?(font: unknown, options: Record<string, unknown>): string | undefined
+  inlineAsset?(path: string): string | undefined | Promise<string | undefined>
+  imageUrl?(image: unknown, options: Record<string, unknown>): string | undefined | Promise<string | undefined>
+  fontUrl?(font: unknown, format?: string): string | undefined | Promise<string | undefined>
+  fontFace?(font: unknown, options: Record<string, unknown>): string | undefined | Promise<string | undefined>
   fontModify?(font: unknown, property: string, value: unknown): unknown
 }
 
@@ -51,13 +51,16 @@ export interface StoreProvider {
   /** Objects reachable from every template, e.g. `shop`, `cart`, `customer`. */
   globals?: Record<string, unknown>
   /** Resolve a collection for `{% paginate %}` without loading all of it. */
-  paginate?(source: unknown): PaginatedSource | undefined
+  paginate?(source: unknown): PaginatedSource | undefined | Promise<PaginatedSource | undefined>
   /** Url a form of the given type posts to. */
-  formAction?(type: string, subject?: unknown): string | undefined
+  formAction?(type: string, subject?: unknown): string | undefined | Promise<string | undefined>
   /** Hidden inputs a form of the given type must carry. */
-  formInputs?(type: string, subject?: unknown): Record<string, string> | undefined
+  formInputs?(
+    type: string,
+    subject?: unknown
+  ): Record<string, string> | undefined | Promise<Record<string, string> | undefined>
   /** Markup the platform owns, e.g. `payment_button`. */
-  platformMarkup?(name: string, args: unknown[]): string | undefined
+  platformMarkup?(name: string, args: unknown[]): string | undefined | Promise<string | undefined>
 }
 
 export interface SectionDefinition {
@@ -98,7 +101,7 @@ export interface ThemeProviders {
   /** Blocks rendered by `{% content_for "blocks" %}`, in order. */
   blocks?: ThemeBlock[]
   /** The markup of an app block, rendered by `{% render block %}`. */
-  appBlock?(block: unknown): string
+  appBlock?(block: unknown): string | Promise<string>
   /** Identity of the tenant a cached render belongs to. */
   tenant?: string
 }

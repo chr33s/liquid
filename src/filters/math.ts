@@ -1,6 +1,13 @@
 import { assert, toNumber, toValue } from '../util'
 import { isDecimal, ofKind } from '../drop/float-drop'
-import { decimalAdd, decimalDivide, decimalModulo, decimalMultiply, decimalSubtract } from '../util/decimal'
+import {
+  decimalAdd,
+  decimalDivide,
+  decimalModulo,
+  decimalMultiply,
+  decimalRound,
+  decimalSubtract
+} from '../util/decimal'
 
 export function ceil(v: unknown) {
   return isBig(v) ? toValue(v) : Math.ceil(integral(toNumber(v)))
@@ -93,11 +100,11 @@ export function modulo(v: unknown, arg: unknown) {
 }
 
 export function round(v: unknown, arg: unknown = 0) {
-  const digits = toNumber(arg)
-  if (digits === 0) integral(toNumber(v))
-  const amp = Math.pow(10, digits)
-  const scaled = toNumber(v) * amp * (1 + Number.EPSILON)
-  return ofKind(Math.round(scaled) / amp, digits !== 0 && isDecimal(v))
+  const digits = Math.trunc(integral(toNumber(arg)))
+  const value = isBig(v) ? (toValue(v) as bigint) : toNumber(v)
+  if (typeof value === 'number' && !Number.isFinite(value)) return digits > 0 ? value : integral(value)
+  const result = decimalRound(value, digits)
+  return typeof result === 'bigint' ? fromBig(result) : ofKind(result, digits > 0 && isDecimal(v))
 }
 
 /**

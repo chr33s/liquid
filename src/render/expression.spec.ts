@@ -230,6 +230,17 @@ describe('Expression', function () {
   describe('range', function () {
     const ctx = new Context({ two: 2, num: { one: 1, two: 2 } })
     const items = async (src: string) => toArray(await toPromise(create(src).evaluate(ctx, false)))
+    it.each([
+      [9007199254740992, 9007199254740994],
+      [-9007199254740994, -9007199254740992],
+      [-Infinity, 0],
+      [0, Infinity]
+    ])('should reject unsafe range bounds %s..%s', async (low, high) => {
+      await expect(toPromise(create('(low..high)').evaluate(new Context({ low, high })))).rejects.toThrow('invalid')
+    })
+    it('should allow the safe integer boundary', async () => {
+      expect(await items('(9007199254740990..9007199254740991)')).toEqual([9007199254740990, 9007199254740991])
+    })
     it('should eval range expression', async function () {
       expect(await items('(2..4)')).toEqual([2, 3, 4])
       expect(await items('(two..4)')).toEqual([2, 3, 4])

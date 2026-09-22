@@ -283,7 +283,9 @@ export function normalize(options: LiquidOptions): NormalizedFullOptions {
   if (options.templates) {
     options.fs = new MapFS(options.templates)
     options.relativeReference = true
-    options.root = options.partials = options.layouts = '.'
+    options.root = ['.']
+    options.partials = ['.']
+    options.layouts = ['.']
   }
   assert(
     isFunction(options.fs?.readFile) && isFunction(options.fs?.exists) && isFunction(options.fs?.resolve),
@@ -301,7 +303,7 @@ function getOutputEscapeFunction(nameOrFunction: OutputEscapeOption): OutputEsca
 
 export function normalizeDirectoryList(value: any): string[] {
   let list: string[] = []
-  if (isArray(value)) list = value
+  if (isArray(value)) list = [...value]
   if (isString(value)) list = [value]
   return list
 }

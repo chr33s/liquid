@@ -67,6 +67,18 @@ describe('filters/math', function () {
   })
 
   describe('round', function () {
+    it.each([
+      ['4503599627370495', '0', '4503599627370495'],
+      ['9007199254740993', '2', '9007199254740993'],
+      ['99999999999999999999', '-1', '100000000000000000000'],
+      ['12.5', '-1', '10'],
+      ['1.5', '1000', '1.5'],
+      ['1.5', '-1000', '0'],
+      ['1.55', '1.9', '1.6'],
+      ['-0.001', '2', '-0.0']
+    ])('rounds %s at precision %s without losing integer or decimal digits', (input, precision, expected) =>
+      test(`{{ ${input} | round: ${precision} }}`, expected)
+    )
     it('should return "1" for 1.2', () => test('{{1.2|round}}', '1'))
     it('should return "3" for 2.7', () => test('{{2.7|round}}', '3'))
     it('should return "-3" for -2.5 (away from zero)', () => test('{{num|round}}', { num: -2.5 }, '-3'))

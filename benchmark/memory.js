@@ -1,7 +1,7 @@
 const { join } = require('path')
 const { readFileSync } = require('fs')
 const { getHeapStatistics } = require('v8')
-const { Liquid } = require('..')
+const { Liquid } = require('../dist/liquid.node.cjs')
 
 const engineOptions = {
   root: __dirname,

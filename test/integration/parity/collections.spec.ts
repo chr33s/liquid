@@ -22,6 +22,24 @@ describe('parity: collection semantics and built-in signatures', function () {
     expect(await render('{{ arr | where: "a.b", 2 | map: "a.b" | join }}', { arr })).toBe('2')
   })
 
+  it.each(['first', 'last'])('returns nil when %s has no element', async function (filter) {
+    for (const value of [null, false, 1, [], {}]) {
+      expect(await render(`{% assign item = value | ${filter} %}{% if item == nil %}nil{% endif %}`, { value })).toBe(
+        'nil'
+      )
+    }
+  })
+
+  it('compares bigint and number values without losing integer precision', async function () {
+    const scope = { n: 2n, values: [{ id: 2n }, { id: 2 }] }
+    expect(await render('{% if n == 2 %}yes{% endif %}{% if 2 == n %}yes{% endif %}', scope)).toBe('yesyes')
+    expect(await render('{{ values | where: "id", 2 | size }}', scope)).toBe('2')
+    expect(await render('{{ values | uniq: "id" | size }}', scope)).toBe('1')
+    expect(await render('{% if 9007199254740992 == 9007199254740992.0 %}yes{% endif %}')).toBe('yes')
+    expect(await render('{% if 9007199254740993 == 9007199254740992.0 %}yes{% endif %}')).toBe('')
+    expect(await render('{% if n == "2" or n == 2.5 %}yes{% endif %}', scope)).toBe('')
+  })
+
   it('F05: uniq is property aware', async function () {
     const arr = [
       { id: 1, n: 'a' },

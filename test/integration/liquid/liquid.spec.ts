@@ -112,6 +112,21 @@ describe('Liquid', function () {
       })
       expect(result).toBe('foo')
     })
+    it.each([undefined, []] as Array<string[] | undefined>)(
+      'keeps Express view directories isolated when root is %j',
+      async function (root) {
+        const options = root ? { root } : {}
+        const first = new Liquid(options)
+        const second = new Liquid(options)
+        await expect(second.renderFile('foo')).rejects.toThrow('ENOENT')
+        const result = await new Promise((resolve, reject) => {
+          first.express().call({ root: '/root' }, 'foo', {}, (err, html) => (err ? reject(err) : resolve(html)))
+        })
+        expect(result).toBe('foo')
+        await expect(second.renderFile('foo')).rejects.toThrow('ENOENT')
+        await expect(new Liquid(options).renderFile('foo')).rejects.toThrow('ENOENT')
+      }
+    )
   })
   describe('#renderFile', function () {
     afterEach(restore)

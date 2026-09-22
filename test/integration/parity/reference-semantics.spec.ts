@@ -57,6 +57,11 @@ describe('parity: reference semantics', function () {
     expect(await render('{% cycle true, false %}{% cycle true, false %}')).toBe('truefalse')
   })
 
+  it('reads only the first expression of each lax cycle value', async function () {
+    const source = '{% for i in (1..3) %}{% cycle value (1..2), "b" %}{% endfor %}'
+    expect(await new Liquid({ errorMode: 'lax' }).parseAndRender(source, { value: 'a' })).toBe('aba')
+  })
+
   it('reads numbers and integers as Ruby does', async function () {
     expect(await render("{{ '1_000' | plus: 0 }}|{{ 'abc' | truncate: ' 2 ' }}")).toBe('1000|...')
     await expect(render("{{ 'abc' | truncate: 1.5 }}")).rejects.toThrow('invalid integer')

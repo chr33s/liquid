@@ -1,5 +1,6 @@
 import { LayoutTag } from '../../../src/tags'
 import { Liquid, Context, Tag, Emitter, toPromise } from '../../../src'
+import { getEventListeners } from 'node:events'
 import { drainStream } from '../../stub/stream'
 
 function deferred<T>() {
@@ -13,6 +14,76 @@ function deferred<T>() {
 }
 
 describe('operation lifecycle', () => {
+  it('keeps rendering after toPromise joins the context operation', async () => {
+    const engine = new Liquid()
+    engine.registerFilter('lookup', function* (): Generator<unknown, unknown, unknown> {
+      return yield toPromise(this.context._get(['name']), this.context.operationOptions)
+    })
+    await expect(engine.parseAndRender('{{ 1 | lookup }} {{ name }}', { name: 'Ada' })).resolves.toBe('Ada Ada')
+  })
+
+  it.each(['get', 'getFromScope'] as const)('keeps overlapping standalone %s calls alive', async method => {
+    const a = deferred<string>()
+    const b = deferred<string>()
+    const scope = { a: a.promise, b: b.promise }
+    const ctx = new Context(scope)
+    const lookup = (key: string) => (method === 'get' ? ctx.get([key]) : ctx.getFromScope(scope, [key]))
+    const first = lookup('a')
+    const second = lookup('b')
+    a.resolve('first')
+    await expect(first).resolves.toBe('first')
+    b.resolve('second')
+    await expect(second).resolves.toBe('second')
+    await expect(ctx.get(['a'])).resolves.toBe('first')
+  })
+
+  it.each(['evalValue', 'toPromise'])('cancels nested %s and waits for its finalizer', async method => {
+    const engine = new Liquid()
+    const ctx = new Context({ name: 'Ada' })
+    const controller = new AbortController()
+    const entered = deferred<void>()
+    const pending = deferred<void>()
+    const cleanup = deferred<void>()
+    const cleaning = deferred<void>()
+    const events: string[] = []
+    engine.registerFilter('nested', function () {
+      return method === 'evalValue'
+        ? engine.evalValue('1 | wait', this.context)
+        : toPromise(
+            engine._evalValue('1 | wait', this.context, this.context.operationOptions),
+            this.context.operationOptions
+          )
+    })
+    engine.registerFilter('wait', function* () {
+      try {
+        entered.resolve()
+        yield pending.promise
+        events.push('continued')
+      } finally {
+        cleaning.resolve()
+        yield cleanup.promise
+        events.push('cleaned')
+      }
+    })
+    const rendering = engine.parseAndRender('{{ 1 | nested }}', ctx, { signal: controller.signal })
+    let settled = false
+    const result = rendering.catch(error => {
+      settled = true
+      return error
+    })
+    await entered.promise
+    controller.abort('stop')
+    await cleaning.promise
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(settled).toBe(false)
+    cleanup.resolve()
+    await expect(result).resolves.toBe('stop')
+    pending.resolve()
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(events).toEqual(['cleaned'])
+    await expect(ctx.get(['name'])).resolves.toBe('Ada')
+  })
+
   it('rejects pre-aborted combined calls before parsing', async () => {
     const engine = new Liquid()
     const reason = { cancelled: true }
@@ -259,6 +330,17 @@ describe('Web text streams', () => {
 })
 
 describe('operation boundary races', () => {
+  it.each([false, true])('releases analysis abort listeners after completion (failure: %s)', async fail => {
+    const engine = new Liquid({ templates: { part: '{{ value }}' } })
+    const controller = new AbortController()
+    const analysis = engine.parseAndAnalyze(`{% render "${fail ? 'missing' : 'part'}" %}`, undefined, {
+      signal: controller.signal
+    })
+    if (fail) await expect(analysis).rejects.toThrow('Failed to lookup')
+    else await expect(analysis).resolves.toHaveProperty('globals.value')
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0)
+  })
+
   it('preserves cross-realm reasons and bypasses aggregate errors', async () => {
     const { runInNewContext } = await import('node:vm')
     const reason = runInNewContext('({ cancelled: true })')

@@ -1,5 +1,5 @@
 import { isNil, isString, toValue } from '../util'
-import { EmptyDrop } from '../drop'
+import { EmptyDrop } from './empty-drop'
 
 export class BlankDrop extends EmptyDrop {
   public equals(value: any) {

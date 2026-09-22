@@ -70,7 +70,7 @@ export default class extends Tag {
         `paginate page size must be between ${hostedLimits.paginateMinPageSize} and ${hostedLimits.paginateMaxPageSize}`
     )
 
-    const source = resolveSource(raw, ctx)
+    const source = yield* resolveSource(raw, ctx)
     const items = Math.min(source.size, hostedLimits.paginateMaxItems)
     const request = ctx.theme.request ?? {}
     const query = request.query ?? {}
@@ -182,8 +182,8 @@ function stripQuotes(text: string): string {
  * A provider may page a collection without loading it; otherwise the value is
  * read as an ordinary sequence.
  */
-function resolveSource(raw: unknown, ctx: Context): PaginatedSource {
-  const provided = ctx.theme.store?.paginate?.(raw)
+function* resolveSource(raw: unknown, ctx: Context): Generator<unknown, PaginatedSource, unknown> {
+  const provided = (yield ctx.theme.store?.paginate?.(raw)) as PaginatedSource | undefined
   if (provided) {
     ctx.capabilities.record('paginate.source', 'implemented')
     return provided

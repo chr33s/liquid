@@ -1,4 +1,6 @@
 import { Liquid } from '../../../src/liquid'
+import { Context } from '../../../src/context'
+import { drainStream } from '../../stub/stream'
 import { mock, restore } from '../../stub/mockfs'
 import { Template } from '../../../src/template'
 describe('LiquidOptions#cache', function () {
@@ -22,8 +24,42 @@ describe('LiquidOptions#cache', function () {
     expect(reads).toEqual(cache ? ['a', 'b'] : ['a', 'b', 'a'])
   })
 
+  it.each([false, true])('uses configured and context tenants for file renders with cache=%s', async cache => {
+    const engine = new Liquid({
+      cache,
+      theme: { tenant: 'configured' },
+      relativeReference: false,
+      fs: {
+        resolve: (_root, file) => file,
+        exists: () => true,
+        readFile: (_file, options) => options?.tenant ?? 'missing'
+      }
+    })
+    const context = () => new Context({}, engine.options, { theme: { tenant: 'context' } })
+    expect(await engine.renderFile('shared')).toBe('configured')
+    expect(await engine.renderFile('shared', context())).toBe('context')
+    expect(await drainStream(await engine.renderFileToStream('shared'))).toBe('configured')
+    expect(await drainStream(await engine.renderFileToStream('shared', context()))).toBe('context')
+  })
+
   afterEach(restore)
   describe('#renderFile', function () {
+    it('should distinguish relative partial and layout lookups', async function () {
+      const engine = new Liquid({
+        profile: 'shopify_theme',
+        root: '/root/',
+        partials: '/partials/',
+        layouts: '/layouts/',
+        extname: '.html',
+        cache: true
+      })
+      mock({
+        '/root/page.html': '{% render "./shared" %}{% layout "./shared" %}',
+        '/partials/shared.html': 'partial',
+        '/layouts/shared.html': 'layout'
+      })
+      expect(await engine.renderFile('page')).toBe('partiallayout')
+    })
     it('should be disabled by default', async function () {
       const engine = new Liquid({
         root: '/root/',

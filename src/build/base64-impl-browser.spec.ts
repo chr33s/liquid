@@ -46,6 +46,14 @@ describe('base64-impl/browser', function () {
   })
 
   describe('round-trip encoding/decoding', function () {
+    it.each([
+      ['BOM-prefixed', '\uFEFFtext'],
+      ['large Unicode', '🌍'.repeat(50_000)]
+    ])('should preserve %s input', function (_name, original) {
+      const encoded = base64.base64Encode(original)
+      expect(encoded).toBe(Buffer.from(original).toString('base64'))
+      expect(base64.base64Decode(encoded)).toBe(original)
+    })
     it('should encode and decode back to original', function () {
       const original = 'Hello, World!'
       const encoded = base64.base64Encode(original)

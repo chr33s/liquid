@@ -17,10 +17,11 @@ describe('drop/null-drop', function () {
     const html = await liquid.parseAndRender(src)
     expect(html).toBe('foo == nil')
   })
-  it('nil != blank', async function () {
-    const src = '{%if nil == blank %}eq{%else%}neq{% endif %}'
+  it('nil == blank in both operand orders', async function () {
+    const src = '{% if nil == blank %}eq{% endif %}{% if blank == nil %}eq{% endif %}'
     const html = await liquid.parseAndRender(src)
-    expect(html).toBe('neq')
+    expect(html).toBe('eqeq')
+    expect(await liquid.parseAndRender('{% if nil <> blank or nil != blank %}neq{% endif %}')).toBe('')
   })
   it('nil != empty', async function () {
     const src = '{%if nil == empty %}eq{%else%}neq{% endif %}'

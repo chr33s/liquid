@@ -15,9 +15,9 @@ function store(filter: FilterImpl, capability: string): StoreProvider {
 }
 
 /** Markup the platform owns is asked for by name and never reconstructed here. */
-function platformMarkup(filter: FilterImpl, name: string, args: unknown[]): string {
+function* platformMarkup(filter: FilterImpl, name: string, args: unknown[]): Generator<unknown, string, unknown> {
   const provider = store(filter, name)
-  const markup = requireProvider(
+  const markup = yield requireProvider(
     provider.platformMarkup,
     name,
     `the store provider does not render ${name}`,
@@ -28,31 +28,35 @@ function platformMarkup(filter: FilterImpl, name: string, args: unknown[]): stri
   )
 }
 
-export function payment_button(this: FilterImpl, v: unknown): string {
+export function payment_button(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
   return platformMarkup(this, 'payment_button', [toValue(v)])
 }
 
-export function payment_terms(this: FilterImpl, v: unknown): string {
+export function payment_terms(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
   return platformMarkup(this, 'payment_terms', [toValue(v)])
 }
 
-export function payment_type_svg_tag(this: FilterImpl, v: unknown, ...args: unknown[]): string {
+export function payment_type_svg_tag(
+  this: FilterImpl,
+  v: unknown,
+  ...args: unknown[]
+): Generator<unknown, string, unknown> {
   return platformMarkup(this, 'payment_type_svg_tag', [toValue(v), ...args])
 }
 
-export function payment_type_img_url(this: FilterImpl, v: unknown): string {
+export function payment_type_img_url(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
   return platformMarkup(this, 'payment_type_img_url', [toValue(v)])
 }
 
-export function login_button(this: FilterImpl, v: unknown, ...args: unknown[]): string {
+export function login_button(this: FilterImpl, v: unknown, ...args: unknown[]): Generator<unknown, string, unknown> {
   return platformMarkup(this, 'login_button', [toValue(v), ...args])
 }
 
-export function avatar(this: FilterImpl, v: unknown): string {
+export function avatar(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
   return platformMarkup(this, 'avatar', [toValue(v)])
 }
 
-export function currency_selector(this: FilterImpl, v: unknown): string {
+export function currency_selector(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
   return platformMarkup(this, 'currency_selector', [toValue(v)])
 }
 

@@ -132,7 +132,8 @@ function* evalPropertyAccessToken(
       return yield ctx._get(props, ctx.strictVariables, bracketed)
     }
   } catch (e) {
-    if (lenient && (e as Error).name === 'InternalUndefinedVariableError') return null
+    if ((e as Error)?.name !== 'InternalUndefinedVariableError') throw e
+    if (lenient) return null
     throw new UndefinedVariableError(e as Error, token)
   }
 }
@@ -144,6 +145,7 @@ export function evalQuotedToken(token: QuotedToken) {
 function* evalRangeToken(token: RangeToken, ctx: Context) {
   const low = rangeBound(yield evalToken(token.lhs, ctx))
   const high = rangeBound(yield evalToken(token.rhs, ctx))
+  assert(!(Math.abs(low) > Number.MAX_SAFE_INTEGER || Math.abs(high) > Number.MAX_SAFE_INTEGER), 'invalid range bounds')
   return LiquidRange.fromBounds(low, high)
 }
 

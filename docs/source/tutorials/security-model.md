@@ -14,6 +14,7 @@ LiquidJS ships a thin cooperative DoS layer:
 - {@link LiquidOptions.outputLengthLimit | outputLengthLimit}: limit total output length per `render()` call.
 - {@link LiquidOptions.maxDepth | maxDepth}: limit the render-time nesting of scopes: the template, `{% render %}`, `{% include %}`, `{% layout %}`, `{% for %}` and `{% tablerow %}`.
 - Strftime numeric pad widths in the `date` filter are capped at `1_000_000` (1M) per conversion.
+- Range bounds outside JavaScript's safe integer range, including infinities, are rejected.
 
 These are cooperative safeguards, not runtime isolation—see <a href="#production-guidance">Production guidance</a> below for host-level limits and online-service hardening.
 
@@ -63,7 +64,7 @@ await liquid.parseAndRender(section, scope, { ledger }) // charged to the same b
 
 ### maxDepth
 
-{@link LiquidOptions.maxDepth | maxDepth} limits how deeply scopes nest at render time. Defaults to `100`, as in the reference engine. The template itself counts as one, and each `{% render %}`, `{% include %}`, `{% layout %}` and each `{% for %}` or `{% tablerow %}` loop adds one while it renders, so with `maxDepth: 2` a loop nested in a loop fails. Exceeding it raises `Nesting too deep`, an ordinary render error: under `renderErrors: "inline"` it is written in place and rendering continues. In sync rendering (`renderSync`), nested tags are driven by `toValueSync`, which recursively resumes each yielded generator on the call stack—deep nesting can overflow it, and `maxDepth` caps that depth. Async `render()` resumes the same tag generators via `toPromise`/`yield` without a deep synchronous call chain, so stack overflow is not a concern there (the limit still applies as a DoS guard).
+{@link LiquidOptions.maxDepth | maxDepth} limits how deeply scopes nest at render time. Defaults to `100`, as in the reference engine. The template itself counts as one, and each `{% render %}`, `{% include %}`, `{% layout %}` and each `{% for %}` or `{% tablerow %}` loop adds one while it renders, so with `maxDepth: 2` a loop nested in a loop fails. Exceeding it raises `Nesting too deep`, an ordinary render error: under `renderErrors: "inline"` it is written in place and rendering continues. Execution uses the shared generator evaluator; `maxDepth` limits nested template work independently of the JavaScript call stack.
 
 The `memoryLimit` option was removed in v11; enforce memory limits at the host or process level instead.
 

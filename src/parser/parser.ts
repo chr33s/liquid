@@ -213,7 +213,7 @@ export class Parser {
     options?: OperationOptions & { tenant?: string }
   ): Generator<unknown, Template[], Template[]> {
     const cache = this.cache!
-    const base = this.loader.shouldLoadRelative(file) ? currentFile + ',' + file : type + ':' + file
+    const base = this.loader.shouldLoadRelative(file) ? JSON.stringify([type, currentFile, file]) : type + ':' + file
     const { profile, theme } = this.liquid.options
     const tenant = options?.tenant ?? theme.tenant
     const key = JSON.stringify([profile, tenant ?? '', base])
@@ -285,10 +285,11 @@ export class Parser {
     file: string,
     type: LookupType = LookupType.Root,
     currentFile?: string,
-    options: OperationOptions = {}
+    options: OperationOptions & { tenant?: string } = {}
   ): Generator<unknown, Template[], any> {
     const readOptions = {
       ...options,
+      tenant: options.tenant ?? this.liquid.options.theme.tenant,
       sourceByteLimit: this.liquid.options.sourceByteLimit,
       sourceCodeUnitLimit: this.parseLimit.remaining
     }

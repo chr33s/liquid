@@ -1,5 +1,5 @@
 const Benchmark = require('benchmark')
-const { Liquid } = require('..')
+const { Liquid, LayoutTag } = require('../dist/liquid.node.cjs')
 
 const engineOptions = {
   root: __dirname,
@@ -11,10 +11,12 @@ const cachingEngine = new Liquid({
   ...engineOptions,
   cache: true
 })
+engine.registerTag('layout', LayoutTag)
+cachingEngine.registerTag('layout', LayoutTag)
 
 const template = `
 {% layout "./templates/layout.liquid" %}
-{% block body %}a small body{% endblock %}
+a small body
 `
 
 function layout () {

@@ -28,7 +28,7 @@ export class Render {
           const quiet = assign || (ctx.opts.errorMode !== 'strict2' && isBlank(tpl) && !(tpl instanceof Output))
           if (err.name !== 'UndefinedVariableError' && !quiet) yield emitter.write(inlineErrorMessage(err))
           if (ctx.breakCalled || ctx.continueCalled) break
-        } else if (ctx.opts.catchAllErrors) errors.push(err)
+        } else if (ctx.opts.catchAllErrors && !LimitError.is(err)) errors.push(err)
         else throw err
       }
     }

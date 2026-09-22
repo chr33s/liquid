@@ -29,6 +29,19 @@ describe('parity: range and resource safety', function () {
     await expect(limited.parseAndRender('{% for i in (1..10) %}{% endfor %}')).resolves.toBe('')
   })
 
+  it.each(['raise', 'inline'] as const)(
+    'stops work after a resource limit even when collecting %s errors',
+    async renderErrors => {
+      const engine = new Liquid({ templateLimit: 3, catchAllErrors: true, renderErrors })
+      const later = vi.fn(() => 'after')
+      engine.registerFilter('later', later)
+      const result = engine.parseAndRender('{% for i in (1..10) %}x{% endfor %}{{ 1 | later }}')
+      if (renderErrors === 'raise') await expect(result).rejects.toThrow('template limit exceeded')
+      else await expect(result).resolves.toBe('Liquid error (line 1): Memory limits exceeded: template limit exceeded')
+      expect(later).not.toHaveBeenCalled()
+    }
+  )
+
   it('T29: reversal and offset preserve length while charging only visited work', async function () {
     expect(await liquid.parseAndRender('{% for i in (1..100000000000) limit: 3 reversed %}{{ i }},{% endfor %}')).toBe(
       '3,2,1,'

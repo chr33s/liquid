@@ -1,16 +1,19 @@
 import { isPromise, isIterator } from './underscore'
-import { Operation, operationFor, type OperationOptions } from './operation'
+import { Operation, existingOperation, operationFor, type OperationOptions } from './operation'
 
 export async function toPromise<T>(
   value: Generator<unknown, T, unknown> | Promise<T> | T,
   options: OperationOptions = {}
 ): Promise<T> {
+  const active = existingOperation(options)
+  if (active) return active.join(drive(value, active))
   const owner = operationFor(options)
   try {
     const result = await drive(value, owner)
     owner.check()
     return result
   } finally {
+    await owner.drain()
     owner.finish()
   }
 }
@@ -33,6 +36,7 @@ export async function drive<T>(
           try {
             input = await (cleanup ? input : owner.wait(input))
             if (!cleanup) owner.check()
+            continue
           } catch (error) {
             if (!cleanup && owner.signal.aborted) throw owner.signal.reason
             input = error

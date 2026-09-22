@@ -82,6 +82,15 @@ describe('filters/date', function () {
   it('should parse as Date when given a timezoneless string', function () {
     return test('{{ "1991-02-22T00:00:00" | date: "%Y-%m-%dT%H:%M:%S"}}', '1991-02-22T00:00:00')
   })
+  it.each(['1900-01-01T00:00:00.123', '0099-01-01T00:00:00.123'])(
+    'should preserve historical local calendar fields for %s',
+    async value => {
+      expect(await liquid.parseAndRender('{{ value | date: "%04Y-%m-%dT%H:%M:%S.%L" }}', { value })).toBe(value)
+      expect(await liquid.parseAndRender('{{ value | date: "%s" }}', { value })).toBe(
+        String(Math.floor(new Date(value).getTime() / 1000))
+      )
+    }
+  )
   describe('when preserveTimezones is enabled', function () {
     const opts: LiquidOptions = { preserveTimezones: true, locale: 'en-US' }
     it('should not change the timezone between input and output', function () {
@@ -143,6 +152,24 @@ describe('filters/date', function () {
     )
   })
   describe('timezoneOffset', function () {
+    it.each([0, -480, 'America/New_York'])('keeps UNIX seconds independent of timezone %s', async timezone => {
+      expect(
+        await liquid.parseAndRender('{{ value | date: "%s", timezone }}', {
+          value: '2024-03-10T07:30:00.900Z',
+          timezone
+        })
+      ).toBe('1710055800')
+    })
+    it.each([
+      ['2024-03-10T07:30:00Z', 0, '2024-03-10 07:30 +0000'],
+      ['2024-11-03T05:30:00Z', -480, '2024-11-03 13:30 +0800'],
+      ['2024-03-10T07:30:00Z', 'America/New_York', '2024-03-10 03:30 -0400'],
+      ['2024-11-03T06:30:00Z', 'America/New_York', '2024-11-03 01:30 -0500']
+    ])('formats DST transition %s in timezone %s', async (value, timezone, expected) => {
+      expect(
+        await liquid.parseAndRender('{{ value | date: "%Y-%m-%d %H:%M %z", timezone }}', { value, timezone })
+      ).toBe(expected)
+    })
     // -06:00
     const opts: LiquidOptions = { timezoneOffset: 360 }
     it('should offset UTC date literal', function () {

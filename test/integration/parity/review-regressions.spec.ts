@@ -26,6 +26,13 @@ describe('regressions found in review', function () {
     expect(await liquid.parseAndRender('{% if a == a %}y{% else %}n{% endif %}', { a: cyclic })).toBe('y')
     expect(await liquid.parseAndRender('{% if a == b %}y{% else %}n{% endif %}', { a: cyclic, b: twin })).toBe('y')
     expect(await liquid.parseAndRender('{% if a == c %}y{% else %}n{% endif %}', { a: cyclic, c: { n: 2 } })).toBe('n')
+    const a: unknown[] = []
+    const b: unknown[] = []
+    a.push(a, 1)
+    b.push(b, 1)
+    expect(await liquid.parseAndRender('{% if a == b %}y{% else %}n{% endif %}', { a, b })).toBe('y')
+    b[1] = 2
+    expect(await liquid.parseAndRender('{% if a == b %}y{% else %}n{% endif %}', { a, b })).toBe('n')
   })
 
   it('a default theme layout that does not parse is reported, not swallowed', async function () {
@@ -57,6 +64,22 @@ describe('regressions found in review', function () {
     const templates = engine.parse('{{ "2022-12-08" | time_tag: "%Y" }}')
     expect(await engine.render(templates)).toBe('<time datetime="2022-12-08T00:00:00Z">2022</time>')
     expect(await engine.render(templates, {}, { filters: { date: () => 'X' } })).toBe('<time datetime="X">X</time>')
+    expect(await engine.render(templates, {}, { filters: { date: async () => 'Y' } })).toBe(
+      '<time datetime="Y">Y</time>'
+    )
+    expect(
+      await engine.parseAndRender(
+        '{{ value | structured_data }}',
+        {},
+        {
+          filters: {
+            json: function* (): Generator<unknown, string, string> {
+              return yield Promise.resolve('{"async":true}')
+            }
+          }
+        }
+      )
+    ).toBe('<script type="application/ld+json">{"async":true}</script>')
   })
 
   it('self exposes nothing of the context it reads from', async function () {

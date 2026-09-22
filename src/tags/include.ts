@@ -100,6 +100,7 @@ export default class extends Tag {
   }
 
   public *children(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]> {
+    if (Array.isArray(this.file)) return this.file
     if (partials && isString(this.file)) {
       return (yield this.liquid._parsePartialFile(this.file, this.currentFile, options)) as Template[]
     }

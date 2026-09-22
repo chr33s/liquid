@@ -27,13 +27,17 @@ export class MapFS {
   dirname(filepath: string) {
     const segments = filepath.split(this.sep)
     segments.pop()
-    return segments.join(this.sep)
+    return segments.join(this.sep) || (filepath.startsWith(this.sep) ? this.sep : '')
   }
 
   resolve(dir: string, file: string, ext: string) {
-    file += ext
-    if (dir === '.') return file
-    const segments = dir.split(/\/+/)
+    const basename = file.split(this.sep).pop()!
+    if (basename !== '..' && basename.lastIndexOf('.') <= 0) file += ext
+    const segments = file.startsWith(this.sep)
+      ? ['']
+      : dir === '.' || !dir
+        ? []
+        : dir.split(/\/+/).filter((segment, index) => segment || index === 0)
     for (const segment of file.split(this.sep)) {
       if (segment === '.' || segment === '') continue
       else if (segment === '..') {

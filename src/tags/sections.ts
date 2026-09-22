@@ -4,6 +4,7 @@ import { assert, stringify, toValue } from '../util'
 import { isHosted, requireProvider } from '../theme'
 import { ValueToken } from '../tokens'
 import { groupOrder, renderSection } from './section'
+import type { Arguments } from '../template'
 
 /**
  * `{% sections 'group' %}` renders a configured section group in order.
@@ -34,5 +35,9 @@ export default class extends Tag {
       if (!definition) continue
       yield* renderSection(this.liquid, ctx, emitter, { ...definition, id: definition.id ?? key }, this.currentFile)
     }
+  }
+
+  public *arguments(): Arguments {
+    yield this.target
   }
 }

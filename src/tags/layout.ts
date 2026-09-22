@@ -51,6 +51,7 @@ export default class extends Tag {
 
   public *children(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]> {
     const templates = this.templates.slice()
+    if (Array.isArray(this.file)) templates.unshift(...this.file)
 
     if (partials && isString(this.file)) {
       templates.push(...((yield this.liquid._parseLayoutFile(this.file, this.currentFile, options)) as Template[]))

@@ -53,13 +53,13 @@ export function join(this: FilterImpl, v: any[], ...args: unknown[]) {
 }
 export const last = argumentsToValue(function (this: FilterImpl, v: any) {
   if (v instanceof LiquidRange) return v.last
-  return isArrayLike(v) ? readArrayElement(v, -1, this.context.ownPropertyOnly) : ''
+  return isArrayLike(v) ? readArrayElement(v, -1, this.context.ownPropertyOnly) : undefined
 })
 export const first = argumentsToValue(function (this: FilterImpl, v: any) {
   if (v instanceof LiquidRange) return v.first
   // a hash answers its first entry as a `[key, value]` pair
-  if (isPlainObject(v)) return Object.entries(v)[0] ?? ''
-  return isArrayLike(v) ? readArrayElement(v, 0, this.context.ownPropertyOnly) : ''
+  if (isPlainObject(v)) return Object.entries(v)[0]
+  return isArrayLike(v) ? readArrayElement(v, 0, this.context.ownPropertyOnly) : undefined
 })
 export function reverse(this: FilterImpl, v: any[]) {
   return inputIterator(v).reverse()
@@ -272,8 +272,9 @@ export function* uniq<T>(this: FilterImpl, arr: T[], property?: string): Iterabl
       if (structural.some(seen => equals(seen, key))) continue
       structural.push(key)
     } else {
-      if (primitives.has(key)) continue
-      primitives.add(key)
+      const primitive = isNumber(key) && Number.isInteger(key) ? BigInt(key) : key
+      if (primitives.has(primitive)) continue
+      primitives.add(primitive)
     }
     kept.push(item)
   }

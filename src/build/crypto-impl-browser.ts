@@ -41,7 +41,8 @@ async function digest(algorithm: string, str: string): Promise<string> {
 }
 
 async function hmac(hash: string, str: string, key: string): Promise<string> {
-  const cryptoKey = await crypto.subtle.importKey('raw', toBytes(key), { name: 'HMAC', hash }, false, ['sign'])
+  const keyBytes = key ? toBytes(key) : new Uint8Array(64)
+  const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash }, false, ['sign'])
   return bufferToHex(await crypto.subtle.sign('HMAC', cryptoKey, toBytes(str)))
 }
 

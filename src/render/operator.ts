@@ -83,6 +83,8 @@ export function equals(lhs: any, rhs: any): boolean {
   lhs = toValue(lhs)
   rhs = toValue(rhs)
   if (lhs === rhs) return true
+  if (typeof lhs === 'bigint' && typeof rhs === 'number') return Number.isInteger(rhs) && lhs === BigInt(rhs)
+  if (typeof rhs === 'bigint' && typeof lhs === 'number') return Number.isInteger(lhs) && rhs === BigInt(lhs)
   // a nil from the data and a variable that is not defined are both nil
   if ((lhs === null || lhs === undefined) && (rhs === null || rhs === undefined)) return true
   if (lhs instanceof LiquidRange || rhs instanceof LiquidRange) {
@@ -117,12 +119,16 @@ function identify(value: object): number {
 function objectEquals(lhs: Record<string, unknown>, rhs: Record<string, unknown>): boolean {
   const keys = Object.keys(lhs)
   if (keys.length !== Object.keys(rhs).length) return false
+  return comparePair(lhs, rhs, () => keys.every(key => hasOwnProperty.call(rhs, key) && equals(lhs[key], rhs[key])))
+}
+
+function comparePair(lhs: object, rhs: object, compare: () => boolean): boolean {
   const pair = `${identify(lhs)},${identify(rhs)}`
   // already on the stack: assume equal and let the rest of the walk decide
   if (comparing.has(pair)) return true
   comparing.add(pair)
   try {
-    return keys.every(key => hasOwnProperty.call(rhs, key) && equals(lhs[key], rhs[key]))
+    return compare()
   } finally {
     comparing.delete(pair)
   }
@@ -142,7 +148,7 @@ function rangeEquals(lhs: any, rhs: any): boolean {
 
 function arrayEquals(lhs: any[], rhs: any[]): boolean {
   if (lhs.length !== rhs.length) return false
-  return !lhs.some((value, i) => !equals(value, rhs[i]))
+  return comparePair(lhs, rhs, () => !lhs.some((value, i) => !equals(value, rhs[i])))
 }
 
 export function arrayIncludes(arr: any[], item: any): boolean {

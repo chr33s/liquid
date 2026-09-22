@@ -97,14 +97,12 @@ export class Tokenizer {
   matchTrie<T>(trie: Trie<T>) {
     let node: Trie<T> = trie
     let i = this.p
-    let info: Trie<T> | undefined
+    let end = -1
     while ((node as Trie<T>)[this.input[i]] && i < this.N) {
       node = (node as Trie<T>)[this.input[i++]] as Trie<T>
-      if (node['end']) info = node
+      if (node['end'] && (!node['needBoundary'] || !isWord(this.peek(i - this.p)))) end = i
     }
-    if (!info) return -1
-    if (info['needBoundary'] && isWord(this.peek(i - this.p))) return -1
-    return i
+    return end
   }
   readFilteredValue(): FilteredValueToken {
     const begin = this.p

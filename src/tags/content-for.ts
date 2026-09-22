@@ -1,6 +1,7 @@
 import { Liquid, Tag, Emitter, Hash, TagToken, TopLevelToken, Context, Template, evalToken } from '..'
 import { Parser } from '../parser'
-import { assert, stringify, toValue } from '../util'
+import { assert, isValueToken, stringify, toValue } from '../util'
+import type { Arguments } from '../template'
 import { isHosted, requireProvider, type ThemeBlock } from '../theme'
 import { ValueToken } from '../tokens'
 import { schemaOf, settingDefaults, toBlockObject } from './section'
@@ -50,6 +51,11 @@ export default class extends Tag {
     const id = args['id'] === undefined ? type : stringify(toValue(args['id']))
     const { type: _type, id: _id, ...rest } = args
     yield* this.renderBlock(ctx, emitter, { type, id }, 0, rest)
+  }
+
+  public *arguments(): Arguments {
+    yield this.target
+    yield* Object.values(this.hash.hash).filter(isValueToken)
   }
 
   private *renderBlock(

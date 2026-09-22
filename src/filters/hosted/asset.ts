@@ -17,34 +17,47 @@ function provider(filter: FilterImpl, capability: string, member: keyof AssetPro
     `no asset provider implements ${String(member)}`,
     filter.context.capabilities
   )
-  return (...args: never[]) => (fn as (...a: never[]) => unknown).apply(assets, args)
+  return function* (...args: never[]): Generator<unknown, unknown, unknown> {
+    const value = yield (fn as (...a: never[]) => unknown).apply(assets, args)
+    return requireProvider(
+      value,
+      capability,
+      `the asset provider returned nothing for ${capability}`,
+      filter.context.capabilities
+    )
+  }
 }
 
-export function asset_url(this: FilterImpl, v: unknown): string {
-  return stringify(provider(this, 'asset_url', 'assetUrl')(stringify(v) as never))
+export function* asset_url(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
+  return stringify(yield provider(this, 'asset_url', 'assetUrl')(stringify(v) as never))
 }
 
-export function global_asset_url(this: FilterImpl, v: unknown): string {
-  return stringify(provider(this, 'global_asset_url', 'shopifyAssetUrl')(stringify(v) as never))
+export function* global_asset_url(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
+  return stringify(yield provider(this, 'global_asset_url', 'shopifyAssetUrl')(stringify(v) as never))
 }
 
-export function shopify_asset_url(this: FilterImpl, v: unknown): string {
-  return stringify(provider(this, 'shopify_asset_url', 'shopifyAssetUrl')(stringify(v) as never))
+export function* shopify_asset_url(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
+  return stringify(yield provider(this, 'shopify_asset_url', 'shopifyAssetUrl')(stringify(v) as never))
 }
 
-export function file_url(this: FilterImpl, v: unknown): string {
-  return stringify(provider(this, 'file_url', 'fileUrl')(stringify(v) as never))
+export function* file_url(this: FilterImpl, v: unknown): Generator<unknown, string, unknown> {
+  return stringify(yield provider(this, 'file_url', 'fileUrl')(stringify(v) as never))
 }
 
-export function image_url(this: FilterImpl, v: unknown, ...args: unknown[]): string {
+export function* image_url(this: FilterImpl, v: unknown, ...args: unknown[]): Generator<unknown, string, unknown> {
   const options = optionsOf(args)
-  return stringify(provider(this, 'image_url', 'imageUrl')(toValue(v) as never, options as never))
+  return stringify(yield provider(this, 'image_url', 'imageUrl')(toValue(v) as never, options as never))
 }
 
-export function img_url(this: FilterImpl, v: unknown, size?: unknown, ...args: unknown[]): string {
+export function* img_url(
+  this: FilterImpl,
+  v: unknown,
+  size?: unknown,
+  ...args: unknown[]
+): Generator<unknown, string, unknown> {
   const options = optionsOf(args)
   if (!isNil(size)) options['size'] = stringify(size)
-  return stringify(provider(this, 'img_url', 'imageUrl')(toValue(v) as never, options as never))
+  return stringify(yield provider(this, 'img_url', 'imageUrl')(toValue(v) as never, options as never))
 }
 
 export const asset_img_url = img_url
@@ -93,13 +106,13 @@ export function external_video_tag(this: FilterImpl, v: unknown, ...args: unknow
   return tag('iframe', { src: external_video_url.call(this, v), ...attrs })
 }
 
-export function font_url(this: FilterImpl, v: unknown, format?: unknown): string {
-  return stringify(provider(this, 'font_url', 'fontUrl')(toValue(v) as never, stringify(format) as never))
+export function* font_url(this: FilterImpl, v: unknown, format?: unknown): Generator<unknown, string, unknown> {
+  return stringify(yield provider(this, 'font_url', 'fontUrl')(toValue(v) as never, stringify(format) as never))
 }
 
-export function font_face(this: FilterImpl, v: unknown, ...args: unknown[]): string {
+export function* font_face(this: FilterImpl, v: unknown, ...args: unknown[]): Generator<unknown, string, unknown> {
   const options = optionsOf(args)
-  return stringify(provider(this, 'font_face', 'fontFace')(toValue(v) as never, options as never))
+  return stringify(yield provider(this, 'font_face', 'fontFace')(toValue(v) as never, options as never))
 }
 
 export function font_modify(this: FilterImpl, v: unknown, property: unknown, value: unknown): unknown {

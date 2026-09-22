@@ -7,7 +7,7 @@ const ESCAPE = 0xdc00
 
 export function fromBytes(bytes: Uint8Array): string {
   try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes)
   } catch {
     let output = ''
     for (let i = 0; i < bytes.length;) {

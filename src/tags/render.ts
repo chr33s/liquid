@@ -109,7 +109,7 @@ export default class extends Tag {
         'no app block renderer was provided',
         ctx.capabilities
       )
-      yield emitter.write(render.call(ctx.theme, block))
+      yield emitter.write(yield render.call(ctx.theme, block))
       return
     }
     ctx.depthLimit.use(1)
@@ -181,6 +181,7 @@ export default class extends Tag {
   public partialScope(): PartialScope | undefined {
     if (this.appBlock) return
     const names: Array<string | [string, Argument]> = Object.keys(this.hash.hash)
+    if (this.forBinding) names.push('forloop')
     const defaultName = basename(this.file)
 
     for (const binding of [this.with, this.forBinding]) {

@@ -1,5 +1,5 @@
 const Benchmark = require('benchmark')
-const { Liquid } = require('..')
+const { Liquid } = require('../dist/liquid.node.cjs')
 const ctx = require('./data/todolist.json')
 const { resolve } = require('path')
 

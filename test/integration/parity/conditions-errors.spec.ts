@@ -91,6 +91,26 @@ describe('parity: conditions, modes and error lifecycle', function () {
     expect(await liquid.render(templates)).toBe('x')
   })
 
+  it.each([false, true])(
+    'reports a failed property read with async=%s under both error policies',
+    async function (async) {
+      const error = new Error('provider failed')
+      const scope = {
+        value() {
+          if (async) return Promise.reject(error)
+          throw error
+        }
+      }
+      await expect(liquid.parseAndRender('{{ value }}', scope)).rejects.toMatchObject({
+        name: 'RenderError',
+        originalError: error
+      })
+      expect(await liquid.parseAndRender('before {{ value }} after', scope, { renderErrors: 'inline' })).toBe(
+        'before Liquid error (line 1): provider failed after'
+      )
+    }
+  )
+
   it('E03: caching cannot freeze a filter set across renders', async function () {
     const cached = new Liquid({ cache: true })
     const templates = cached.parse('{{ "x" | tag }}')

@@ -55,6 +55,8 @@ const engine = new Liquid({
 
 A capability with no provider is reported, not faked: the filter or tag throws a `MissingCapabilityError` and the render's `capabilities` log records it as `provider_required`. Nothing returns an empty string in place of data it does not have.
 
+Provider methods may return values or Promises. Rendering waits for each result and propagates provider failures. A render's abort signal also cancels its wait for a pending provider result.
+
 `tenant` takes part in the template cache key, so one shop's cached parse is never reused for another.
 
 `appBlock` renders an app block for `{% render block %}`, the form Shopify's app blocks use; outside this profile a template name must still be a quoted string.
