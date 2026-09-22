@@ -46,6 +46,11 @@ describe('filters/html', function () {
     })
   })
   describe('strip_html', function () {
+    it('should remove raw-text blocks before surrounding markup', function () {
+      for (const value of ['< <script>x</script> >', '< <style>x</style> >', '< <!--x--> >']) {
+        expect(liquid.parseAndRenderSync('{{ value | strip_html }}', { value })).toBe('')
+      }
+    })
     it('should strip all tags', function () {
       return test(
         '{{ "Have <em>you</em> read <cite><a href=&quot;https://en.wikipedia.org/wiki/Ulysses_(novel)&quot;>Ulysses</a></cite>?" | strip_html }}',

@@ -39,32 +39,38 @@ export function newline_to_br(this: FilterImpl, v: string) {
   return str.replace(/\r?\n/gm, '<br />\n')
 }
 
-// Raw-text blocks (HTML5) plus '<...>' as the catch-all kind; a regex
-// equivalent is O(n^2) in V8 on unclosed openers.
+// The reference removes script, comment and style blocks, then any '<...>'
+// that remains; a regex equivalent is O(n^2) in V8 on unclosed openers.
 export function strip_html(this: FilterImpl, v: string) {
-  const str = stringify(v)
-  const blocks = new Map([
+  const blocks = removeSpans(stringify(v), [
     ['<script', '</script>'],
-    ['<style', '</style>'],
     ['<!--', '-->'],
-    ['<', '>']
+    ['<style', '</style>']
   ])
+  return removeSpans(blocks, [['<', '>']])
+}
+
+/** Remove each leftmost `opener...closer` span, trying the pairs in order. */
+function removeSpans(str: string, pairs: [string, string][]) {
+  const open = new Map(pairs)
   let out = ''
   let i = 0
   while (i < str.length) {
     const lt = str.indexOf('<', i)
-    if (lt < 0) return out + str.slice(i)
-    out += str.slice(i, lt)
-    for (const [opener, closer] of blocks) {
+    if (lt < 0) break
+    let end = -1
+    for (const [opener, closer] of open) {
       if (!str.startsWith(opener, lt)) continue
       const e = str.indexOf(closer, lt + opener.length)
       if (e >= 0) {
-        i = e + closer.length
+        end = e + closer.length
         break
       }
-      blocks.delete(opener)
+      // no closer after here means none after any later opener either
+      open.delete(opener)
     }
-    if (i <= lt) return out + str.slice(lt)
+    out += str.slice(i, end < 0 ? lt + 1 : lt)
+    i = end < 0 ? lt + 1 : end
   }
-  return out
+  return out + str.slice(i)
 }

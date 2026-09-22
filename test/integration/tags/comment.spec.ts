@@ -2,6 +2,13 @@ import { Liquid } from '../../../src/liquid'
 
 describe('tags/comment', function () {
   const liquid = new Liquid()
+  it('should ignore nested comments', async function () {
+    const src = 'before{% comment %}a{% comment %}b{% endcomment %}c{% endcomment %}after'
+    expect(await liquid.parseAndRender(src)).toBe('beforeafter')
+    expect(liquid.parseAndRenderSync(src)).toBe('beforeafter')
+    expect(() => liquid.parseAndRenderSync('{% comment %}{% comment %}{% endcomment %}')).toThrow('not closed')
+  })
+
   it('should support empty content', function () {
     const src = '{% comment %}{% raw%}'
     return expect(liquid.parseAndRender(src)).rejects.toThrow(/{% comment %} not closed/)

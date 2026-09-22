@@ -2,6 +2,12 @@ import { Liquid } from '../../../src/liquid'
 
 describe('tags/raw', function () {
   const liquid = new Liquid()
+  it('should support whitespace control on endraw', async function () {
+    const src = '{% raw %}{{ value }}  {%- endraw -%} after'
+    expect(await liquid.parseAndRender(src)).toBe('{{ value }}  after')
+    expect(liquid.parseAndRenderSync(src)).toBe('{{ value }}  after')
+  })
+
   it('should throw when not closed', async function () {
     const p = liquid.parseAndRender('{% raw %}')
     return expect(p).rejects.toThrow(/{% raw %} not closed/)

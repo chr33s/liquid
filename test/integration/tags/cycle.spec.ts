@@ -2,6 +2,11 @@ import { Liquid } from '../../../src/liquid'
 
 describe('tags/cycle', function () {
   const liquid = new Liquid()
+  it('should render falsy cycle values', async function () {
+    const src = '{% for i in (1..4) %}[{% cycle true, false, nil, 0 %}]{% endfor %}'
+    expect(await liquid.parseAndRender(src)).toBe('[true][false][][0]')
+    expect(liquid.parseAndRenderSync(src)).toBe('[true][false][][0]')
+  })
 
   it('should support cycle', async function () {
     const src = "{% cycle '1', '2', '3' %}"

@@ -32,6 +32,19 @@ function getWeekOfYear(d: LiquidDate, startDay: number) {
   const then = 7 - jan1.getDay() + startDay
   return String(Math.floor((now - then) / 7) + 1)
 }
+/** ISO 8601: weeks start on Monday, and week 1 holds the year's first Thursday. */
+function isoThursday(d: LiquidDate) {
+  const day = (d.getDay() + 6) % 7
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate() - day + 3))
+}
+function isoWeekYear(d: LiquidDate) {
+  return isoThursday(d).getUTCFullYear()
+}
+function isoWeek(d: LiquidDate) {
+  const thursday = isoThursday(d)
+  const jan1 = Date.UTC(thursday.getUTCFullYear(), 0, 1)
+  return Math.floor((thursday.getTime() - jan1) / 864e5 / 7) + 1
+}
 function isLeapYear(d: LiquidDate) {
   const year = d.getFullYear()
   return !!((year & 3) === 0 && (year % 100 || (year % 400 === 0 && year)))
@@ -66,6 +79,7 @@ const padWidths: Record<string, number> = {
   l: 2,
   L: 3,
   m: 2,
+  V: 2,
   M: 2,
   S: 2,
   U: 2,
@@ -91,6 +105,8 @@ const formatCodes: Record<string, FormatCodeHandler> = {
   B: (d: LiquidDate) => d.getLongMonthName(),
   c: (d: LiquidDate) => d.toLocaleString(),
   C: (d: LiquidDate) => century(d),
+  g: (d: LiquidDate) => padStart(isoWeekYear(d) % 100, 2, '0'),
+  G: (d: LiquidDate) => isoWeekYear(d),
   d: (d: LiquidDate) => d.getDate(),
   e: (d: LiquidDate) => d.getDate(),
   H: (d: LiquidDate) => d.getHours(),
@@ -114,6 +130,7 @@ const formatCodes: Record<string, FormatCodeHandler> = {
   S: (d: LiquidDate) => d.getSeconds(),
   u: (d: LiquidDate) => d.getDay() || 7,
   U: (d: LiquidDate) => getWeekOfYear(d, 0),
+  V: (d: LiquidDate) => isoWeek(d),
   w: (d: LiquidDate) => d.getDay(),
   W: (d: LiquidDate) => getWeekOfYear(d, 1),
   x: (d: LiquidDate) => d.toLocaleDateString(),

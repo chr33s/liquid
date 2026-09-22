@@ -156,6 +156,11 @@ describe('util/strftime', function () {
   })
 
   describe('combination', () => {
+    it('should format ISO weeks across year boundaries', function () {
+      expect(t(new TestDate('2016-01-01 12:00:00'), '%G-W%V|%g')).toBe('2015-W53|15')
+      expect(t(new TestDate('2016-01-04 12:00:00'), '%G-W%V|%g')).toBe('2016-W01|16')
+      expect(t(new TestDate('2018-12-31 12:00:00'), '%G-W%V|%g')).toBe('2019-W01|19')
+    })
     it('should format %x as local date string', function () {
       expect(t(now, '%x')).toBe(now.toLocaleDateString())
     })
