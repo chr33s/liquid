@@ -1,4 +1,4 @@
-import { Operation, associate, operationFor, type OperationOptions } from './util/operation'
+import { Operation, associate, existingOperation, operationFor, type OperationOptions } from './util/operation'
 import { drive as execute } from './util/async'
 import { StreamedEmitter, type Emitter } from './emitters'
 import { Context } from './context'
@@ -58,6 +58,10 @@ export class Liquid {
     emitter?: Emitter
   ): IterableIterator<any> {
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options, renderOptions)
+    if (ctx.operationActive && ctx.operation === existingOperation(renderOptions)) {
+      if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
+      return yield this.renderer.renderTemplates(tpl, ctx, emitter)
+    }
     const previous = ctx.operation
     const wasActive = ctx.operationActive
     ctx.operationActive = true
@@ -71,7 +75,7 @@ export class Liquid {
     }
   }
   public async render(tpl: Template[], scope?: object, renderOptions?: RenderOptions): Promise<any> {
-    return this.run(renderOptions, options => this._render(tpl, scope, options))
+    return this.run(renderOptions, options => this._render(tpl, scope, options), scope)
   }
 
   public _parseAndRender(
@@ -83,7 +87,7 @@ export class Liquid {
     return this._render(tpl, scope, renderOptions)
   }
   public async parseAndRender(html: string, scope?: Context | object, renderOptions?: RenderOptions): Promise<any> {
-    return this.run(renderOptions, options => this._parseAndRender(html, scope, options))
+    return this.run(renderOptions, options => this._parseAndRender(html, scope, options), scope)
   }
 
   public _parsePartialFile(file: string, currentFile?: string, options?: OperationOptions) {
@@ -112,12 +116,13 @@ export class Liquid {
     return yield this._render(templates, ctx, renderFileOptions)
   }
   public async renderFile(file: string, ctx?: Context | object, renderFileOptions?: RenderFileOptions) {
-    return this.run(renderFileOptions, options => this._renderFile(file, ctx, options))
+    return this.run(renderFileOptions, options => this._renderFile(file, ctx, options), ctx)
   }
 
   public *_evalValue(str: string, scope?: object | Context, options: OperationOptions = {}): IterableIterator<any> {
     const value = new Value(str, this)
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options)
+    if (ctx.operationActive && ctx.operation === existingOperation(options)) return yield value.value(ctx)
     const previous = ctx.operation
     const wasActive = ctx.operationActive
     ctx.operationActive = true
@@ -130,21 +135,26 @@ export class Liquid {
     }
   }
   public async evalValue(str: string, scope?: object | Context, options?: OperationOptions): Promise<any> {
-    return this.run(options, options => this._evalValue(str, scope, options))
+    return this.run(options, options => this._evalValue(str, scope, options), scope)
   }
 
   private async run<T, O extends OperationOptions>(
     options: O | undefined,
-    task: (options: O) => Generator<unknown, T> | IterableIterator<T>
+    task: (options: O) => Generator<unknown, T> | IterableIterator<T>,
+    scope?: object
   ): Promise<T> {
-    const owner = new Operation(options?.signal)
+    const active =
+      scope instanceof Context && scope.operationActive ? scope.operation : existingOperation(options ?? {})
+    const owner = active ?? new Operation(options?.signal)
     const owned = associate({ ...options, signal: owner.signal } as O, owner)
+    if (active) return owner.join(execute(task(owned) as Generator<unknown, T>, owner))
     try {
       owner.check()
       const result = await execute(task(owned) as Generator<unknown, T>, owner)
       owner.check()
       return result
     } finally {
+      await owner.drain()
       owner.finish()
     }
   }
@@ -183,7 +193,8 @@ export class Liquid {
       .catch(error => {
         emitter.error(owner.signal.aborted ? owner.signal.reason : error)
       })
-      .finally(() => {
+      .finally(async () => {
+        await owner.drain()
         owner.signal.removeEventListener('abort', abort)
         owner.finish()
       })

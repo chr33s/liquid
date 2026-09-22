@@ -25,6 +25,7 @@ export class Operation {
   private started = Date.now()
   private settled = false
   private cancelled = false
+  private readonly pending = new Set<Promise<unknown>>()
   readonly secondary: unknown[] = []
 
   constructor(signal?: AbortSignal) {
@@ -95,6 +96,19 @@ export class Operation {
       )
       if (state.signal?.aborted) abort()
     })
+  }
+
+  async join<T>(task: Promise<T>): Promise<T> {
+    this.pending.add(task)
+    try {
+      return await task
+    } finally {
+      this.pending.delete(task)
+    }
+  }
+
+  async drain(): Promise<void> {
+    while (this.pending.size) await Promise.allSettled(this.pending)
   }
 
   finish() {
