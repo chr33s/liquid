@@ -103,7 +103,7 @@ try {
 }
 ```
 
-Cancellation preserves the exact reason, including primitives and object identity, and bypasses ordinary error aggregation and missing-layout fallback. The engine stops waiting on ordinary providers, observes late rejection, and unwinds generator finalizers from inside out. Cleanup may yield. A finalizer that never settles can prevent cleanup completion. External async extensions may continue their own side effects; cancellation does not terminate them or make a retained context safe for concurrent reuse.
+Cancellation preserves the exact reason, including primitives and object identity, and bypasses ordinary error aggregation. The engine stops waiting on ordinary providers, observes late rejection, and unwinds generator finalizers from inside out. Cleanup may yield. A `finally` block that is already suspended at a `yield` when cancellation arrives resumes with a return completion, so its remaining statements are skipped; release state before the first `yield` in a `finally`. A finalizer that never settles can prevent cleanup completion. External async extensions may continue their own side effects; cancellation does not terminate them or make a retained context safe for concurrent reuse.
 
 The shared driver offers host tasks a turn after at most 1,024 checkpoints, checking elapsed work every 64 checkpoints against an 8 ms target. These are cooperative scheduling targets, not latency guarantees or CPU preemption. Individual synchronous parsing/filter calls remain non-preemptible.
 
@@ -139,7 +139,7 @@ await pipeline(Readable.fromWeb(text.pipeThrough(new TextEncoderStream())), resp
 
 ## File providers, limits, and browser URLs
 
-FS providers expose receiver-bound `exists(path, options?)`, `readFile(path, options?)`, and optional `contains(root, path, options?)`; remove their Sync counterparts. They may return immediate values or Promises. `resolve`, `dirname`, and `fallback` remain synchronous. Declare missing files with `code: 'ENOENT'` or `ENOTDIR`. Only classified absence tries the next candidate. Permissions, parse errors, source limits, network/CORS failures, and non-404 HTTP errors fail. Only a missing default theme layout permits unwrapped rendering.
+FS providers expose receiver-bound `exists(path, options?)`, `readFile(path, options?)`, and optional `contains(root, path, options?)`; remove their Sync counterparts. They may return immediate values or Promises. `resolve`, `dirname`, and `fallback` remain synchronous. Declare missing files with `code: 'ENOENT'` or `ENOTDIR`. Only classified absence tries the next candidate. Permissions, parse errors, source limits, network/CORS failures, and non-404 HTTP errors fail.
 
 `sourceByteLimit` defaults to `Infinity` and must be a nonnegative safe integer or Infinity. It applies per template read before decoding (Fetch counts delivered, decompressed body bytes). `parseLimit` retains its parser-lifetime UTF-16 accounting; the derived `FileReadOptions.sourceCodeUnitLimit` permits early rejection without a second charge. Built-in byte adapters read incrementally under finite limits. Custom providers returning complete strings own allocation and raw-byte enforcement; the engine checks decoded length afterward. Map strings are already allocated. Unbounded defaults do not imply bounded input memory.
 

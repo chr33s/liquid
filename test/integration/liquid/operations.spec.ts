@@ -224,6 +224,51 @@ describe('operation lifecycle', () => {
     expect(provider).toHaveBeenCalledTimes(1)
   })
 
+  it('forwards the driving signal to direct generator renders and releases listeners', async () => {
+    const engine = new Liquid()
+    const controller = new AbortController()
+    let aborted: boolean | undefined
+    engine.registerFilter('abort', function () {
+      controller.abort('stop')
+      aborted = this.context.signal.aborted
+    })
+    await toPromise(engine._render(engine.parse('{{ 1 }}'), {}, { signal: controller.signal }))
+    await toPromise(engine._evalValue('1', {}, { signal: controller.signal }))
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0)
+    const rendering = toPromise(engine._render(engine.parse('{{ 1 | abort }}'), {}), { signal: controller.signal })
+    await expect(rendering).rejects.toBe('stop')
+    expect(aborted).toBe(true)
+  })
+
+  it('keeps a retained or overlapped context usable', async () => {
+    const engine = new Liquid()
+    let retained: Context | undefined
+    engine.registerFilter('retain', function () {
+      retained = this.context
+    })
+    engine.registerFilter('delay', (value, ms) => new Promise(resolve => setTimeout(() => resolve(value), ms)))
+    await engine.parseAndRender('{{ 1 | retain }}', { x: 'X' })
+    await expect(retained!.get(['x'])).resolves.toBe('X')
+    await expect(engine.parseAndRender('{{ x }}', retained)).resolves.toBe('X')
+    const ctx = new Context({ a: 'A' }, engine.options)
+    const rendering = engine.parseAndRender('{{ a | delay: 5 }}', ctx)
+    const streaming = drainStream(engine.renderToStream(engine.parse('{{ a | delay: 20 }}'), ctx))
+    await expect(Promise.all([rendering, streaming])).resolves.toEqual(['A', 'A'])
+    await expect(ctx.get(['a'])).resolves.toBe('A')
+  })
+
+  it('drains joined lookups before finishing a stream', async () => {
+    const engine = new Liquid()
+    let lookup: Promise<unknown> | undefined
+    engine.registerFilter('background', function () {
+      lookup = this.context.get(['slow'])
+      return 'x'
+    })
+    const scope = { slow: () => new Promise(resolve => setTimeout(() => resolve('done'), 5)) }
+    await expect(drainStream(engine.renderToStream(engine.parse('{{ 1 | background }}'), scope))).resolves.toBe('x')
+    await expect(lookup).resolves.toBe('done')
+  })
+
   it('restores a caller context after cancellation', async () => {
     const engine = new Liquid()
     const ctx = new Context({ name: 'Ada' })

@@ -1,21 +1,49 @@
 import { isPromise, isIterator } from './underscore'
-import { Operation, existingOperation, operationFor, type OperationOptions } from './operation'
+import { Operation, associate, existingOperation, type OperationOptions } from './operation'
 
-export async function toPromise<T>(
+let current: Operation | undefined
+
+/** @internal The operation whose driver is stepping the running generator, if any. */
+export function driving(): Operation | undefined {
+  return current
+}
+
+export function toPromise<T>(
   value: Generator<unknown, T, unknown> | Promise<T> | T,
   options: OperationOptions = {}
 ): Promise<T> {
-  const active = existingOperation(options)
-  if (active) return active.join(drive(value, active))
-  const owner = operationFor(options)
-  try {
-    const result = await drive(value, owner)
-    owner.check()
-    return result
-  } finally {
-    await owner.drain()
-    owner.finish()
+  return operate(options, () => value)
+}
+
+/**
+ * @internal Drive `task` under the operation associated with `options`, else join `parent` when `options` add no
+ * signal of their own, else under a new operation linked to both signals that is drained and finished with the task.
+ */
+export async function operate<T, O extends OperationOptions>(
+  options: O,
+  task: (options: O) => Generator<unknown, T, unknown> | IterableIterator<T> | Promise<T> | T,
+  parent?: Operation
+): Promise<T> {
+  const associated = existingOperation(options)
+  const joined = associated ?? (parent && (!options.signal || options.signal === parent.signal) ? parent : undefined)
+  if (joined) {
+    const owned = associated ? options : associate({ ...options, signal: joined.signal }, joined)
+    return joined.join(drive(task(owned) as Generator<unknown, T, unknown>, joined))
   }
+  const owner = new Operation(options.signal, parent?.signal)
+  const owned = associate({ ...options, signal: owner.signal }, owner)
+  const run = async () => {
+    try {
+      owner.check()
+      const result = await drive(task(owned) as Generator<unknown, T, unknown>, owner)
+      owner.check()
+      return result
+    } finally {
+      await owner.drain()
+      owner.finish()
+    }
+  }
+  return parent ? parent.join(run()) : run()
 }
 
 export async function drive<T>(
@@ -53,6 +81,8 @@ export async function drive<T>(
         return input as T
       }
       const iterator = stack[stack.length - 1]
+      const previous = current
+      current = owner
       try {
         const state = iterator[method]!(input)
         input = state.value
@@ -62,6 +92,8 @@ export async function drive<T>(
         stack.pop()
         method = 'throw'
         input = error
+      } finally {
+        current = previous
       }
     }
   } catch (error) {
@@ -74,13 +106,10 @@ export async function drive<T>(
             try {
               state = iterator.next(await drive(state.value, owner, true))
             } catch (secondary) {
-              owner.secondary.push(secondary)
               state = iterator.throw!(secondary)
             }
           }
-        } catch (secondary) {
-          owner.secondary.push(secondary)
-        }
+        } catch {}
       }
       throw owner.signal.reason
     }

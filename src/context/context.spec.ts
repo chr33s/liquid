@@ -1,5 +1,6 @@
 import { Context } from './context'
 import { Scope } from './scope'
+import { Drop } from '../drop/drop'
 describe('Context', function () {
   let ctx: any, scope: Scope
   beforeEach(function () {
@@ -83,6 +84,14 @@ describe('Context', function () {
     it('should call function before read nested property', async function () {
       expect(await ctx.get(['objFunc', 'prop'])).toEqual('PROP')
     })
+  })
+  it('should read methods of a Drop environment', async function () {
+    class Root extends Drop {
+      name() {
+        return 'Ada'
+      }
+    }
+    expect(await new Context(new Root()).get(['name'])).toBe('Ada')
   })
   describe('#getFromScope()', function () {
     it('should support string', async () => {

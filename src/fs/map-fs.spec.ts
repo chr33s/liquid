@@ -34,5 +34,9 @@ describe('MapFS', () => {
     it('should throw if not exist', async () => {
       await expect(async () => await fs.readFile('foo/bar')).rejects.toThrow('NOENT: foo/bar')
     })
+    it('should treat inherited names as missing', async () => {
+      expect(await fs.exists('constructor')).toBe(false)
+      await expect(fs.readFile('toString')).rejects.toMatchObject({ code: 'ENOENT' })
+    })
   })
 })

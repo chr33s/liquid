@@ -1,4 +1,4 @@
-import { Operation, associate, drive, operationFor, existingOperation } from '../util'
+import { Operation, associate, drive, driving, toPromise } from '../util'
 import { Drop } from '../drop/drop'
 import { NormalizedFullOptions, defaultOptions, RenderOptions } from '../liquid-options'
 import { createScope, Scope } from './scope'
@@ -39,12 +39,29 @@ export class Context {
    * global scope used as fallback for missing variables
    */
   public globals: Scope
-  /** @internal */
-  public operation: Operation
-  /** @internal */
-  public operationActive = false
-  private lookupLifetime?: { owner: Operation; previous: Operation; pending: number }
+  private bindings: Operation[] = []
+  private idle?: Operation
   private readonly lookupSignal?: AbortSignal
+  /** @internal */
+  public get operation(): Operation {
+    const bindings = this.bindings
+    const owner = driving()
+    if (owner && bindings.includes(owner)) return owner
+    return bindings[bindings.length - 1] ?? (this.idle ??= new Operation())
+  }
+  /** @internal */
+  public get operationActive() {
+    return this.bindings.length > 0
+  }
+  /** @internal */
+  public *bind<T>(owner: Operation, task: IterableIterator<T>): Generator<unknown, T, T> {
+    this.bindings.push(owner)
+    try {
+      return yield task
+    } finally {
+      this.bindings.splice(this.bindings.lastIndexOf(owner), 1)
+    }
+  }
   public get signal() {
     return this.operation.signal
   }
@@ -75,9 +92,7 @@ export class Context {
       depthLimit
     }: { templateLimit?: Limiter; outputLengthLimit?: Limiter; depthLimit?: Limiter } = {}
   ) {
-    this.operationActive = !!existingOperation(renderOptions)
     this.lookupSignal = renderOptions.signal
-    this.operation = this.operationActive ? operationFor(renderOptions) : new Operation()
     this.opts = opts
     this.globals = renderOptions.globals ?? opts.globals
     this.environments = isObject(env) ? env : Object(env)
@@ -106,31 +121,10 @@ export class Context {
   public get(paths: PropertyKey[]): Promise<unknown> {
     return this.lookup(this._get(paths))
   }
-  private async lookup(value: IterableIterator<unknown>): Promise<unknown> {
-    if (this.operationActive && !this.lookupLifetime) return this.operation.join(drive(value, this.operation))
-    const lifetime = (this.lookupLifetime ??= {
-      owner: new Operation(this.lookupSignal),
-      previous: this.operation,
-      pending: 0
-    })
-    this.operation = lifetime.owner
-    this.operationActive = true
-    lifetime.pending++
-    try {
-      const result = await drive(value, lifetime.owner)
-      lifetime.owner.check()
-      return result
-    } finally {
-      if (--lifetime.pending === 0) {
-        await lifetime.owner.drain()
-        if (lifetime.pending === 0) {
-          lifetime.owner.finish()
-          this.operation = lifetime.previous
-          this.operationActive = false
-          this.lookupLifetime = undefined
-        }
-      }
-    }
+  private lookup(value: IterableIterator<unknown>): Promise<unknown> {
+    const owner = this.operationActive ? this.operation : driving()
+    if (owner) return owner.join(drive(value, owner))
+    return toPromise(value, { signal: this.lookupSignal })
   }
   public *_get(paths: (PropertyKey | Drop)[]): IterableIterator<unknown> {
     const scope = this.findScope(paths[0] as string) // first prop should always be a string
@@ -179,19 +173,19 @@ export class Context {
         depthLimit: this.depthLimit
       }
     )
-    child.operation.finish()
-    child.operation = this.operation
-    child.operationActive = this.operationActive
+    child.bindings = this.bindings
     return child
   }
   private findScope(key: string | number) {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       const candidate = this.scopes[i]
-      if (this.ownPropertyOnly ? hasOwnProperty.call(candidate, key) : key in candidate) return candidate
+      if (this.defines(candidate, key)) return candidate
     }
-    if (this.ownPropertyOnly ? hasOwnProperty.call(this.environments, key) : key in this.environments)
-      return this.environments
+    if (this.defines(this.environments, key)) return this.environments
     return this.globals
+  }
+  private defines(scope: Scope, key: string | number) {
+    return this.ownPropertyOnly && !(scope instanceof Drop) ? hasOwnProperty.call(scope, key) : key in scope
   }
   readProperty(obj: Scope, key: PropertyKey | Drop) {
     if (this.operationActive) this.operation.check()

@@ -89,14 +89,11 @@ export default class extends Tag {
         const { value, alias } = this.forBinding
         const collection = toEnumerable(yield evalToken(value, ctx))
         const forloop = new ForloopDrop(collection.length, value.getText(), alias || filepath)
+        let templates: Template[] | undefined
         for (const item of collection) {
           scope[alias || filepath] = item
           scope['forloop'] = forloop
-          const templates = (yield liquid._parsePartialFile(
-            filepath,
-            this.currentFile,
-            ctx.operationOptions
-          )) as Template[]
+          templates ??= (yield liquid._parsePartialFile(filepath, this.currentFile, ctx.operationOptions)) as Template[]
           yield liquid.renderer.renderTemplates(templates, childCtx, emitter)
           forloop.next()
         }

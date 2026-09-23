@@ -40,21 +40,6 @@ export class Loader {
     return false
   }
 
-  public *lookup(
-    file: string,
-    type: LookupType,
-    currentFile?: string,
-    options: OperationOptions = {}
-  ): Generator<unknown, string, boolean> {
-    const dirs = this.options[type]
-    for (const filepath of this.candidates(file, dirs, currentFile)) {
-      if (!(yield this.allowed(filepath, dirs, options))) continue
-      options.signal?.throwIfAborted()
-      if (yield this.options.fs.exists(filepath, options)) return filepath
-    }
-    throw this.lookupError(file, dirs)
-  }
-
   public *load(
     file: string,
     type: LookupType,

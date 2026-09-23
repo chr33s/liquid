@@ -36,7 +36,7 @@ export class StreamedEmitter implements Emitter {
     )
   }
 
-  write(value: any): Promise<void> {
+  write(value: any): Promise<void> | void {
     this.owner.check()
     if (this.pending) {
       const error = new Error('Overlapping emitter writes: await or yield each write')
@@ -45,7 +45,12 @@ export class StreamedEmitter implements Emitter {
     }
     const text = stringify(value)
     this.outputLengthLimit?.use(text.length)
-    const task = this.accept(text)
+    let offset = 0
+    while (offset < text.length && !this.saturated) {
+      this.controller.enqueue(text.slice(offset, (offset += 16_384)))
+    }
+    if (!text || !this.saturated) return
+    const task = this.accept(text, offset)
     this.pending = task
     task.then(
       () => {
@@ -58,10 +63,13 @@ export class StreamedEmitter implements Emitter {
     return task
   }
 
-  private async accept(text: string) {
-    for (let offset = 0; offset < text.length; offset += 16_384) {
-      this.owner.check()
-      while (this.controller.desiredSize !== null && this.controller.desiredSize <= 0) {
+  private get saturated() {
+    return this.controller.desiredSize !== null && this.controller.desiredSize <= 0
+  }
+
+  private async accept(text: string, offset: number) {
+    while (true) {
+      while (this.saturated) {
         await this.owner.wait(
           new Promise<void>(resolve => {
             this.demand = resolve
@@ -69,15 +77,8 @@ export class StreamedEmitter implements Emitter {
         )
         this.owner.check()
       }
-      this.controller.enqueue(text.slice(offset, offset + 16_384))
-      if (this.controller.desiredSize !== null && this.controller.desiredSize <= 0) {
-        await this.owner.wait(
-          new Promise<void>(resolve => {
-            this.demand = resolve
-          })
-        )
-        this.owner.check()
-      }
+      if (offset >= text.length) return
+      this.controller.enqueue(text.slice(offset, (offset += 16_384)))
     }
   }
 
@@ -88,7 +89,6 @@ export class StreamedEmitter implements Emitter {
       this.terminal = true
       this.controller.close()
     }
-    this.owner.finish()
   }
 
   error(reason: unknown) {

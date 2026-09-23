@@ -153,6 +153,12 @@ describe('tags/render', function () {
     const html = await liquid.renderFile('index.html', { colors: ['red', 'green'] })
     expect(html).toBe('1: red\n2: green\n')
   })
+  it('should load a for partial once', async function () {
+    const readFile = vi.fn(async () => '{{ color }}')
+    const engine = new Liquid({ fs: { resolve: (_root, file) => file, exists: () => true, readFile } })
+    expect(await engine.parseAndRender('{% render "item" for colors as color %}', { colors: [1, 2, 3] })).toBe('123')
+    expect(readFile).toHaveBeenCalledTimes(1)
+  })
   it('should support for <iterable> as', async function () {
     class MockIterable {
       *[Symbol.iterator]() {

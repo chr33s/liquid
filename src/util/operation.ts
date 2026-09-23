@@ -8,13 +8,22 @@ export function existingOperation(options: object): Operation | undefined {
   return owners.get(options)
 }
 
-export function operationFor(options: OperationOptions = {}): Operation {
-  return owners.get(options) ?? new Operation(options.signal)
-}
-
 export function associate<T extends OperationOptions>(options: T, owner: Operation): T {
   owners.set(options, owner)
   return options
+}
+
+function yieldToHost(resolve: () => void) {
+  const immediate = (globalThis as { setImmediate?: (callback: () => void) => unknown }).setImmediate
+  if (immediate) immediate(resolve)
+  else if (typeof MessageChannel === 'function') {
+    const { port1, port2 } = new MessageChannel()
+    port1.onmessage = () => {
+      port1.close()
+      resolve()
+    }
+    port2.postMessage(undefined)
+  } else setTimeout(resolve, 0)
 }
 
 export class Operation {
@@ -26,15 +35,17 @@ export class Operation {
   private settled = false
   private cancelled = false
   private readonly pending = new Set<Promise<unknown>>()
-  readonly secondary: unknown[] = []
 
-  constructor(signal?: AbortSignal) {
-    if (signal) {
+  constructor(...signals: (AbortSignal | undefined)[]) {
+    const detach: (() => void)[] = []
+    for (const signal of signals) {
+      if (!signal) continue
       const abort = () => this.abort(signal.reason)
       signal.addEventListener('abort', abort, { once: true })
-      this.detach = () => signal.removeEventListener('abort', abort)
+      detach.push(() => signal.removeEventListener('abort', abort))
       if (signal.aborted) abort()
     }
+    if (detach.length) this.detach = () => detach.forEach(remove => remove())
   }
 
   abort(reason?: unknown) {
@@ -54,13 +65,7 @@ export class Operation {
     this.ticks++
     if (this.ticks >= 1024 || (this.ticks % 64 === 0 && Date.now() - this.started >= 8)) {
       this.ticks = 0
-      return this.wait(
-        new Promise<void>(resolve => {
-          const immediate = (globalThis as { setImmediate?: (callback: () => void) => unknown }).setImmediate
-          if (immediate) immediate(resolve)
-          else setTimeout(resolve, 0)
-        })
-      ).then(() => {
+      return this.wait(new Promise<void>(yieldToHost)).then(() => {
         this.started = Date.now()
       })
     }

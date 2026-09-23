@@ -1,5 +1,5 @@
 import type { FileReadOptions } from './fs'
-import { isNil } from '../util'
+import { hasOwnProperty, isNil } from '../util'
 
 export class MapFS {
   constructor(private mapping: { [key: string]: string }) {}
@@ -7,13 +7,13 @@ export class MapFS {
   public sep = '/'
 
   async exists(filepath: string) {
-    return !isNil(this.mapping[filepath])
+    return !isNil(this.read(filepath))
   }
 
   async readFile(filepath: string, options: FileReadOptions = {}) {
     options.signal?.throwIfAborted()
-    const content = this.mapping[filepath]
-    if (isNil(content)) throw Object.assign(new Error(`ENOENT: ${filepath}`), { code: 'ENOENT' })
+    const content = this.read(filepath)
+    if (content == null) throw Object.assign(new Error(`ENOENT: ${filepath}`), { code: 'ENOENT' })
     if (content.length > (options.sourceCodeUnitLimit ?? Infinity)) throw new Error('parse length limit exceeded')
     let bytes = 0
     for (const character of content) {
@@ -22,6 +22,10 @@ export class MapFS {
       if (bytes > (options.sourceByteLimit ?? Infinity)) throw new Error('source byte limit exceeded')
     }
     return content
+  }
+
+  private read(filepath: string): string | undefined {
+    return hasOwnProperty.call(this.mapping, filepath) ? this.mapping[filepath] : undefined
   }
 
   dirname(filepath: string) {

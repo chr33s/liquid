@@ -1,4 +1,4 @@
-import { Operation, associate, existingOperation, type OperationOptions } from '../util/operation'
+import type { OperationOptions } from '../util/operation'
 import { Argument, Template, Value } from '.'
 import { isKeyValuePair } from '../parser/filter-arg'
 import { PropertyAccessToken, ValueToken } from '../tokens'
@@ -11,7 +11,7 @@ import {
   isTagToken,
   isValueToken,
   isWordToken,
-  drive
+  operate
 } from '../util'
 
 /**
@@ -279,18 +279,7 @@ function* _analyze(
  */
 export async function analyze(template: Template[], options: StaticAnalysisOptions = {}): Promise<StaticAnalysis> {
   const opts = { ...defaultStaticAnalysisOptions, ...options } as Required<StaticAnalysisOptions>
-  const active = existingOperation(options)
-  const owner = active ?? new Operation(options.signal)
-  const owned = associate({ ...options, signal: owner.signal }, owner)
-  if (active) return owner.join(drive(_analyze(template, opts.partials, owned), owner))
-  try {
-    const result = await drive(_analyze(template, opts.partials, owned), owner)
-    owner.check()
-    return result
-  } finally {
-    await owner.drain()
-    owner.finish()
-  }
+  return operate(options, owned => _analyze(template, opts.partials, owned))
 }
 
 interface ScopeStackItem {

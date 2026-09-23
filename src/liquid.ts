@@ -1,5 +1,5 @@
-import { Operation, associate, existingOperation, operationFor, type OperationOptions } from './util/operation'
-import { drive as execute } from './util/async'
+import { Operation, associate, existingOperation, type OperationOptions } from './util/operation'
+import { drive as execute, driving, operate } from './util/async'
 import { StreamedEmitter, type Emitter } from './emitters'
 import { Context } from './context'
 import { forOwn, isString, strictUniq } from './util'
@@ -58,21 +58,10 @@ export class Liquid {
     emitter?: Emitter
   ): IterableIterator<any> {
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options, renderOptions)
-    if (ctx.operationActive && ctx.operation === existingOperation(renderOptions)) {
-      if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
-      return yield this.renderer.renderTemplates(tpl, ctx, emitter)
-    }
-    const previous = ctx.operation
-    const wasActive = ctx.operationActive
-    ctx.operationActive = true
-    ctx.operation = operationFor(renderOptions)
-    try {
-      if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
-      return yield this.renderer.renderTemplates(tpl, ctx, emitter)
-    } finally {
-      ctx.operation = previous
-      ctx.operationActive = wasActive
-    }
+    const owner = existingOperation(renderOptions)
+    if (!owner) return yield operate(renderOptions, options => this._render(tpl, ctx, options, emitter), driving())
+    if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
+    return yield ctx.bind(owner, this.renderer.renderTemplates(tpl, ctx, emitter))
   }
   public async render(tpl: Template[], scope?: object, renderOptions?: RenderOptions): Promise<any> {
     return this.run(renderOptions, options => this._render(tpl, scope, options), scope)
@@ -120,43 +109,25 @@ export class Liquid {
   }
 
   public *_evalValue(str: string, scope?: object | Context, options: OperationOptions = {}): IterableIterator<any> {
-    const value = new Value(str, this)
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options)
-    if (ctx.operationActive && ctx.operation === existingOperation(options)) return yield value.value(ctx)
-    const previous = ctx.operation
-    const wasActive = ctx.operationActive
-    ctx.operationActive = true
-    ctx.operation = operationFor(options)
-    try {
-      return yield value.value(ctx)
-    } finally {
-      ctx.operation = previous
-      ctx.operationActive = wasActive
-    }
+    const owner = existingOperation(options)
+    if (!owner) return yield operate(options, options => this._evalValue(str, ctx, options), driving())
+    return yield ctx.bind(owner, new Value(str, this).value(ctx))
   }
   public async evalValue(str: string, scope?: object | Context, options?: OperationOptions): Promise<any> {
     return this.run(options, options => this._evalValue(str, scope, options), scope)
   }
 
-  private async run<T, O extends OperationOptions>(
+  private run<T, O extends OperationOptions>(
     options: O | undefined,
     task: (options: O) => Generator<unknown, T> | IterableIterator<T>,
     scope?: object
   ): Promise<T> {
-    const active =
-      scope instanceof Context && scope.operationActive ? scope.operation : existingOperation(options ?? {})
-    const owner = active ?? new Operation(options?.signal)
-    const owned = associate({ ...options, signal: owner.signal } as O, owner)
-    if (active) return owner.join(execute(task(owned) as Generator<unknown, T>, owner))
-    try {
-      owner.check()
-      const result = await execute(task(owned) as Generator<unknown, T>, owner)
-      owner.check()
-      return result
-    } finally {
-      await owner.drain()
-      owner.finish()
-    }
+    return operate(
+      options ?? ({} as O),
+      task,
+      scope instanceof Context && scope.operationActive ? scope.operation : undefined
+    )
   }
 
   public renderToStream(templates: Template[], scope?: object, options: RenderOptions = {}): ReadableStream<string> {
@@ -273,16 +244,12 @@ export class Liquid {
     return Object.keys(analysis.variables)
   }
 
-  /** Return an array of all variables without their properties. */
-
   /** Return an array of all variables including their properties/paths. */
   public async fullVariables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
     options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Array.from(new Set(Object.values(analysis.variables).flatMap(a => a.map(v => String(v)))))
   }
-
-  /** Return an array of all variables including their properties/paths. */
 
   /** Return an array of all variables, each as an array of properties/segments. */
   public async variableSegments(
@@ -294,16 +261,12 @@ export class Liquid {
     return Array.from(strictUniq(Object.values(analysis.variables).flatMap(a => a.map(v => v.toArray()))))
   }
 
-  /** Return an array of all variables, each as an array of properties/segments. */
-
   /** Return an array of all expected context variables without their properties. */
   public async globalVariables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
     options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Object.keys(analysis.globals)
   }
-
-  /** Return an array of all expected context variables without their properties. */
 
   /** Return an array of all expected context variables including their properties/paths. */
   public async globalFullVariables(
@@ -315,8 +278,6 @@ export class Liquid {
     return Array.from(new Set(Object.values(analysis.globals).flatMap(a => a.map(v => String(v)))))
   }
 
-  /** Return an array of all expected context variables including their properties/paths. */
-
   /** Return an array of all expected context variables, each as an array of properties/segments. */
   public async globalVariableSegments(
     template: string | Template[],
@@ -326,6 +287,4 @@ export class Liquid {
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
     return Array.from(strictUniq(Object.values(analysis.globals).flatMap(a => a.map(v => v.toArray()))))
   }
-
-  /** Return an array of all expected context variables, each as an array of properties/segments. */
 }

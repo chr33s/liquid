@@ -8,10 +8,6 @@ export class Limiter {
     this.message = `${resource} limit exceeded`
     this.limit = limit
   }
-  /** True when this limiter can never reject, so callers can skip accounting. */
-  get unlimited() {
-    return this.limit === Infinity
-  }
   get remaining() {
     return this.limit - this.base
   }
