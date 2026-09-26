@@ -48,6 +48,7 @@ export class Liquid {
   public readonly parser: Parser
   public readonly filters: Record<string, FilterImplOptions> = Object.create(null)
   public readonly tags: Record<string, TagClass> = Object.create(null)
+  private expressConfigured = false
 
   public constructor(opts: LiquidOptions = {}) {
     this.options = normalize(opts)
@@ -234,7 +235,14 @@ export class Liquid {
   public express() {
     const options = this.options
     const renderFile = this.renderFile.bind(this)
-    let configured = false
+    const configure = (root: unknown) => {
+      if (this.expressConfigured) return
+      this.expressConfigured = true
+      const dirs = normalizeDirectoryList(root)
+      options.root = [...dirs, ...options.root]
+      options.layouts = [...dirs, ...options.layouts]
+      options.partials = [...dirs, ...options.partials]
+    }
 
     return function (
       this: { root?: string | string[] },
@@ -242,13 +250,7 @@ export class Liquid {
       ctx: object,
       callback: (err: Error | null, rendered?: string) => void
     ) {
-      if (!configured) {
-        configured = true
-        const dirs = normalizeDirectoryList(this.root)
-        options.root = [...dirs, ...options.root]
-        options.layouts = [...dirs, ...options.layouts]
-        options.partials = [...dirs, ...options.partials]
-      }
+      configure(this.root)
       renderFile(filePath, ctx).then(
         html => callback(null, html),
         error => callback(error instanceof Error ? error : new Error(String(error)))

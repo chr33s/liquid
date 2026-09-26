@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -e
 
 LOG_FILE=$(mktemp)

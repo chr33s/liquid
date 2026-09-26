@@ -149,6 +149,19 @@ The default browser adapter resolves with `URL`, without DOM mutation. Supply an
 
 The intended worker subset is in-memory rendering/streaming and explicit-base Fetch loading with native Web APIs. This is not a compatibility claim for every provider, plugin, or edge runtime; see the implementation validation record for executed qualification.
 
+## Stricter options and typed errors
+
+Invalid constructor options throw {@link LiquidOptionError} instead of being coerced:
+
+- `root`, `partials`, and `layouts` must be a string or an array of strings. `null` no longer becomes an empty list.
+- Boolean options such as `strictFilters` must be booleans, and string options such as `extname` must be strings. `strictFilters: 1` throws.
+- `parseLimit`, `templateLimit`, `outputLengthLimit`, and `maxDepth` must be nonnegative numbers.
+- A custom `cache` must implement `read`, `write`, and `remove`.
+
+`render`, `parseAndRender`, and `renderFile` resolve to a string. A non-string result, such as a top-level `break`, resolves to `''`.
+
+Every template error has a `code`. A custom subclass of {@link LiquidError} must declare one. Limit failures throw {@link LiquidLimitError} and missing templates throw {@link LiquidLookupError}, where they previously threw `AssertionError` or a plain `Error`. With `strictFilters`, an undefined filter no longer throws `AssertionError`. Narrow with {@link isLiquidFailure} instead. See [API Stability](./api-stability.md).
+
 ## Release metadata
 
 This migration requires a breaking major release through the existing semantic-release workflow. A release commit should use a conventional breaking title such as `feat!: make execution async-only with cancellation and Web streams` and a `BREAKING CHANGE:` footer describing removed APIs, awaitable writes, and loading policy changes. The package version remains under release automation; this implementation does not publish a release.

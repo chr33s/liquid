@@ -27,11 +27,11 @@ engine.registerTag('upper', class UpperTag extends Tag {
 
 ```typescript
 // Usage: {% upper name:"alice" %}
-import { Hash, Tag, TagToken, Context, TopLevelToken, Liquid, Parser } from '@chr33s/liquid'
+import { Hash, Tag, TagToken, Context, TopLevelToken, Liquid } from '@chr33s/liquid'
 
 engine.registerTag('upper', class UpperTag extends Tag {
     private hash: Hash
-    constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, _parser: Parser) {
+    constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
         super(tagToken, remainTokens, liquid)
         this.hash = new Hash(tagToken.args)
     }

@@ -112,6 +112,13 @@ describe('Liquid', function () {
       })
       expect(result).toBe('foo')
     })
+    it('should prepend the view root once per engine', function () {
+      const engine = new Liquid({ root: '/root' })
+      const callback = () => {}
+      engine.express().call({ root: '/views' }, 'foo', {}, callback)
+      engine.express().call({ root: '/views' }, 'foo', {}, callback)
+      expect(engine.options.root).toEqual(['/views', '/root'])
+    })
   })
   describe('#renderFile', function () {
     afterEach(restore)
