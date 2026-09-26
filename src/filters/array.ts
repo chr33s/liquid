@@ -123,15 +123,46 @@ export function slice<T>(this: FilterImpl, v: T[] | string, begin: number, lengt
     : String.prototype.slice.call(v, begin, begin + length)
 }
 
+interface ItemQuery {
+  property?: string
+  itemName?: string
+  exp?: string
+}
+
 function expectedMatcher(this: FilterImpl, expected: any): (v: any) => boolean {
   if (this.context.opts.jekyllWhere) {
     return (v: any) =>
       EmptyDrop.is(expected) ? equals(v, expected) : isArray(v) ? arrayIncludes(v, expected) : equals(v, expected)
-  } else if (expected === undefined) {
-    return (v: any) => isTruthy(v, this.context)
-  } else {
-    return (v: any) => equals(v, expected)
   }
+  if (expected === undefined) return (v: any) => isTruthy(v, this.context)
+  return (v: any) => equals(v, expected)
+}
+
+function* project(
+  this: FilterImpl,
+  items: Iterable<unknown>,
+  query: ItemQuery,
+  until?: (value: unknown) => boolean
+): Generator<unknown, unknown[], unknown> {
+  const values: unknown[] = []
+  const token = query.property != null ? new Tokenizer(stringify(query.property)).readScopeValue() : undefined
+  const expression = query.exp != null ? new Value(stringify(query.exp), this.liquid) : undefined
+  for (const item of items) {
+    let value: unknown
+    if (expression) {
+      this.context.push({ [query.itemName!]: item })
+      try {
+        value = yield expression.value(this.context)
+      } finally {
+        this.context.pop()
+      }
+    } else {
+      value = yield evalToken(token, this.context.spawn(item as object))
+    }
+    values.push(value)
+    if (until?.(value)) break
+  }
+  return values
 }
 
 function* filter<T extends object>(
@@ -141,14 +172,10 @@ function* filter<T extends object>(
   property: string,
   expected: any
 ): IterableIterator<unknown> {
-  const values: unknown[] = []
-  arr = toArray(arr)
-  const token = new Tokenizer(stringify(property)).readScopeValue()
-  for (const item of arr) {
-    values.push(yield evalToken(token, this.context.spawn(item)))
-  }
+  const items = toArray(arr)
+  const values = (yield* project.call(this, items, { property })) as unknown[]
   const matcher = expectedMatcher.call(this, expected)
-  return Array.prototype.filter.call(arr, (_, i) => matcher(values[i]) === include)
+  return items.filter((_, index) => matcher(values[index]) === include)
 }
 
 function* filter_exp<T extends object>(
@@ -158,19 +185,9 @@ function* filter_exp<T extends object>(
   itemName: string,
   exp: string
 ): IterableIterator<unknown> {
-  const filtered: unknown[] = []
-  const keyTemplate = new Value(stringify(exp), this.liquid)
-  const array = toArray(arr)
-  for (const item of array) {
-    this.context.push({ [itemName]: item })
-    try {
-      const value = yield keyTemplate.value(this.context)
-      if (isTruthy(value, this.context) === include) filtered.push(item)
-    } finally {
-      this.context.pop()
-    }
-  }
-  return filtered
+  const items = toArray(arr)
+  const values = (yield* project.call(this, items, { itemName, exp })) as unknown[]
+  return items.filter((_, index) => isTruthy(values[index], this.context) === include)
 }
 
 export function* where<T extends object>(
@@ -209,16 +226,20 @@ export function* reject_exp<T extends object>(
   return yield* filter_exp.call(this, false, arr, itemName, exp)
 }
 
-export function* group_by<T extends object>(this: FilterImpl, arr: T[], property: string): IterableIterator<unknown> {
-  const map = new Map()
-  arr = toEnumerable(arr)
-  const token = new Tokenizer(stringify(property)).readScopeValue()
-  for (const item of arr) {
-    const key = yield evalToken(token, this.context.spawn(item))
+function grouped(items: unknown[], keys: unknown[]) {
+  const map = new Map<unknown, unknown[]>()
+  items.forEach((item, index) => {
+    const key = keys[index]
     if (!map.has(key)) map.set(key, [])
-    map.get(key).push(item)
-  }
-  return [...map.entries()].map(([name, items]) => ({ name, items }))
+    map.get(key)!.push(item)
+  })
+  return [...map.entries()].map(([name, groupedItems]) => ({ name, items: groupedItems }))
+}
+
+export function* group_by<T extends object>(this: FilterImpl, arr: T[], property: string): IterableIterator<unknown> {
+  const items = toEnumerable(arr)
+  const keys = (yield* project.call(this, items, { property })) as unknown[]
+  return grouped(items, keys)
 }
 
 export function* group_by_exp<T extends object>(
@@ -227,20 +248,13 @@ export function* group_by_exp<T extends object>(
   itemName: string,
   exp: string
 ): IterableIterator<unknown> {
-  const map = new Map()
-  const keyTemplate = new Value(stringify(exp), this.liquid)
-  arr = toEnumerable(arr)
-  for (const item of arr) {
-    this.context.push({ [itemName]: item })
-    try {
-      const key = yield keyTemplate.value(this.context)
-      if (!map.has(key)) map.set(key, [])
-      map.get(key).push(item)
-    } finally {
-      this.context.pop()
-    }
-  }
-  return [...map.entries()].map(([name, items]) => ({ name, items }))
+  const items = toEnumerable(arr)
+  const keys = (yield* project.call(this, items, { itemName, exp })) as unknown[]
+  return grouped(items, keys)
+}
+
+function firstHit(values: unknown[], matched: boolean): number {
+  return matched ? values.length - 1 : -1
 }
 
 function* search<T extends object>(
@@ -249,13 +263,11 @@ function* search<T extends object>(
   property: string,
   expected: string
 ): IterableIterator<unknown> {
-  const token = new Tokenizer(stringify(property)).readScopeValue()
-  const array = toArray(arr)
+  const items = toArray(arr)
   const matcher = expectedMatcher.call(this, expected)
-  for (let index = 0; index < array.length; index++) {
-    const value = yield evalToken(token, this.context.spawn(array[index]))
-    if (matcher(value)) return [index, array[index]]
-  }
+  const values = (yield* project.call(this, items, { property }, value => matcher(value))) as unknown[]
+  const index = firstHit(values, values.length > 0 && matcher(values[values.length - 1]))
+  if (index >= 0) return [index, items[index]]
 }
 
 function* search_exp<T extends object>(
@@ -264,17 +276,12 @@ function* search_exp<T extends object>(
   itemName: string,
   exp: string
 ): IterableIterator<unknown> {
-  const predicate = new Value(stringify(exp), this.liquid)
-  const array = toArray(arr)
-  for (let index = 0; index < array.length; index++) {
-    this.context.push({ [itemName]: array[index] })
-    try {
-      const value = yield predicate.value(this.context)
-      if (isTruthy(value, this.context)) return [index, array[index]]
-    } finally {
-      this.context.pop()
-    }
-  }
+  const items = toArray(arr)
+  const values = (yield* project.call(this, items, { itemName, exp }, value =>
+    isTruthy(value, this.context)
+  )) as unknown[]
+  const index = firstHit(values, values.length > 0 && isTruthy(values[values.length - 1], this.context))
+  if (index >= 0) return [index, items[index]]
 }
 
 export function* has<T extends object>(

@@ -1,4 +1,4 @@
-import { Operation, associate, existingOperation, type OperationOptions } from './util/operation'
+import { Operation, type OperationOptions } from './util/operation'
 import { drive as execute, driving, operate } from './util/async'
 import { StreamedEmitter, type Emitter } from './emitters'
 import { Context } from './context'
@@ -58,8 +58,10 @@ export class Liquid {
     emitter?: Emitter
   ): IterableIterator<any> {
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options, renderOptions)
-    const owner = existingOperation(renderOptions)
-    if (!owner) return yield operate(renderOptions, options => this._render(tpl, ctx, options, emitter), driving())
+    const owner = driving()
+    if (!owner?.covers(renderOptions.signal)) {
+      return yield operate(renderOptions, () => this._render(tpl, ctx, renderOptions, emitter), owner)
+    }
     if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
     return yield ctx.bind(owner, this.renderer.renderTemplates(tpl, ctx, emitter))
   }
@@ -110,8 +112,8 @@ export class Liquid {
 
   public *_evalValue(str: string, scope?: object | Context, options: OperationOptions = {}): IterableIterator<any> {
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options)
-    const owner = existingOperation(options)
-    if (!owner) return yield operate(options, options => this._evalValue(str, ctx, options), driving())
+    const owner = driving()
+    if (!owner?.covers(options.signal)) return yield operate(options, () => this._evalValue(str, ctx, options), owner)
     return yield ctx.bind(owner, new Value(str, this).value(ctx))
   }
   public async evalValue(str: string, scope?: object | Context, options?: OperationOptions): Promise<any> {
@@ -123,11 +125,8 @@ export class Liquid {
     task: (options: O) => Generator<unknown, T> | IterableIterator<T>,
     scope?: object
   ): Promise<T> {
-    return operate(
-      options ?? ({} as O),
-      task,
-      scope instanceof Context && scope.operationActive ? scope.operation : undefined
-    )
+    const parent = driving() ?? (scope instanceof Context ? scope.operation : undefined)
+    return operate(options ?? ({} as O), task, parent)
   }
 
   public renderToStream(templates: Template[], scope?: object, options: RenderOptions = {}): ReadableStream<string> {
@@ -155,10 +154,7 @@ export class Liquid {
     emitter.completion = Promise.resolve()
       .then(async () => {
         owner.check()
-        await execute(
-          this._render(templates, scope, associate({ ...options, signal: owner.signal }, owner), emitter) as Generator,
-          owner
-        )
+        await execute(this._render(templates, scope, { ...options, signal: owner.signal }, emitter) as Generator, owner)
         await emitter.end()
       })
       .catch(error => {
@@ -181,7 +177,7 @@ export class Liquid {
     try {
       owner.check()
       const templates = await execute(
-        this._parseFile(file, options.lookupType, undefined, associate({ ...options, signal: owner.signal }, owner)),
+        this._parseFile(file, options.lookupType, undefined, { ...options, signal: owner.signal }),
         owner
       )
       return this.stream(templates, scope, options, owner)
@@ -204,23 +200,27 @@ export class Liquid {
     return plugin.call(this, Liquid)
   }
   public express() {
-    const self = this // eslint-disable-line
-    let firstCall = true
+    const options = this.options
+    const renderFile = this.renderFile.bind(this)
+    let configured = false
 
     return function (
-      this: any,
+      this: { root?: string | string[] },
       filePath: string,
       ctx: object,
-      callback: (err: Error | null, rendered: string) => void
+      callback: (err: Error | null, rendered?: string) => void
     ) {
-      if (firstCall) {
-        firstCall = false
+      if (!configured) {
+        configured = true
         const dirs = normalizeDirectoryList(this.root)
-        self.options.root.unshift(...dirs)
-        self.options.layouts.unshift(...dirs)
-        self.options.partials.unshift(...dirs)
+        options.root = [...dirs, ...options.root]
+        options.layouts = [...dirs, ...options.layouts]
+        options.partials = [...dirs, ...options.partials]
       }
-      self.renderFile(filePath, ctx).then(html => callback(null, html) as any, callback as any)
+      renderFile(filePath, ctx).then(
+        html => callback(null, html),
+        error => callback(error instanceof Error ? error : new Error(String(error)))
+      )
     }
   }
 
@@ -237,18 +237,25 @@ export class Liquid {
     return analyze(this.parse(html, filename), options)
   }
 
-  /** Return an array of all variables without their properties. */
-  public async variables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
+  private async variableMap(
+    template: string | Template[],
+    options: StaticAnalysisOptions,
+    select: 'variables' | 'globals'
+  ) {
     options.signal?.throwIfAborted()
     const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
-    return Object.keys(analysis.variables)
+    return analysis[select]
+  }
+
+  /** Return an array of all variables without their properties. */
+  public async variables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
+    return Object.keys(await this.variableMap(template, options, 'variables'))
   }
 
   /** Return an array of all variables including their properties/paths. */
   public async fullVariables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
-    options.signal?.throwIfAborted()
-    const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
-    return Array.from(new Set(Object.values(analysis.variables).flatMap(a => a.map(v => String(v)))))
+    const variables = await this.variableMap(template, options, 'variables')
+    return Array.from(new Set(Object.values(variables).flatMap(entries => entries.map(entry => String(entry)))))
   }
 
   /** Return an array of all variables, each as an array of properties/segments. */
@@ -256,16 +263,13 @@ export class Liquid {
     template: string | Template[],
     options: StaticAnalysisOptions = {}
   ): Promise<Array<SegmentArray>> {
-    options.signal?.throwIfAborted()
-    const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
-    return Array.from(strictUniq(Object.values(analysis.variables).flatMap(a => a.map(v => v.toArray()))))
+    const variables = await this.variableMap(template, options, 'variables')
+    return Array.from(strictUniq(Object.values(variables).flatMap(entries => entries.map(entry => entry.toArray()))))
   }
 
   /** Return an array of all expected context variables without their properties. */
   public async globalVariables(template: string | Template[], options: StaticAnalysisOptions = {}): Promise<string[]> {
-    options.signal?.throwIfAborted()
-    const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
-    return Object.keys(analysis.globals)
+    return Object.keys(await this.variableMap(template, options, 'globals'))
   }
 
   /** Return an array of all expected context variables including their properties/paths. */
@@ -273,9 +277,8 @@ export class Liquid {
     template: string | Template[],
     options: StaticAnalysisOptions = {}
   ): Promise<string[]> {
-    options.signal?.throwIfAborted()
-    const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
-    return Array.from(new Set(Object.values(analysis.globals).flatMap(a => a.map(v => String(v)))))
+    const variables = await this.variableMap(template, options, 'globals')
+    return Array.from(new Set(Object.values(variables).flatMap(entries => entries.map(entry => String(entry)))))
   }
 
   /** Return an array of all expected context variables, each as an array of properties/segments. */
@@ -283,8 +286,7 @@ export class Liquid {
     template: string | Template[],
     options: StaticAnalysisOptions = {}
   ): Promise<Array<SegmentArray>> {
-    options.signal?.throwIfAborted()
-    const analysis = await analyze(isString(template) ? this.parse(template) : template, options)
-    return Array.from(strictUniq(Object.values(analysis.globals).flatMap(a => a.map(v => v.toArray()))))
+    const variables = await this.variableMap(template, options, 'globals')
+    return Array.from(strictUniq(Object.values(variables).flatMap(entries => entries.map(entry => entry.toArray()))))
   }
 }

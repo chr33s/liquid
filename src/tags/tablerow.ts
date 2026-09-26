@@ -1,72 +1,45 @@
 import { isValueToken, toEnumerable } from '../util'
-import {
-  ValueToken,
-  Liquid,
-  Tag,
-  evalToken,
-  Emitter,
-  Hash,
-  TagToken,
-  TopLevelToken,
-  Context,
-  Template,
-  ParseStream
-} from '..'
+import { Liquid, Tag, Emitter, Hash, TagToken, TopLevelToken, Context, Template, evalToken } from '..'
 import { TablerowloopDrop } from '../drop/tablerowloop-drop'
 import { Parser } from '../parser'
 import { Arguments } from '../template'
+import { parseClauses } from '../parser/clauses'
+import { isControl } from '../render/control'
+import { readIteration } from './iteration'
 
 export default class extends Tag {
   variable: string
   args: Hash
-  templates: Template[]
-  collection: ValueToken
+  templates: Template[] = []
+  collection: import('../tokens').ValueToken
+
   constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
-    const variable = this.tokenizer.readIdentifier()
-    this.tokenizer.skipBlank()
-
-    const predicate = this.tokenizer.readIdentifier()
-    const collectionToken = this.tokenizer.readValue()
-    if (predicate.content !== 'in' || !collectionToken) {
-      throw new Error(`illegal tag: ${tagToken.getText()}`)
-    }
-
-    this.variable = variable.content
-    this.collection = collectionToken
+    const header = readIteration(this.tokenizer, tagToken)
+    this.variable = header.variable
+    this.collection = header.collection
     this.args = new Hash(this.tokenizer, liquid.options.keyValueSeparator)
-    this.templates = []
-
-    let p
-    const stream: ParseStream = parser
-      .parseStream(remainTokens)
-      .on('start', () => (p = this.templates))
-      .on('tag:endtablerow', () => stream.stop())
-      .on('template', (tpl: Template) => p.push(tpl))
-      .on('end', () => {
-        throw new Error(`tag ${tagToken.getText()} not closed`)
-      })
-
-    stream.start()
+    parseClauses({
+      parser,
+      remainTokens,
+      tagToken,
+      end: 'endtablerow',
+      initial: () => this.templates
+    })
   }
 
-  *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     let collection = toEnumerable(yield evalToken(this.collection, ctx))
     const args = (yield this.args.render(ctx)) as Record<string, any>
     const offset = args.offset || 0
     const limit = args.limit === undefined ? collection.length : args.limit
-
     collection = collection.slice(offset, offset + limit)
-    if (!collection.length) return
-
-    if (!this.templates.length) return
+    if (!collection.length || !this.templates.length) return
 
     const cols = args.cols || collection.length
-
-    const r = this.liquid.renderer
     const tablerowloop = new TablerowloopDrop(collection.length, cols, this.collection.getText(), this.variable)
     const scope = ctx.push({ tablerowloop })
-
+    let control: unknown
     try {
       for (let idx = 0; idx < collection.length; idx++, tablerowloop.next()) {
         scope[this.variable] = collection[idx]
@@ -75,13 +48,17 @@ export default class extends Tag {
           yield emitter.write(`<tr class="row${tablerowloop.row()}">`)
         }
         yield emitter.write(`<td class="col${tablerowloop.col()}">`)
-        yield r.renderTemplates(this.templates, ctx, emitter)
+        if (!isControl(control)) {
+          const result = yield this.liquid.renderer.renderTemplates(this.templates, ctx, emitter)
+          if (isControl(result)) control = result
+        }
         yield emitter.write('</td>')
       }
       if (collection.length) yield emitter.write('</tr>')
     } finally {
       ctx.pop()
     }
+    if (isControl(control)) return control
   }
 
   public *children(): Generator<unknown, Template[]> {
@@ -90,11 +67,8 @@ export default class extends Tag {
 
   public *arguments(): Arguments {
     yield this.collection
-
-    for (const v of Object.values(this.args.hash)) {
-      if (isValueToken(v)) {
-        yield v
-      }
+    for (const value of Object.values(this.args.hash)) {
+      if (isValueToken(value)) yield value
     }
   }
 

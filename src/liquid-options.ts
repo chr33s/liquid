@@ -161,6 +161,18 @@ export interface NormalizedFullOptions extends NormalizedOptions {
   maxDepth: number
 }
 
+const unconfiguredFS: FS = {
+  readFile() {
+    throw new Error('fs is not configured')
+  },
+  exists() {
+    throw new Error('fs is not configured')
+  },
+  resolve() {
+    throw new Error('fs is not configured')
+  }
+}
+
 export const defaultOptions: NormalizedFullOptions = {
   root: ['.'],
   layouts: ['.'],
@@ -170,7 +182,7 @@ export const defaultOptions: NormalizedFullOptions = {
   keyValueSeparator: ':',
   cache: undefined,
   extname: '',
-  fs: undefined as unknown as FS,
+  fs: unconfiguredFS,
   dynamicPartials: true,
   jsTruthy: false,
   dateFormat: '%A, %B %-e, %Y at %-l:%M %P %z',
@@ -197,53 +209,64 @@ export const defaultOptions: NormalizedFullOptions = {
   maxDepth: 128
 }
 
-export function normalize(options: LiquidOptions): NormalizedFullOptions {
-  const limit = options.sourceByteLimit ?? Infinity
-  assert(limit === Infinity || (Number.isSafeInteger(limit) && limit >= 0), 'invalid sourceByteLimit')
-  if (options.baseUrl !== undefined) new URL(options.baseUrl)
-  options = {
-    ...options,
-    sourceByteLimit: limit,
-    fs: options.templates ? new MapFS(options.templates) : (options.fs ?? fs.createFS(options.baseUrl))
-  }
+function normalizeCache(cache: LiquidOptions['cache']): LiquidCache | undefined {
+  if (typeof cache === 'number') return cache > 0 ? new LRU(cache) : undefined
+  if (typeof cache === 'object') return cache
+  return cache ? new LRU(1024) : undefined
+}
 
-  if ('root' in options) {
-    if (!('partials' in options)) options.partials = options.root
-    if (!('layouts' in options)) options.layouts = options.root
-  }
-  if ('cache' in options) {
-    let cache: LiquidCache | undefined
-    if (typeof options.cache === 'number') cache = options.cache > 0 ? new LRU(options.cache) : undefined
-    else if (typeof options.cache === 'object') cache = options.cache
-    else cache = options.cache ? new LRU(1024) : undefined
-    options.cache = cache
-  }
-  options = { ...defaultOptions, ...(options.jekyllInclude ? { dynamicPartials: false } : {}), ...options }
-  if ((!options.fs!.dirname || !options.fs!.sep) && options.relativeReference) {
+export function normalize(input: LiquidOptions): NormalizedFullOptions {
+  const limit = input.sourceByteLimit ?? Infinity
+  assert(limit === Infinity || (Number.isSafeInteger(limit) && limit >= 0), 'invalid sourceByteLimit')
+  if (input.baseUrl !== undefined) new URL(input.baseUrl)
+
+  const hasTemplates = input.templates != null
+  const fileSystem = hasTemplates ? new MapFS(input.templates!) : (input.fs ?? fs.createFS(input.baseUrl))
+  let relativeReference = input.relativeReference ?? defaultOptions.relativeReference
+  if (hasTemplates) relativeReference = true
+  else if ((!fileSystem.dirname || !fileSystem.sep) && relativeReference) {
     console.warn(
       '[LiquidJS] `fs.dirname` and `fs.sep` are required for relativeReference, set relativeReference to `false` to suppress this warning'
     )
-    options.relativeReference = false
+    relativeReference = false
   }
-  options.root = normalizeDirectoryList(options.root)
-  options.partials = normalizeDirectoryList(options.partials)
-  options.layouts = normalizeDirectoryList(options.layouts)
-  options.outputEscape = options.outputEscape && getOutputEscapeFunction(options.outputEscape)
-  if (!options.locale) {
-    options.locale = getDateTimeFormat()?.().resolvedOptions().locale ?? 'en-US'
-  }
-  if (options.templates) {
-    options.fs = new MapFS(options.templates)
-    options.relativeReference = true
-    options.root = ['.']
-    options.partials = ['.']
-    options.layouts = ['.']
+
+  const rootSource = hasTemplates ? ['.'] : 'root' in input ? input.root : defaultOptions.root
+  const partialsSource = hasTemplates
+    ? ['.']
+    : 'partials' in input
+      ? input.partials
+      : 'root' in input
+        ? input.root
+        : defaultOptions.partials
+  const layoutsSource = hasTemplates
+    ? ['.']
+    : 'layouts' in input
+      ? input.layouts
+      : 'root' in input
+        ? input.root
+        : defaultOptions.layouts
+
+  const normalized: NormalizedFullOptions = {
+    ...defaultOptions,
+    ...input,
+    sourceByteLimit: limit,
+    fs: fileSystem,
+    relativeReference,
+    root: normalizeDirectoryList(rootSource),
+    partials: normalizeDirectoryList(partialsSource),
+    layouts: normalizeDirectoryList(layoutsSource),
+    cache: 'cache' in input ? normalizeCache(input.cache) : undefined,
+    outputEscape: input.outputEscape ? getOutputEscapeFunction(input.outputEscape) : undefined,
+    locale: input.locale || getDateTimeFormat()?.().resolvedOptions().locale || 'en-US',
+    dynamicPartials: input.dynamicPartials ?? (input.jekyllInclude ? false : defaultOptions.dynamicPartials),
+    jekyllInclude: input.jekyllInclude ?? defaultOptions.jekyllInclude
   }
   assert(
-    isFunction(options.fs?.readFile) && isFunction(options.fs?.exists) && isFunction(options.fs?.resolve),
+    isFunction(normalized.fs.readFile) && isFunction(normalized.fs.exists) && isFunction(normalized.fs.resolve),
     'fs requires readFile, exists, and resolve methods'
   )
-  return options as NormalizedFullOptions
+  return normalized
 }
 
 function getOutputEscapeFunction(nameOrFunction: OutputEscapeOption): OutputEscape {

@@ -48,7 +48,7 @@ const raw = {
 }
 
 export default {
-  default: defaultFilter,
+  default: { handler: defaultFilter, raw: false, lenient: true },
   raw,
   jsonify: json,
   to_integer,

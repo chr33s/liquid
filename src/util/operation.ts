@@ -2,17 +2,6 @@ export interface OperationOptions {
   signal?: AbortSignal
 }
 
-const owners = new WeakMap<object, Operation>()
-
-export function existingOperation(options: object): Operation | undefined {
-  return owners.get(options)
-}
-
-export function associate<T extends OperationOptions>(options: T, owner: Operation): T {
-  owners.set(options, owner)
-  return options
-}
-
 function yieldToHost(resolve: () => void) {
   const immediate = (globalThis as { setImmediate?: (callback: () => void) => unknown }).setImmediate
   if (immediate) immediate(resolve)
@@ -29,6 +18,7 @@ function yieldToHost(resolve: () => void) {
 export class Operation {
   readonly controller = new AbortController()
   readonly signal = this.controller.signal
+  private readonly sources = new Set<AbortSignal>()
   private detach?: () => void
   private ticks = 0
   private started = Date.now()
@@ -40,12 +30,17 @@ export class Operation {
     const detach: (() => void)[] = []
     for (const signal of signals) {
       if (!signal) continue
+      this.sources.add(signal)
       const abort = () => this.abort(signal.reason)
       signal.addEventListener('abort', abort, { once: true })
       detach.push(() => signal.removeEventListener('abort', abort))
       if (signal.aborted) abort()
     }
     if (detach.length) this.detach = () => detach.forEach(remove => remove())
+  }
+
+  covers(signal?: AbortSignal) {
+    return !signal || signal === this.signal || this.sources.has(signal)
   }
 
   abort(reason?: unknown) {

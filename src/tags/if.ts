@@ -1,7 +1,8 @@
 import { Liquid, Tag, Value, Emitter, isTruthy, TagToken, TopLevelToken, Context, Template } from '..'
 import { Parser } from '../parser'
 import { Arguments } from '../template'
-import { assert, assertEmpty } from '../util'
+import { parseClauses } from '../parser/clauses'
+import { isControl } from '../render/control'
 
 export default class extends Tag {
   branches: { value: Value; templates: Template[] }[] = []
@@ -9,60 +10,54 @@ export default class extends Tag {
 
   constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
-    let p: Template[] = []
-    parser
-      .parseStream(remainTokens)
-      .on('start', () =>
-        this.branches.push({
-          value: new Value(tagToken.tokenizer.readFilteredValue(), this.liquid),
-          templates: (p = [])
-        })
-      )
-      .on('tag:elsif', (token: TagToken) => {
-        assert(!this.elseTemplates, 'unexpected elsif after else')
-        this.branches.push({
-          value: new Value(token.tokenizer.readFilteredValue(), this.liquid),
-          templates: (p = [])
-        })
-      })
-      .on<TagToken>('tag:else', tag => {
-        assertEmpty(tag.args)
-        assert(!this.elseTemplates, 'duplicated else')
-        p = this.elseTemplates = []
-      })
-      .on<TagToken>('tag:endif', function (tag) {
-        assertEmpty(tag.args)
-        this.stop()
-      })
-      .on('template', (tpl: Template) => p.push(tpl))
-      .on('end', () => {
-        throw new Error(`tag ${tagToken.getText()} not closed`)
-      })
-      .start()
+    parseClauses({
+      parser,
+      remainTokens,
+      tagToken,
+      end: 'endif',
+      strictEnd: true,
+      initial: () => {
+        const templates: Template[] = []
+        this.branches.push({ value: new Value(tagToken.tokenizer.readFilteredValue(), this.liquid), templates })
+        return templates
+      },
+      branch: {
+        name: 'elsif',
+        afterElse: 'reject',
+        open: token => {
+          const templates: Template[] = []
+          this.branches.push({ value: new Value(token.tokenizer.readFilteredValue(), this.liquid), templates })
+          return templates
+        }
+      },
+      else: {
+        policy: 'reject',
+        strict: true,
+        open: () => (this.elseTemplates = [])
+      }
+    })
   }
 
-  *render(ctx: Context, emitter: Emitter): Generator<unknown, void, string> {
-    const r = this.liquid.renderer
-
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     for (const { value, templates } of this.branches) {
       const v = yield value.value(ctx, ctx.opts.lenientIf)
-      if (isTruthy(v, ctx)) {
-        yield r.renderTemplates(templates, ctx, emitter)
-        return
-      }
+      if (isTruthy(v, ctx)) return yield this.renderBranch(templates, ctx, emitter)
     }
-    yield r.renderTemplates(this.elseTemplates || [], ctx, emitter)
+    return yield this.renderBranch(this.elseTemplates || [], ctx, emitter)
+  }
+
+  private *renderBranch(templates: Template[], ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
+    const result = yield this.liquid.renderer.renderTemplates(templates, ctx, emitter)
+    if (isControl(result)) return result
   }
 
   public *children(): Generator<unknown, Template[]> {
-    const templates = this.branches.flatMap(b => b.templates)
-    if (this.elseTemplates) {
-      templates.push(...this.elseTemplates)
-    }
+    const templates = this.branches.flatMap(branch => branch.templates)
+    if (this.elseTemplates) templates.push(...this.elseTemplates)
     return templates
   }
 
   public arguments(): Arguments {
-    return this.branches.map(b => b.value)
+    return this.branches.map(branch => branch.value)
   }
 }

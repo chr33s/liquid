@@ -7,7 +7,19 @@ import {
   OperatorType,
   operatorTypes
 } from '../tokens'
-import { isRangeToken, isPropertyAccessToken, UndefinedVariableError, range, isOperatorToken, assert } from '../util'
+import {
+  isRangeToken,
+  isPropertyAccessToken,
+  isQuotedToken,
+  isNumberToken,
+  isLiteralToken,
+  isWordToken,
+  UndefinedVariableError,
+  InternalUndefinedVariableError,
+  range,
+  isOperatorToken,
+  assert
+} from '../util'
 import type { Context } from '../context'
 import type { UnaryOperatorHandler } from '../render'
 import { Drop } from '../drop'
@@ -45,7 +57,7 @@ export class Expression {
 
 export function* evalToken(token: Token | undefined, ctx: Context, lenient = false): IterableIterator<unknown> {
   if (!token) return
-  if ('content' in token) return token.content
+  if (isWordToken(token) || isQuotedToken(token) || isNumberToken(token) || isLiteralToken(token)) return token.content
   if (isPropertyAccessToken(token)) return yield evalPropertyAccessToken(token, ctx, lenient)
   if (isRangeToken(token)) return yield evalRangeToken(token, ctx)
 }
@@ -67,7 +79,7 @@ function* evalPropertyAccessToken(
       return yield ctx._get(props)
     }
   } catch (e) {
-    if (lenient && (e as Error).name === 'InternalUndefinedVariableError') return null
+    if (lenient && InternalUndefinedVariableError.is(e)) return null
     throw new UndefinedVariableError(e as Error, token)
   }
 }

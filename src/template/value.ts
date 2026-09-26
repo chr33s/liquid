@@ -21,7 +21,7 @@ export class Value {
   }
 
   public *value(ctx: Context, lenient?: boolean): Generator<unknown, unknown, unknown> {
-    lenient = lenient || (ctx.opts.lenientIf && this.filters.length > 0 && this.filters[0].name === 'default')
+    lenient = lenient || (!!ctx.opts.lenientIf && !!this.filters[0]?.lenient)
     let val = yield this.initial.evaluate(ctx, lenient)
 
     for (const filter of this.filters) {

@@ -1,5 +1,5 @@
 import { isPromise, isIterator } from './underscore'
-import { Operation, associate, existingOperation, type OperationOptions } from './operation'
+import { Operation, type OperationOptions } from './operation'
 
 let current: Operation | undefined
 
@@ -12,26 +12,24 @@ export function toPromise<T>(
   value: Generator<unknown, T, unknown> | Promise<T> | T,
   options: OperationOptions = {}
 ): Promise<T> {
-  return operate(options, () => value)
+  return operate(options, () => value, driving())
 }
 
 /**
- * @internal Drive `task` under the operation associated with `options`, else join `parent` when `options` add no
- * signal of their own, else under a new operation linked to both signals that is drained and finished with the task.
+ * @internal Drive `task` under `parent` when `options` add no signal of their own, else under a new operation linked
+ * to both signals. The owner is the `Operation` argument, never a hidden property of `options`.
  */
 export async function operate<T, O extends OperationOptions>(
   options: O,
   task: (options: O) => Generator<unknown, T, unknown> | IterableIterator<T> | Promise<T> | T,
   parent?: Operation
 ): Promise<T> {
-  const associated = existingOperation(options)
-  const joined = associated ?? (parent && (!options.signal || options.signal === parent.signal) ? parent : undefined)
-  if (joined) {
-    const owned = associated ? options : associate({ ...options, signal: joined.signal }, joined)
-    return joined.join(drive(task(owned) as Generator<unknown, T, unknown>, joined))
+  if (parent?.covers(options.signal)) {
+    const owned = options.signal ? options : ({ ...options, signal: parent.signal } as O)
+    return parent.join(drive(task(owned) as Generator<unknown, T, unknown>, parent))
   }
   const owner = new Operation(options.signal, parent?.signal)
-  const owned = associate({ ...options, signal: owner.signal }, owner)
+  const owned = { ...options, signal: owner.signal } as O
   const run = async () => {
     try {
       owner.check()

@@ -2,24 +2,14 @@ import * as _ from './underscore'
 import { Token } from '../tokens/token'
 import { Template } from '../template/template'
 
-/**
- * targeting ES5, extends Error won't create a proper prototype chain, need a trait to keep track of classes
- */
-const TRAIT = '__liquidClass__'
-
 export abstract class LiquidError extends Error {
   public token!: Token
   public context = ''
   public originalError?: Error
   public constructor(err: Error | string, token: Token) {
-    /**
-     * note: for ES5 targeting, `this` will be replaced by return value of Error(),
-     * thus everything on `this` will be lost, avoid calling `LiquidError` methods here
-     */
     super(typeof err === 'string' ? err : err.message)
     if (typeof err !== 'string') Object.defineProperty(this, 'originalError', { value: err, enumerable: false })
     Object.defineProperty(this, 'token', { value: token, enumerable: false })
-    Object.defineProperty(this, TRAIT, { value: 'LiquidError', enumerable: false })
   }
   protected update() {
     Object.defineProperty(this, 'context', { value: mkContext(this.token), enumerable: false })
@@ -28,7 +18,7 @@ export abstract class LiquidError extends Error {
     if (this.originalError) this.stack += '\nFrom ' + this.originalError.stack
   }
   static is(obj: unknown): obj is LiquidError {
-    return (obj as Record<string, unknown> | null | undefined)?.[TRAIT] === 'LiquidError'
+    return obj instanceof LiquidError
   }
 }
 
@@ -56,21 +46,21 @@ export class RenderError extends LiquidError {
     this.message = err.message
     super.update()
   }
-  public static is(obj: any): obj is RenderError {
-    return obj.name === 'RenderError'
+  public static is(obj: unknown): obj is RenderError {
+    return obj instanceof RenderError
   }
 }
 
 export class LiquidErrors extends LiquidError {
-  public constructor(public errors: RenderError[]) {
+  public constructor(public errors: LiquidError[]) {
     super(errors[0], errors[0].token)
     this.name = 'LiquidErrors'
     const s = errors.length > 1 ? 's' : ''
     this.message = `${errors.length} error${s} found`
     super.update()
   }
-  public static is(obj: any): obj is LiquidErrors {
-    return obj.name === 'LiquidErrors'
+  public static is(obj: unknown): obj is LiquidErrors {
+    return obj instanceof LiquidErrors
   }
 }
 
@@ -92,6 +82,10 @@ export class InternalUndefinedVariableError extends Error {
     super(`undefined variable: ${variableName}`)
     this.name = 'InternalUndefinedVariableError'
     this.variableName = variableName
+  }
+
+  static is(obj: unknown): obj is InternalUndefinedVariableError {
+    return obj instanceof InternalUndefinedVariableError
   }
 }
 

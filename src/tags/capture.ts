@@ -1,37 +1,41 @@
 import { Liquid, Tag, Template, Context, TagToken, TopLevelToken } from '..'
 import { Parser } from '../parser'
 import { IdentifierToken, QuotedToken } from '../tokens'
-import { isTagToken } from '../util'
+import { parseClauses } from '../parser/clauses'
+import { SimpleEmitter } from '../emitters'
+import { isControl } from '../render/control'
 
 export default class extends Tag {
   identifier: IdentifierToken | QuotedToken
   variable: string
   templates: Template[] = []
+
   constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(tagToken, remainTokens, liquid)
     this.identifier = this.readVariable()
     this.variable = this.identifier.content
-
-    while (remainTokens.length) {
-      const token = remainTokens.shift()!
-      if (isTagToken(token) && token.name === 'endcapture') return
-      this.templates.push(parser.parseToken(token, remainTokens))
-    }
-    throw new Error(`tag ${tagToken.getText()} not closed`)
+    parseClauses({
+      parser,
+      remainTokens,
+      tagToken,
+      end: 'endcapture',
+      initial: () => this.templates
+    })
   }
 
   private readVariable(): IdentifierToken | QuotedToken {
-    let ident: IdentifierToken | QuotedToken | undefined = this.tokenizer.readIdentifier()
+    const ident = this.tokenizer.readIdentifier()
     if (ident.content) return ident
-    ident = this.tokenizer.readQuoted()
-    if (ident) return ident
+    const quoted = this.tokenizer.readQuoted()
+    if (quoted) return quoted
     throw this.tokenizer.error('invalid capture name')
   }
 
-  *render(ctx: Context): Generator<unknown, void, string> {
-    const r = this.liquid.renderer
-    const html = yield r.renderTemplates(this.templates, ctx)
-    ctx.bottom()[this.variable] = html
+  *render(ctx: Context): Generator<unknown, unknown, string> {
+    const captured = new SimpleEmitter(ctx.outputLengthLimit, ctx.operation)
+    const control = yield this.liquid.renderer.renderTemplates(this.templates, ctx, captured)
+    ctx.bottom()[this.variable] = captured.buffer
+    if (isControl(control)) return control
   }
 
   public *children(): Generator<unknown, Template[]> {

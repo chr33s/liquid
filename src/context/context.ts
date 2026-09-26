@@ -1,4 +1,4 @@
-import { Operation, associate, drive, driving, toPromise } from '../util'
+import { Operation, drive, driving, toPromise, type OperationOptions } from '../util'
 import { Drop } from '../drop/drop'
 import { NormalizedFullOptions, defaultOptions, RenderOptions } from '../liquid-options'
 import { createScope, Scope } from './scope'
@@ -23,6 +23,7 @@ type PropertyKey = string | number
 const BLOCKED_SCOPE_KEYS: ReadonlySet<PropertyKey> = new Set(['__proto__', 'constructor', 'prototype'])
 
 export class Context {
+  private static readonly idleSignal = new AbortController().signal
   /**
    * insert a Context-level empty scope,
    * for tags like `{% capture %}` `{% assign %}` to operate
@@ -40,18 +41,16 @@ export class Context {
    */
   public globals: Scope
   private bindings: Operation[] = []
-  private idle?: Operation
   private readonly lookupSignal?: AbortSignal
   /** @internal */
-  public get operation(): Operation {
-    const bindings = this.bindings
+  public get operation(): Operation | undefined {
     const owner = driving()
-    if (owner && bindings.includes(owner)) return owner
-    return bindings[bindings.length - 1] ?? (this.idle ??= new Operation())
+    if (owner && this.bindings.includes(owner)) return owner
+    return this.bindings[this.bindings.length - 1]
   }
   /** @internal */
   public get operationActive() {
-    return this.bindings.length > 0
+    return this.operation !== undefined
   }
   /** @internal */
   public *bind<T>(owner: Operation, task: IterableIterator<T>): Generator<unknown, T, T> {
@@ -62,14 +61,12 @@ export class Context {
       this.bindings.splice(this.bindings.lastIndexOf(owner), 1)
     }
   }
-  public get signal() {
-    return this.operation.signal
+  public get signal(): AbortSignal {
+    return this.operation?.signal ?? this.lookupSignal ?? Context.idleSignal
   }
-  public get operationOptions() {
-    return associate({ signal: this.signal }, this.operation)
+  public get operationOptions(): OperationOptions {
+    return { signal: this.signal }
   }
-  public breakCalled = false
-  public continueCalled = false
   /**
    * The normalized liquid options object
    */
@@ -122,7 +119,7 @@ export class Context {
     return this.lookup(this._get(paths))
   }
   private lookup(value: IterableIterator<unknown>): Promise<unknown> {
-    const owner = this.operationActive ? this.operation : driving()
+    const owner = this.operation ?? driving()
     if (owner) return owner.join(drive(value, owner))
     return toPromise(value, { signal: this.lookupSignal })
   }
@@ -188,7 +185,7 @@ export class Context {
     return this.ownPropertyOnly && !(scope instanceof Drop) ? hasOwnProperty.call(scope, key) : key in scope
   }
   readProperty(obj: Scope, key: PropertyKey | Drop) {
-    if (this.operationActive) this.operation.check()
+    this.operation?.check()
     obj = toLiquid(obj)
     key = toValue(key) as PropertyKey
     if (isNil(obj)) return obj

@@ -9,29 +9,25 @@ export type BinaryOperatorHandler = (lhs: any, rhs: any, ctx: Context) => boolea
 export type OperatorHandler = UnaryOperatorHandler | BinaryOperatorHandler
 export type Operators = Record<string, OperatorHandler>
 
+function compare(
+  direct: 'gt' | 'lt' | 'geq' | 'leq',
+  inverse: 'lt' | 'gt' | 'leq' | 'geq',
+  fallback: (lhs: any, rhs: any) => boolean
+) {
+  return (lhs: any, rhs: any) => {
+    if (isComparable(lhs)) return lhs[direct](rhs)
+    if (isComparable(rhs)) return rhs[inverse](lhs)
+    return fallback(toValue(lhs), toValue(rhs))
+  }
+}
+
 export const defaultOperators: Operators = {
   '==': equals,
   '!=': (l: any, r: any) => !equals(l, r),
-  '>': (l: any, r: any) => {
-    if (isComparable(l)) return l.gt(r)
-    if (isComparable(r)) return r.lt(l)
-    return toValue(l) > toValue(r)
-  },
-  '<': (l: any, r: any) => {
-    if (isComparable(l)) return l.lt(r)
-    if (isComparable(r)) return r.gt(l)
-    return toValue(l) < toValue(r)
-  },
-  '>=': (l: any, r: any) => {
-    if (isComparable(l)) return l.geq(r)
-    if (isComparable(r)) return r.leq(l)
-    return toValue(l) >= toValue(r)
-  },
-  '<=': (l: any, r: any) => {
-    if (isComparable(l)) return l.leq(r)
-    if (isComparable(r)) return r.geq(l)
-    return toValue(l) <= toValue(r)
-  },
+  '>': compare('gt', 'lt', (l, r) => l > r),
+  '<': compare('lt', 'gt', (l, r) => l < r),
+  '>=': compare('geq', 'leq', (l, r) => l >= r),
+  '<=': compare('leq', 'geq', (l, r) => l <= r),
   contains: (l: any, r: any) => {
     l = toValue(l)
     if (isArray(l)) return l.some(i => equals(i, r))

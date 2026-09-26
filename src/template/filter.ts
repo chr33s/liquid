@@ -10,6 +10,7 @@ export class Filter {
   public name: string
   public args: FilterArg[]
   public readonly raw: boolean
+  public readonly lenient: boolean
   private handler: FilterHandler
   private liquid: Liquid
   private token: FilterToken
@@ -19,6 +20,7 @@ export class Filter {
     this.name = token.name
     this.handler = isFunction(options) ? options : isFunction(options?.handler) ? options!.handler : identify
     this.raw = !isFunction(options) && !!options?.raw
+    this.lenient = !isFunction(options) && !!options?.lenient
     this.args = token.args
     this.liquid = liquid
   }

@@ -1,55 +1,62 @@
 import { BlockMode } from '../context'
-import { isTagToken } from '../util'
 import { BlockDrop } from '../drop'
 import { Liquid, TagToken, TopLevelToken, Template, Context, Emitter, Tag } from '..'
 import { Parser } from '../parser'
+import { parseClauses } from '../parser/clauses'
+import { isControl } from '../render/control'
 
 export default class extends Tag {
   block: string
   templates: Template[] = []
+
   constructor(token: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, parser: Parser) {
     super(token, remainTokens, liquid)
-    const match = /\w+/.exec(token.args)
-    this.block = match ? match[0] : ''
-    while (remainTokens.length) {
-      const token = remainTokens.shift()!
-      if (isTagToken(token) && token.name === 'endblock') return
-      const template = parser.parseToken(token, remainTokens)
-      this.templates.push(template)
-    }
-    throw new Error(`tag ${token.getText()} not closed`)
+    const quoted = this.tokenizer.readQuoted()
+    this.block = quoted ? quoted.content : this.tokenizer.readIdentifier().content
+    parseClauses({
+      parser,
+      remainTokens,
+      tagToken: token,
+      end: 'endblock',
+      initial: () => this.templates
+    })
   }
 
-  *render(ctx: Context, emitter: Emitter) {
+  *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     const blockRender = this.getBlockRender(ctx)
     if (ctx.getRegister('blockMode') === BlockMode.STORE) {
       ctx.getRegister('blocks', Object.create(null) as Record<string, any>)[this.block] = blockRender
-    } else {
-      yield blockRender(new BlockDrop(undefined, ctx), emitter)
+      return
     }
+    const result = yield blockRender(new BlockDrop(undefined, ctx), emitter)
+    if (isControl(result)) return result
   }
 
   private getBlockRender(ctx: Context) {
     const self = this as Tag
     const { liquid, templates } = this
     const renderChild = ctx.getRegister('blocks', Object.create(null) as Record<string, any>)[this.block]
-    const renderCurrent = function* (superBlock: BlockDrop, emitter: Emitter) {
+    const renderCurrent = function* (superBlock: BlockDrop, emitter: Emitter): Generator<unknown, unknown, unknown> {
       const stack: Tag[] = ctx.getRegister('blockStack', [])
       if (stack.includes(self)) throw new Error('block tag cannot be nested')
-
       stack.push(self)
       ctx.push({ block: superBlock })
       try {
-        yield liquid.renderer.renderTemplates(templates, ctx, emitter)
+        const result = yield liquid.renderer.renderTemplates(templates, ctx, emitter)
+        if (isControl(result)) return result
       } finally {
         ctx.pop()
         stack.pop()
       }
     }
-    return renderChild
-      ? (superBlock: BlockDrop, emitter: Emitter) =>
-          renderChild(new BlockDrop((emitter: Emitter) => renderCurrent(superBlock, emitter), ctx), emitter)
-      : renderCurrent
+    if (!renderChild) return renderCurrent
+    return function* (superBlock: BlockDrop, emitter: Emitter): Generator<unknown, unknown, unknown> {
+      const result = yield renderChild(
+        new BlockDrop((target: Emitter) => renderCurrent(superBlock, target), ctx),
+        emitter
+      )
+      if (isControl(result)) return result
+    }
   }
 
   public *children(): Generator<unknown, Template[]> {

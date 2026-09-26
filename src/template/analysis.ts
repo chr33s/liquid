@@ -171,16 +171,60 @@ function* _analyze(
     }
   }
 
+  function* walk(children: Template[], scope: DummyScope): Generator<unknown, void> {
+    for (const child of children) yield visit(child, scope)
+  }
+
+  function* childrenOf(template: Template, loadPartials: boolean): Generator<unknown, Template[]> {
+    return (yield template.children!(loadPartials, options)) as Template[]
+  }
+
   function* visit(template: Template, scope: DummyScope): Generator<unknown, void> {
     if (template.arguments) {
       for (const arg of template.arguments()) {
-        for (const variable of extractVariables(arg)) {
-          updateVariables(variable, scope)
-        }
+        for (const variable of extractVariables(arg)) updateVariables(variable, scope)
       }
     }
 
-    yield visitChildren(template, scope)
+    if (template.children) {
+      const partial = template.partialScope?.()
+      if (template.partialScope && partial === undefined) {
+        yield walk(yield* childrenOf(template, partials), scope)
+      } else if (partial) {
+        const key = JSON.stringify([
+          isTagToken(template.token) ? template.token.name : undefined,
+          partial.name,
+          /^\.{1,2}[/\\]/.test(partial.name) ? template.token.file : undefined
+        ])
+        if (seen.has(key)) {
+          yield walk(yield* childrenOf(template, false), scope)
+        } else {
+          seen.add(key)
+          const names = new Set<string>()
+          const aliases = new Map<string, VariableSegments>()
+          for (const name of partial.scope) {
+            if (isString(name)) names.add(name)
+            else {
+              const [alias, argument] = name
+              names.add(alias)
+              const [variable] = Array.from(extractVariables(argument))
+              if (!variable) continue
+              const aliased = scope.alias(variable)
+              const root = variable.segments[0]
+              if (aliased || (isString(root) && !scope.has(root))) aliases.set(alias, (aliased ?? variable).segments)
+            }
+          }
+          const partialScope = partial.isolated ? new DummyScope(names) : scope.push(names)
+          for (const [alias, segments] of aliases) partialScope.setAlias(alias, segments)
+          yield walk(yield* childrenOf(template, partials), partialScope)
+          partialScope.pop()
+        }
+      } else {
+        if (template.blockScope) scope.push(new Set(template.blockScope()))
+        yield walk(yield* childrenOf(template, partials), scope)
+        if (template.blockScope) scope.pop()
+      }
+    }
 
     if (template.localScope) {
       for (const ident of template.localScope()) {
@@ -188,77 +232,6 @@ function* _analyze(
         scope.deleteAlias(ident.content)
         const [row, col] = ident.getPosition()
         locals.push(new Variable([ident.content], { row, col, file: ident.file }))
-      }
-    }
-  }
-
-  function* visitChildren(template: Template, scope: DummyScope): Generator<unknown, void> {
-    if (template.children) {
-      if (template.partialScope) {
-        const partial = template.partialScope()
-
-        if (partial === undefined) {
-          // Layouts, for example, can have children that are not partials.
-          for (const child of (yield template.children(partials, options)) as Template[]) {
-            yield visit(child, scope)
-          }
-          return
-        }
-
-        const key = JSON.stringify([
-          isTagToken(template.token) ? template.token.name : undefined,
-          partial.name,
-          /^\.{1,2}[/\\]/.test(partial.name) ? template.token.file : undefined
-        ])
-        if (seen.has(key)) {
-          for (const child of (yield template.children(false, options)) as Template[]) {
-            yield visit(child, scope)
-          }
-          return
-        }
-        seen.add(key)
-
-        const partialScopeNames: Set<string> = new Set()
-        const aliases = new Map<string, VariableSegments>()
-
-        for (const name of partial.scope) {
-          if (isString(name)) {
-            partialScopeNames.add(name)
-          } else {
-            const [alias, argument] = name
-            partialScopeNames.add(alias)
-            const variables = Array.from(extractVariables(argument))
-            if (variables.length) {
-              const variable = variables[0]
-              const aliased = scope.alias(variable)
-              const root = variable.segments[0]
-              if (aliased || (isString(root) && !scope.has(root))) {
-                aliases.set(alias, (aliased ?? variable).segments)
-              }
-            }
-          }
-        }
-
-        const partialScope = partial.isolated ? new DummyScope(partialScopeNames) : scope.push(partialScopeNames)
-        for (const [alias, segments] of aliases) partialScope.setAlias(alias, segments)
-
-        for (const child of (yield template.children(partials, options)) as Template[]) {
-          yield visit(child, partialScope)
-        }
-
-        partialScope.pop()
-      } else {
-        if (template.blockScope) {
-          scope.push(new Set(template.blockScope()))
-        }
-
-        for (const child of (yield template.children(partials, options)) as Template[]) {
-          yield visit(child, scope)
-        }
-
-        if (template.blockScope) {
-          scope.pop()
-        }
       }
     }
   }
