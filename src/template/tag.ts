@@ -23,5 +23,8 @@ export abstract class Tag extends TemplateImpl<TagToken> implements Template {
 }
 
 export interface TagClass {
+  /**
+   * `parser` is the parser for this template. {@link Tag} does not store it; subclasses that need it take this fourth argument.
+   */
   new (token: TagToken, tokens: TopLevelToken[], liquid: Liquid, parser: Parser): Tag
 }

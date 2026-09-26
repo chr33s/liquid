@@ -1,4 +1,4 @@
-import { assert } from './assert'
+import { LiquidLimitError } from './error'
 
 export class Limiter {
   private message: string
@@ -13,7 +13,7 @@ export class Limiter {
   }
   use(count: number) {
     if (+count > 0) {
-      assert(this.base + +count <= this.limit, this.message)
+      if (this.base + +count > this.limit) throw new LiquidLimitError(this.message)
       this.base += +count
     }
   }
@@ -23,8 +23,6 @@ export class Limiter {
     }
   }
   check(count: number) {
-    if (+count > 0) {
-      assert(+count <= this.limit, this.message)
-    }
+    if (+count > 0 && +count > this.limit) throw new LiquidLimitError(this.message)
   }
 }

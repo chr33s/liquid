@@ -1,4 +1,11 @@
 /* istanbul ignore file */
+/**
+ * Supported caller API: {@link Liquid}, its render, parse, stream, analysis, and registry methods, plus {@link LiquidOptions}, {@link RenderOptions}, {@link RenderFileOptions}, {@link StaticAnalysis}, and {@link LiquidFailure}.
+ *
+ * Supported extension protocol: generator methods on {@link Liquid}, {@link Tag}, {@link Drop}, {@link FS}, {@link Emitter}, and sync, Promise, or generator returns from tags, filters, and filesystem methods. Tag authors also use {@link Value}, {@link Hash}, {@link Context}, {@link TagToken}, and {@link TopLevelToken}.
+ *
+ * Other exports from this entry are unstable and may change without a major version. Do not delete them in this version.
+ */
 export const version = '[VI]{version}[/VI]'
 export * as TypeGuards from './util/type-guards'
 export {
@@ -12,9 +19,14 @@ export {
   RenderError,
   UndefinedVariableError,
   TokenizationError,
+  LiquidErrors,
+  LiquidOptionError,
+  LiquidLimitError,
+  LiquidLookupError,
+  isLiquidFailure,
+  type LiquidFailure,
   AssertionError
 } from './util'
-export type { LiquidErrors } from './util/error'
 export { Drop } from './drop'
 export type { Comparable } from './drop'
 export type { Emitter } from './emitters'

@@ -1,4 +1,5 @@
 import type { FileReadOptions } from './fs'
+import { LiquidLimitError } from '../util/error'
 
 export class SourceReader {
   private bytes = 0
@@ -13,10 +14,13 @@ export class SourceReader {
   decode(chunk?: Uint8Array): string {
     this.options.signal?.throwIfAborted()
     this.bytes += chunk?.byteLength ?? 0
-    if (this.bytes > (this.options.sourceByteLimit ?? Infinity)) throw new Error('source byte limit exceeded')
+    if (this.bytes > (this.options.sourceByteLimit ?? Infinity))
+      throw new LiquidLimitError('source byte limit exceeded')
     const text = chunk ? this.decoder.decode(chunk, { stream: true }) : this.decoder.decode()
     this.units += text.length
-    if (this.units > (this.options.sourceCodeUnitLimit ?? Infinity)) throw new Error('parse length limit exceeded')
+    if (this.units > (this.options.sourceCodeUnitLimit ?? Infinity)) {
+      throw new LiquidLimitError('parse length limit exceeded')
+    }
     return text
   }
 }

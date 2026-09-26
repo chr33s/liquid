@@ -1,5 +1,6 @@
 import type { OperationOptions } from './util/operation'
-import { assert, isArray, isString, isFunction } from './util'
+import { isArray, isFunction, isObject, isString } from './util'
+import { LiquidOptionError } from './util/error'
 import { getDateTimeFormat } from './util/intl'
 import { LRU, LiquidCache } from './cache'
 import { FS, LookupType } from './fs'
@@ -163,15 +164,76 @@ export interface NormalizedFullOptions extends NormalizedOptions {
 
 const unconfiguredFS: FS = {
   readFile() {
-    throw new Error('fs is not configured')
+    throw new LiquidOptionError('fs is not configured')
   },
   exists() {
-    throw new Error('fs is not configured')
+    throw new LiquidOptionError('fs is not configured')
   },
   resolve() {
-    throw new Error('fs is not configured')
+    throw new LiquidOptionError('fs is not configured')
   }
 }
+
+const booleanOptionKeys = [
+  'relativeReference',
+  'jekyllInclude',
+  'jekyllWhere',
+  'jsTruthy',
+  'dynamicPartials',
+  'strictFilters',
+  'strictVariables',
+  'ownPropertyOnly',
+  'lenientIf',
+  'trimTagRight',
+  'trimTagLeft',
+  'trimOutputRight',
+  'trimOutputLeft',
+  'preserveTimezones',
+  'greedy',
+  'orderedFilterParameters',
+  'catchAllErrors'
+] as const satisfies readonly (keyof LiquidOptions)[]
+
+const stringOptionKeys = [
+  'extname',
+  'dateFormat',
+  'locale',
+  'keyValueSeparator',
+  'tagDelimiterLeft',
+  'tagDelimiterRight',
+  'outputDelimiterLeft',
+  'outputDelimiterRight',
+  'baseUrl'
+] as const satisfies readonly (keyof LiquidOptions)[]
+
+const limitOptionKeys = ['parseLimit', 'templateLimit', 'outputLengthLimit', 'maxDepth'] as const
+
+const cliOptionKeys = [
+  'cache',
+  'extname',
+  'jekyllInclude',
+  'jsTruthy',
+  'layouts',
+  'lenientIf',
+  'dynamicPartials',
+  'greedy',
+  'relativeReference',
+  'orderedFilterParameters',
+  'outputDelimiterLeft',
+  'outputDelimiterRight',
+  'partials',
+  'preserveTimezones',
+  'root',
+  'strictFilters',
+  'strictVariables',
+  'tagDelimiterLeft',
+  'tagDelimiterRight',
+  'timezoneOffset',
+  'trimOutputLeft',
+  'trimOutputRight',
+  'trimTagLeft',
+  'trimTagRight'
+] as const satisfies readonly (keyof LiquidOptions)[]
 
 export const defaultOptions: NormalizedFullOptions = {
   root: ['.'],
@@ -210,15 +272,32 @@ export const defaultOptions: NormalizedFullOptions = {
 }
 
 function normalizeCache(cache: LiquidOptions['cache']): LiquidCache | undefined {
+  if (cache == null || cache === false) return undefined
+  if (cache === true) return new LRU(1024)
   if (typeof cache === 'number') return cache > 0 ? new LRU(cache) : undefined
-  if (typeof cache === 'object') return cache
-  return cache ? new LRU(1024) : undefined
+  if (isObject(cache) && isFunction(cache.read) && isFunction(cache.write) && isFunction(cache.remove)) return cache
+  throw new LiquidOptionError('invalid cache')
+}
+
+export function pickLiquidOptions(flags: object): LiquidOptions {
+  const source = flags as Partial<LiquidOptions>
+  const options: LiquidOptions = {}
+  for (const key of cliOptionKeys) {
+    if (source[key] !== undefined) options[key] = source[key] as never
+  }
+  return options
 }
 
 export function normalize(input: LiquidOptions): NormalizedFullOptions {
+  validateOptions(input)
   const limit = input.sourceByteLimit ?? Infinity
-  assert(limit === Infinity || (Number.isSafeInteger(limit) && limit >= 0), 'invalid sourceByteLimit')
-  if (input.baseUrl !== undefined) new URL(input.baseUrl)
+  if (input.baseUrl !== undefined) {
+    try {
+      new URL(input.baseUrl)
+    } catch (error) {
+      throw new LiquidOptionError(error instanceof Error ? error.message : String(error))
+    }
+  }
 
   const hasTemplates = input.templates != null
   const fileSystem = hasTemplates ? new MapFS(input.templates!) : (input.fs ?? fs.createFS(input.baseUrl))
@@ -253,32 +332,78 @@ export function normalize(input: LiquidOptions): NormalizedFullOptions {
     sourceByteLimit: limit,
     fs: fileSystem,
     relativeReference,
-    root: normalizeDirectoryList(rootSource),
-    partials: normalizeDirectoryList(partialsSource),
-    layouts: normalizeDirectoryList(layoutsSource),
+    root: normalizeDirectoryList(rootSource, 'root'),
+    partials: normalizeDirectoryList(partialsSource, 'partials'),
+    layouts: normalizeDirectoryList(layoutsSource, 'layouts'),
     cache: 'cache' in input ? normalizeCache(input.cache) : undefined,
-    outputEscape: input.outputEscape ? getOutputEscapeFunction(input.outputEscape) : undefined,
+    outputEscape: input.outputEscape === undefined ? undefined : getOutputEscapeFunction(input.outputEscape),
     locale: input.locale || getDateTimeFormat()?.().resolvedOptions().locale || 'en-US',
     dynamicPartials: input.dynamicPartials ?? (input.jekyllInclude ? false : defaultOptions.dynamicPartials),
-    jekyllInclude: input.jekyllInclude ?? defaultOptions.jekyllInclude
+    jekyllInclude: input.jekyllInclude ?? defaultOptions.jekyllInclude,
+    globals: input.globals ?? {},
+    operators: input.operators ?? { ...defaultOperators }
   }
-  assert(
-    isFunction(normalized.fs.readFile) && isFunction(normalized.fs.exists) && isFunction(normalized.fs.resolve),
-    'fs requires readFile, exists, and resolve methods'
-  )
+  if (!isFunction(normalized.fs.readFile) || !isFunction(normalized.fs.exists) || !isFunction(normalized.fs.resolve)) {
+    throw new LiquidOptionError('fs requires readFile, exists, and resolve methods')
+  }
   return normalized
+}
+
+function validateOptions(input: LiquidOptions) {
+  for (const key of booleanOptionKeys) {
+    if (input[key] !== undefined && typeof input[key] !== 'boolean') throw new LiquidOptionError(`invalid ${key}`)
+  }
+  for (const key of stringOptionKeys) {
+    if (input[key] !== undefined && !isString(input[key])) throw new LiquidOptionError(`invalid ${key}`)
+  }
+  if (
+    input.timezoneOffset !== undefined &&
+    !isString(input.timezoneOffset) &&
+    typeof input.timezoneOffset !== 'number'
+  ) {
+    throw new LiquidOptionError('invalid timezoneOffset')
+  }
+  if (
+    input.sourceByteLimit !== undefined &&
+    input.sourceByteLimit !== Infinity &&
+    !(Number.isSafeInteger(input.sourceByteLimit) && input.sourceByteLimit >= 0)
+  ) {
+    throw new LiquidOptionError('invalid sourceByteLimit')
+  }
+  for (const key of limitOptionKeys) {
+    const value = input[key]
+    if (value === undefined || value === Infinity) continue
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      throw new LiquidOptionError(`invalid ${key}`)
+    }
+  }
+  if (input.globals !== undefined && (!isObject(input.globals) || isArray(input.globals))) {
+    throw new LiquidOptionError('invalid globals')
+  }
+  if (input.operators !== undefined && (!isObject(input.operators) || isArray(input.operators))) {
+    throw new LiquidOptionError('invalid operators')
+  }
+  if (input.templates !== undefined) {
+    if (!isObject(input.templates) || isArray(input.templates)) throw new LiquidOptionError('invalid templates')
+    for (const value of Object.values(input.templates)) {
+      if (!isString(value)) throw new LiquidOptionError('invalid templates')
+    }
+  }
+  if (input.fs !== undefined && (!isObject(input.fs) || isArray(input.fs))) throw new LiquidOptionError('invalid fs')
 }
 
 function getOutputEscapeFunction(nameOrFunction: OutputEscapeOption): OutputEscape {
   if (nameOrFunction === 'escape') return escape
   if (nameOrFunction === 'json') return misc.json
-  assert(isFunction(nameOrFunction), '`outputEscape` need to be of type string or function')
+  if (!isFunction(nameOrFunction)) {
+    throw new LiquidOptionError('`outputEscape` need to be of type string or function')
+  }
   return nameOrFunction
 }
 
-export function normalizeDirectoryList(value: any): string[] {
-  let list: string[] = []
-  if (isArray(value)) list = value
-  if (isString(value)) list = [value]
-  return list
+export function normalizeDirectoryList(value: unknown, label = 'directory'): string[] {
+  if (value === undefined) return []
+  if (isString(value)) return [value]
+  if (isArray(value) && value.every(isString)) return value.slice()
+  throw new LiquidOptionError(`${label} must be a string or an array of strings`)
 }

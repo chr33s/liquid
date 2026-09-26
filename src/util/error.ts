@@ -3,6 +3,7 @@ import { Token } from '../tokens/token'
 import { Template } from '../template/template'
 
 export abstract class LiquidError extends Error {
+  public abstract readonly code: string
   public token!: Token
   public context = ''
   public originalError?: Error
@@ -23,6 +24,7 @@ export abstract class LiquidError extends Error {
 }
 
 export class TokenizationError extends LiquidError {
+  public readonly code = 'TOKENIZATION_ERROR'
   public constructor(message: string, token: Token) {
     super(message, token)
     this.name = 'TokenizationError'
@@ -31,6 +33,7 @@ export class TokenizationError extends LiquidError {
 }
 
 export class ParseError extends LiquidError {
+  public readonly code = 'PARSE_ERROR'
   public constructor(err: Error, token: Token) {
     super(err, token)
     this.name = 'ParseError'
@@ -40,6 +43,7 @@ export class ParseError extends LiquidError {
 }
 
 export class RenderError extends LiquidError {
+  public readonly code = 'RENDER_ERROR'
   public constructor(err: Error, tpl: Template) {
     super(err, tpl.token)
     this.name = 'RenderError'
@@ -52,6 +56,7 @@ export class RenderError extends LiquidError {
 }
 
 export class LiquidErrors extends LiquidError {
+  public readonly code = 'LIQUID_ERRORS'
   public constructor(public errors: LiquidError[]) {
     super(errors[0], errors[0].token)
     this.name = 'LiquidErrors'
@@ -65,12 +70,66 @@ export class LiquidErrors extends LiquidError {
 }
 
 export class UndefinedVariableError extends LiquidError {
+  public readonly code = 'UNDEFINED_VARIABLE'
   public constructor(err: Error, token: Token) {
     super(err, token)
     this.name = 'UndefinedVariableError'
     this.message = err.message
     super.update()
   }
+}
+
+export class LiquidOptionError extends Error {
+  public readonly code = 'OPTION_ERROR'
+  public constructor(message: string) {
+    super(message)
+    this.name = 'LiquidOptionError'
+  }
+  static is(obj: unknown): obj is LiquidOptionError {
+    return obj instanceof LiquidOptionError
+  }
+}
+
+export class LiquidLimitError extends Error {
+  public readonly code = 'LIMIT_EXCEEDED'
+  public constructor(message: string) {
+    super(message)
+    this.name = 'LiquidLimitError'
+  }
+  static is(obj: unknown): obj is LiquidLimitError {
+    return obj instanceof LiquidLimitError
+  }
+}
+
+export class LiquidLookupError extends Error {
+  public readonly code = 'ENOENT'
+  public constructor(message: string) {
+    super(message)
+    this.name = 'LiquidLookupError'
+  }
+  static is(obj: unknown): obj is LiquidLookupError {
+    return obj instanceof LiquidLookupError
+  }
+}
+
+/** Template, option, limit, and lookup failures. Narrow with {@link isLiquidFailure}. Lookup failures keep `code` set to `ENOENT`. */
+export type LiquidFailure =
+  | TokenizationError
+  | ParseError
+  | RenderError
+  | UndefinedVariableError
+  | LiquidErrors
+  | LiquidOptionError
+  | LiquidLimitError
+  | LiquidLookupError
+
+export function isLiquidFailure(error: unknown): error is LiquidFailure {
+  return (
+    LiquidError.is(error) ||
+    error instanceof LiquidOptionError ||
+    error instanceof LiquidLimitError ||
+    error instanceof LiquidLookupError
+  )
 }
 
 // only used internally; raised where we don't have token information,

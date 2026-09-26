@@ -27,13 +27,23 @@ import {
   RenderFileOptions
 } from './liquid-options'
 
+/**
+ * Liquid template engine.
+ *
+ * Caller API: `parse`, `render`, `parseAndRender`, `parseFile`, `renderFile`, `renderToStream`, `renderFileToStream`, `evalValue`, `analyze`, `parseAndAnalyze`, the variable projection methods, `registerTag`, `registerFilter`, `unregisterTag`, `unregisterFilter`, `plugin`, and `express`.
+ * `analyze()` returns the {@link StaticAnalysis} contract. The variable methods are projections of that result.
+ *
+ * Extension protocol: the generator methods (`_render`, `_parseAndRender`, `_parseFile`, `_parsePartialFile`, `_parseLayoutFile`, `_renderFile`, `_evalValue`), {@link Tag}, {@link FS}, and {@link Emitter}. Tags, filters, and filesystem methods may return a value, a Promise, or a generator.
+ * Rendering the same {@link Context} again is not a retry: `assign`, `increment`, and `decrement` mutate that scope.
+ */
 export class Liquid {
   /** @internal */
   readonly pendingLoads = new Map<string, Promise<Template[]>>()
   public readonly options: NormalizedFullOptions
+  /** Unstable. Not part of the supported caller or extension API. */
   public readonly renderer = new Render()
   /**
-   * @deprecated will be removed. In tags use `this.parser` instead
+   * @deprecated will be removed. Custom tags receive the parser as the fourth constructor argument, not from this field.
    */
   public readonly parser: Parser
   public readonly filters: Record<string, FilterImplOptions> = Object.create(null)
@@ -51,6 +61,7 @@ export class Liquid {
     return parser.parse(html, filepath)
   }
 
+  /** Extension protocol. Generator form of `render`. */
   public *_render(
     tpl: Template[],
     scope: Context | object | undefined,
@@ -65,10 +76,11 @@ export class Liquid {
     if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
     return yield ctx.bind(owner, this.renderer.renderTemplates(tpl, ctx, emitter))
   }
-  public async render(tpl: Template[], scope?: object, renderOptions?: RenderOptions): Promise<any> {
-    return this.run(renderOptions, options => this._render(tpl, scope, options), scope)
+  public async render(tpl: Template[], scope?: Context | object, renderOptions?: RenderOptions): Promise<string> {
+    return rendered(await this.run(renderOptions, options => this._render(tpl, scope, options), scope))
   }
 
+  /** Extension protocol. Generator form of `parseAndRender`. */
   public _parseAndRender(
     html: string,
     scope: Context | object | undefined,
@@ -77,22 +89,26 @@ export class Liquid {
     const tpl = this.parse(html)
     return this._render(tpl, scope, renderOptions)
   }
-  public async parseAndRender(html: string, scope?: Context | object, renderOptions?: RenderOptions): Promise<any> {
-    return this.run(renderOptions, options => this._parseAndRender(html, scope, options), scope)
+  public async parseAndRender(html: string, scope?: Context | object, renderOptions?: RenderOptions): Promise<string> {
+    return rendered(await this.run(renderOptions, options => this._parseAndRender(html, scope, options), scope))
   }
 
+  /** Extension protocol. Generator form of parsing a partial. */
   public _parsePartialFile(file: string, currentFile?: string, options?: OperationOptions) {
     return new Parser(this).parseFile(file, LookupType.Partials, currentFile, options)
   }
+  /** Extension protocol. Generator form of parsing a layout. */
   public _parseLayoutFile(file: string, currentFile?: string, options?: OperationOptions) {
     return new Parser(this).parseFile(file, LookupType.Layouts, currentFile, options)
   }
+  /** Extension protocol. Generator form of `parseFile`. */
   public _parseFile(file: string, lookupType?: LookupType, currentFile?: string, options?: OperationOptions) {
     return new Parser(this).parseFile(file, lookupType, currentFile, options)
   }
   public async parseFile(file: string, lookupType?: LookupType, options?: OperationOptions): Promise<Template[]> {
     return this.run(options, options => this._parseFile(file, lookupType, undefined, options))
   }
+  /** Extension protocol. Generator form of `renderFile`. */
   public *_renderFile(
     file: string,
     ctx: Context | object | undefined,
@@ -106,17 +122,22 @@ export class Liquid {
     )) as Template[]
     return yield this._render(templates, ctx, renderFileOptions)
   }
-  public async renderFile(file: string, ctx?: Context | object, renderFileOptions?: RenderFileOptions) {
-    return this.run(renderFileOptions, options => this._renderFile(file, ctx, options), ctx)
+  public async renderFile(
+    file: string,
+    ctx?: Context | object,
+    renderFileOptions?: RenderFileOptions
+  ): Promise<string> {
+    return rendered(await this.run(renderFileOptions, options => this._renderFile(file, ctx, options), ctx))
   }
 
+  /** Extension protocol. Generator form of `evalValue`. */
   public *_evalValue(str: string, scope?: object | Context, options: OperationOptions = {}): IterableIterator<any> {
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options)
     const owner = driving()
     if (!owner?.covers(options.signal)) return yield operate(options, () => this._evalValue(str, ctx, options), owner)
     return yield ctx.bind(owner, new Value(str, this).value(ctx))
   }
-  public async evalValue(str: string, scope?: object | Context, options?: OperationOptions): Promise<any> {
+  public async evalValue(str: string, scope?: object | Context, options?: OperationOptions): Promise<unknown> {
     return this.run(options, options => this._evalValue(str, scope, options), scope)
   }
 
@@ -129,7 +150,11 @@ export class Liquid {
     return operate(options ?? ({} as O), task, parent)
   }
 
-  public renderToStream(templates: Template[], scope?: object, options: RenderOptions = {}): ReadableStream<string> {
+  public renderToStream(
+    templates: Template[],
+    scope?: Context | object,
+    options: RenderOptions = {}
+  ): ReadableStream<string> {
     try {
       return this.stream(templates, scope, options, new Operation(options.signal))
     } catch (error) {
@@ -170,7 +195,7 @@ export class Liquid {
 
   public async renderFileToStream(
     file: string,
-    scope?: object,
+    scope?: Context | object,
     options: RenderFileOptions = {}
   ): Promise<ReadableStream<string>> {
     const owner = new Operation(options.signal)
@@ -196,9 +221,16 @@ export class Liquid {
   public registerTag(name: string, tag: TagClass) {
     this.tags[name] = tag
   }
+  public unregisterTag(name: string) {
+    delete this.tags[name]
+  }
   public plugin(plugin: (this: Liquid, L: typeof Liquid) => void) {
     return plugin.call(this, Liquid)
   }
+  /**
+   * Express view callback. The first call prepends that view's `root` onto this engine's `root`, `layouts`, and `partials`.
+   * Later renders on this engine, including `renderFile()`, use those paths. The object passed to the constructor is not modified.
+   */
   public express() {
     const options = this.options
     const renderFile = this.renderFile.bind(this)
@@ -224,6 +256,9 @@ export class Liquid {
     }
   }
 
+  /**
+   * Analysis contract. `variables`, `fullVariables`, `variableSegments`, `globalVariables`, `globalFullVariables`, and `globalVariableSegments` are projections of this result.
+   */
   public async analyze(template: Template[], options: StaticAnalysisOptions = {}): Promise<StaticAnalysis> {
     return analyze(template, options)
   }
@@ -289,4 +324,8 @@ export class Liquid {
     const variables = await this.variableMap(template, options, 'globals')
     return Array.from(strictUniq(Object.values(variables).flatMap(entries => entries.map(entry => entry.toArray()))))
   }
+}
+
+function rendered(value: unknown): string {
+  return typeof value === 'string' ? value : ''
 }

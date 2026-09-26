@@ -8,6 +8,8 @@ title: Static Template Analysis
 >
 > Note that this is an experimental feature and future APIs are subject to change. Internal structures returned can be changed without a major version bump.
 
+`analyze()` and `parseAndAnalyze()` return a {@link StaticAnalysis}. That object is the analysis contract. `variables`, `fullVariables`, `variableSegments`, `globalVariables`, `globalFullVariables`, and `globalVariableSegments` are projections of `variables` and `globals` on that object. Prefer `analyze()` when you need locations or both sets. `globals` here means names the template did not assign. It is not {@link LiquidOptions.globals}.
+
 All execution methods on this page return Promises. See the {@link Liquid | Liquid API} for a complete reference.
 
 ## Variables

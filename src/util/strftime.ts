@@ -1,6 +1,6 @@
 import { changeCase, padStart, padEnd } from './underscore'
 import { LiquidDate } from './liquid-date'
-import { assert } from './assert'
+import { LiquidLimitError } from './error'
 
 /** Per-conversion numeric width cap for strftime (%N, %15d, …). */
 export const MAX_STRFTIME_PAD = 1024 * 1024
@@ -158,7 +158,7 @@ export function strftime(d: LiquidDate, formatStr: string) {
 }
 
 function assertPadWidth(width: number) {
-  assert(width <= MAX_STRFTIME_PAD, 'strftime pad width limit exceeded')
+  if (width > MAX_STRFTIME_PAD) throw new LiquidLimitError('strftime pad width limit exceeded')
 }
 
 function format(d: LiquidDate, match: RegExpExecArray) {

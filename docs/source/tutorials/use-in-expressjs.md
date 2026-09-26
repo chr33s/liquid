@@ -20,7 +20,11 @@ app.set('view engine', 'liquid');       // set liquid to default
 
 ## Template Lookup
 
-The {@link LiquidOptions.root | root} option will continue to work as templates root, as you can see in [Render A Template File](./render-file.md). Additionally, the [`views`][express-views] option in express.js (as shown above) will also be respected. Say you have a template directory like:
+The {@link LiquidOptions.root | root} option will continue to work as templates root, as you can see in [Render A Template File](./render-file.md). Additionally, the [`views`][express-views] option in express.js (as shown above) will also be respected.
+
+The first call to the function returned by `engine.express()` prepends that view's `root` onto the engine's `root`, `layouts`, and `partials`. Later renders on the same engine, including `renderFile()`, use those updated paths. The object passed to `new Liquid()` is not modified. Calling `express()` again does not prepend a second time.
+
+Say you have a template directory like:
 
 ```
 .

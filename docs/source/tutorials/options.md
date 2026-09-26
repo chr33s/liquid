@@ -2,7 +2,9 @@
 title: Options
 ---
 
-The {@link Liquid | Liquid} constructor accepts a plain object as options to define the behavior of LiquidJS. All of these options are optional thus we can specify any of them, for example the `cache` option:
+The {@link Liquid | Liquid} constructor accepts a plain object as options to define the behavior of LiquidJS. All of these options are optional thus we can specify any of them, for example the `cache` option.
+
+A value of the wrong type throws {@link LiquidOptionError}. `root`, `partials`, and `layouts` must be a string or an array of strings. `null` is not an empty list. See [API Stability](./api-stability.md) for the error `code` values.
 
 ```javascript
 import { Liquid } from '@chr33s/liquid'
@@ -31,7 +33,7 @@ Additionally, it can also be a custom cache implementation. See [Caching](./cach
 
 **partials** is used to specify template directories for LiquidJS to look up files for `{% render %}` and `{% include %}`. Same format as `root` and will default to `root` if not specified.
 
-**relativeReference** is set to `true` by default to allow relative filenames. Note that relatively referenced files also need to be within the corresponding root. For example you can reference another file like `{% render ../foo/bar %}` as long as `../foo/bar` is also within `partials` directory.
+**relativeReference** is set to `true` by default to allow relative filenames. Note that relatively referenced files also need to be within the corresponding root. For example you can reference another file like `{% render ../foo/bar %}` as long as `../foo/bar` is also within `partials` directory. If `fs.dirname` or `fs.sep` is missing, LiquidJS warns and forces `relativeReference` to `false` instead of throwing. Set `relativeReference: false` to skip that warning.
 
 ## dynamicPartials
 

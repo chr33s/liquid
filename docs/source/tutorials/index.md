@@ -16,6 +16,7 @@ children:
   - ./render-tag-content.md
   - ./drops.md
   - ./sync-and-async.md
+  - ./api-stability.md
   - ./whitespace-control.md
   - ./plugins.md
   - ./operators.md
@@ -49,6 +50,7 @@ Guides for using LiquidJS, grouped roughly from first steps to advanced extensio
 - [Render Tag Content](./render-tag-content.md)
 - [Drops](./drops.md)
 - [Sync and Async](./sync-and-async.md)
+- [API Stability](./api-stability.md)
 - [Whitespace Control](./whitespace-control.md)
 - [Plugins](./plugins.md)
 - [Operators](./operators.md)

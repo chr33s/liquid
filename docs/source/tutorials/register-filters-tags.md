@@ -4,41 +4,42 @@ title: Register Filters and Tags
 
 ## Register Tags
 
+`registerTag` takes a class. The engine constructs it with the tag token, the remaining tokens, the {@link Liquid} instance, and the current parser. The parser is the fourth argument. {@link Tag} does not store it. `Liquid.parser` is deprecated and is not that argument.
+
 ```typescript
 // Usage: {% upper name %}
-import { Value, TagToken, Context, Emitter, TopLevelToken } from '@chr33s/liquid'
+import { Value, Tag, TagToken, Context, TopLevelToken, Liquid } from '@chr33s/liquid'
 
-engine.registerTag('upper', {
-    parse: function(tagToken: TagToken, remainTokens: TopLevelToken[]) {
-        this.value = new Value(tagToken.args, engine)
-    },
-    render: function*(ctx: Context) {
-        const str = yield this.value.value(ctx); // 'alice'
-        return str.toUpperCase() // 'ALICE'
+engine.registerTag('upper', class UpperTag extends Tag {
+    private value: Value
+    constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+        super(tagToken, remainTokens, liquid)
+        this.value = new Value(tagToken.args, liquid)
     }
-});
+    * render(ctx: Context) {
+        const str = yield this.value.value(ctx) // 'alice'
+        return String(str).toUpperCase() // 'ALICE'
+    }
+})
 ```
 
-* `parse`: Read tokens from `remainTokens` until your end token.
-* `render`: Combine scope data with your parsed tokens into HTML string.
-
-For complex tag implementation, you can also provide a tag class:
+`render` combines the parsed tag with the current scope and returns a string, a Promise, or a generator. Read child tokens from `remainTokens` until the end token. Pass the fourth constructor argument when the tag needs the parser. See [Render Tag Content](./render-tag-content.md).
 
 ```typescript
 // Usage: {% upper name:"alice" %}
-import { Hash, Tag, TagToken, Context, Emitter, TopLevelToken, Liquid } from '@chr33s/liquid'
+import { Hash, Tag, TagToken, Context, TopLevelToken, Liquid, Parser } from '@chr33s/liquid'
 
 engine.registerTag('upper', class UpperTag extends Tag {
     private hash: Hash
-    constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid) {
+    constructor(tagToken: TagToken, remainTokens: TopLevelToken[], liquid: Liquid, _parser: Parser) {
         super(tagToken, remainTokens, liquid)
         this.hash = new Hash(tagToken.args)
     }
     * render(ctx: Context) {
-        const hash = yield this.hash.render();
+        const hash = yield this.hash.render(ctx)
         return hash.name.toUpperCase() // 'ALICE'
     }
-});
+})
 ```
 
 See existing tag implementations here: <https://github.com/harttle/liquidjs/tree/master/src/tags>
@@ -62,13 +63,14 @@ See existing filter implementations here: <https://github.com/harttle/liquidjs/t
 
 ## Unregister Tags/Filters
 
-Filters can be unregistered by name:
+Remove a filter or a tag by name:
 
 ```javascript
 engine.unregisterFilter('plus')
+engine.unregisterTag('include')
 ```
 
-With [`strictFilters`](./options.md) enabled, using an unregistered filter will throw an error. Otherwise, the filter will be skipped.
+An unregistered tag fails later with `tag "..." not found`. With [`strictFilters`](./options.md) enabled, an unregistered filter throws. Otherwise the filter is skipped. Registering the same name again replaces the previous implementation.
 
 Built-in filters can be registered again using the exported `filters` object:
 
@@ -78,7 +80,7 @@ import { filters } from '@chr33s/liquid'
 engine.registerFilter('plus', filters.plus)
 ```
 
-To disable a tag, or to make a disabled filter throw regardless of `strictFilters`, register a dummy implementation that throws a corresponding error (see [#324](https://github.com/harttle/liquidjs/issues/324)):
+To keep the name registered and fail with your own message, register a throwing implementation (see [#324](https://github.com/harttle/liquidjs/issues/324)):
 
 ```javascript
 // disable a tag

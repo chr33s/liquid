@@ -1,7 +1,6 @@
 import { Filter } from './filter'
 import { Expression } from '../render'
 import { Tokenizer } from '../parser'
-import { assert } from '../util'
 import type { FilteredValueToken } from '../tokens'
 import type { Liquid } from '../liquid'
 import type { Context } from '../context'
@@ -32,7 +31,7 @@ export class Value {
 
   private getFilter(liquid: Liquid, name: string) {
     const impl = liquid.filters[name]
-    assert(impl || !liquid.options.strictFilters, () => `undefined filter: ${name}`)
+    if (!impl && liquid.options.strictFilters) throw new Error(`undefined filter: ${name}`)
     return impl
   }
 }

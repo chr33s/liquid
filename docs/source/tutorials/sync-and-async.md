@@ -2,7 +2,7 @@
 title: Sync and Async
 ---
 
-Execution APIs return Promises. Parsing an in-memory string with `engine.parse()` remains synchronous; rendering, file loading, evaluation, and static analysis must be awaited. See [Migrate to LiquidJS 11](./migrate-to-11.md) for removed APIs.
+Execution APIs return Promises. Parsing an in-memory string with `engine.parse()` remains synchronous; rendering, file loading, evaluation, and static analysis must be awaited. See [Migrate to LiquidJS 11](./migrate-to-11.md) for removed APIs. Which of those methods are the supported caller API, and which generator methods are the extension protocol, is listed in [API Stability](./api-stability.md).
 
 ```javascript
 const templates = engine.parse('Hello {{ name }}')

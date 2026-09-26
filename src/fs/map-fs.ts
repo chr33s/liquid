@@ -1,5 +1,6 @@
 import type { FileReadOptions } from './fs'
 import { hasOwnProperty, isNil } from '../util'
+import { LiquidLimitError, LiquidLookupError } from '../util/error'
 
 export class MapFS {
   constructor(private mapping: { [key: string]: string }) {}
@@ -13,13 +14,15 @@ export class MapFS {
   async readFile(filepath: string, options: FileReadOptions = {}) {
     options.signal?.throwIfAborted()
     const content = this.read(filepath)
-    if (content == null) throw Object.assign(new Error(`ENOENT: ${filepath}`), { code: 'ENOENT' })
-    if (content.length > (options.sourceCodeUnitLimit ?? Infinity)) throw new Error('parse length limit exceeded')
+    if (content == null) throw new LiquidLookupError(`ENOENT: ${filepath}`)
+    if (content.length > (options.sourceCodeUnitLimit ?? Infinity)) {
+      throw new LiquidLimitError('parse length limit exceeded')
+    }
     let bytes = 0
     for (const character of content) {
       const code = character.codePointAt(0)!
       bytes += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4
-      if (bytes > (options.sourceByteLimit ?? Infinity)) throw new Error('source byte limit exceeded')
+      if (bytes > (options.sourceByteLimit ?? Infinity)) throw new LiquidLimitError('source byte limit exceeded')
     }
     return content
   }

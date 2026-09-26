@@ -14,6 +14,7 @@
 - [Register Filters and Tags](https://github.com/chr33s/liquid/wiki/Tutorials.Document.Register-Filters-and-Tags)
 - [Plugins](https://github.com/chr33s/liquid/wiki/Tutorials.Document.Plugins)
 - [Sync and Async](https://github.com/chr33s/liquid/wiki/Tutorials.Document.Sync-and-Async)
+- [API Stability](https://github.com/chr33s/liquid/wiki/Tutorials.Document.API-Stability)
 - [Operators](https://github.com/chr33s/liquid/wiki/Tutorials.Document.Operators)
 - [Truthy and Falsy](https://github.com/chr33s/liquid/wiki/Tutorials.Document.Truthy-and-Falsy)
 - [Security Model](https://github.com/chr33s/liquid/wiki/Tutorials.Document.Security-Model)

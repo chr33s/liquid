@@ -1,5 +1,5 @@
 import { Operation, type OperationOptions } from '../util/operation'
-import { Limiter, drive, assert, isTagToken, isOutputToken, ParseError } from '../util'
+import { Limiter, drive, isTagToken, isOutputToken, ParseError } from '../util'
 import { Tokenizer } from './tokenizer'
 import { ParseStream } from './parse-stream'
 import { TopLevelToken, OutputToken } from '../tokens'
@@ -50,7 +50,7 @@ export class Parser {
     try {
       if (isTagToken(token)) {
         const TagClass = this.liquid.tags[token.name]
-        assert(TagClass, `tag "${token.name}" not found`)
+        if (!TagClass) throw new ParseError(new Error(`tag "${token.name}" not found`), token)
         return new TagClass(token, remainTokens, this.liquid, this)
       }
       if (isOutputToken(token)) {

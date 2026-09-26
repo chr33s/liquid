@@ -58,6 +58,11 @@ describe('liquid#registerTag()', function () {
     return expect(html).toBe('ABC')
   })
 
+  it('should unregister a tag', () => {
+    const liquid = new Liquid()
+    liquid.unregisterTag('echo')
+    expect(() => liquid.parse('{% echo name %}')).toThrow('tag "echo" not found')
+  })
   it('should not treat Object.prototype names as registered tags', () => {
     const l = new Liquid()
     expect(Object.getPrototypeOf(l.tags)).toBeNull()

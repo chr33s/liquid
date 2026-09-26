@@ -1,6 +1,6 @@
 import { FS, FileReadOptions, isMissing } from './fs'
 import type { OperationOptions } from '../util/operation'
-import { assert } from '../util'
+import { LiquidLimitError, LiquidLookupError, LiquidOptionError } from '../util/error'
 
 export interface LoaderOptions {
   fs: FS
@@ -23,7 +23,7 @@ export class Loader {
     this.options = options
     if (options.relativeReference) {
       const sep = options.fs.sep
-      assert(sep, '`fs.sep` is required for relative reference')
+      if (!sep) throw new LiquidOptionError('`fs.sep` is required for relative reference')
       const prefixes = ['.' + sep, '..' + sep, './', '../']
       this.shouldLoadRelative = (referencedFile: string) => prefixes.some(prefix => referencedFile.startsWith(prefix))
     } else {
@@ -56,7 +56,9 @@ export class Loader {
         options.signal?.throwIfAborted()
         const source = yield fs.readFile(filepath, options)
         options.signal?.throwIfAborted()
-        if (source.length > (options.sourceCodeUnitLimit ?? Infinity)) throw new Error('parse length limit exceeded')
+        if (source.length > (options.sourceCodeUnitLimit ?? Infinity)) {
+          throw new LiquidLimitError('parse length limit exceeded')
+        }
         return { filepath, source }
       } catch (error) {
         options.signal?.throwIfAborted()
@@ -86,14 +88,11 @@ export class Loader {
 
   private dirname(path: string) {
     const fs = this.options.fs
-    assert(fs.dirname, '`fs.dirname` is required for relative reference')
-    return fs.dirname!(path)
+    if (!fs.dirname) throw new LiquidOptionError('`fs.dirname` is required for relative reference')
+    return fs.dirname(path)
   }
 
   private lookupError(file: string, roots: string[]) {
-    const err = new Error('ENOENT') as any
-    err.message = `ENOENT: Failed to lookup "${file}" in "${roots}"`
-    err.code = 'ENOENT'
-    return err
+    return new LiquidLookupError(`ENOENT: Failed to lookup "${file}" in "${roots}"`)
   }
 }

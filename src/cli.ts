@@ -1,6 +1,7 @@
 import fs from 'fs/promises'
 import { InvalidArgumentError, program } from 'commander'
 import { Liquid } from './index'
+import { pickLiquidOptions } from './liquid-options'
 
 render().catch(err => {
   process.stderr.write(`${err.message}\n`)
@@ -59,7 +60,7 @@ async function render() {
 
   const template = await resolveInputOption(templateOption)
   const context = await resolveContext(options.context)
-  const liquid = new Liquid(options)
+  const liquid = new Liquid(pickLiquidOptions(options))
   const output = await liquid.parseAndRender(template, context)
   if (options.output) {
     await fs.writeFile(options.output, output)
