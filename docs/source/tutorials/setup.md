@@ -108,4 +108,4 @@ Most of the [options available through the JavaScript API](./options.md) are als
 
 ## Miscellaneous
 
-A ReactJS demo is also added by [@stevenanthonyrevo](https://github.com/stevenanthonyrevo), see [demo/reactjs/](https://github.com/chr33s/liquid/tree/main/demo/reactjs/).
+Runnable integrations: <a href="https://github.com/chr33s/liquid/tree/main/demo/srvx/" target="_blank">demo/srvx/</a> renders templates from an <a href="https://srvx.h3.dev" target="_blank">srvx</a> server, and <a href="https://github.com/chr33s/liquid/tree/main/demo/vite/" target="_blank">demo/vite/</a> is an all-ESM Vite and React app.
