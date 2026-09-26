@@ -51,7 +51,7 @@ export function downcase(this: FilterImpl, v: string) {
 
 export function upcase(this: FilterImpl, v: string) {
   const str = stringify(v)
-  return stringify(str).toUpperCase()
+  return str.toUpperCase()
 }
 
 export function remove(this: FilterImpl, v: string, arg: string) {

@@ -310,31 +310,15 @@ export function normalize(input: LiquidOptions): NormalizedFullOptions {
     relativeReference = false
   }
 
-  const rootSource = hasTemplates ? ['.'] : 'root' in input ? input.root : defaultOptions.root
-  const partialsSource = hasTemplates
-    ? ['.']
-    : 'partials' in input
-      ? input.partials
-      : 'root' in input
-        ? input.root
-        : defaultOptions.partials
-  const layoutsSource = hasTemplates
-    ? ['.']
-    : 'layouts' in input
-      ? input.layouts
-      : 'root' in input
-        ? input.root
-        : defaultOptions.layouts
-
   const normalized: NormalizedFullOptions = {
     ...defaultOptions,
     ...input,
     sourceByteLimit: limit,
     fs: fileSystem,
     relativeReference,
-    root: normalizeDirectoryList(rootSource, 'root'),
-    partials: normalizeDirectoryList(partialsSource, 'partials'),
-    layouts: normalizeDirectoryList(layoutsSource, 'layouts'),
+    root: normalizeDirectoryList(directorySource(input, 'root', hasTemplates), 'root'),
+    partials: normalizeDirectoryList(directorySource(input, 'partials', hasTemplates), 'partials'),
+    layouts: normalizeDirectoryList(directorySource(input, 'layouts', hasTemplates), 'layouts'),
     cache: 'cache' in input ? normalizeCache(input.cache) : undefined,
     outputEscape: input.outputEscape === undefined ? undefined : getOutputEscapeFunction(input.outputEscape),
     locale: input.locale || getDateTimeFormat()?.().resolvedOptions().locale || 'en-US',
@@ -347,6 +331,17 @@ export function normalize(input: LiquidOptions): NormalizedFullOptions {
     throw new LiquidOptionError('fs requires readFile, exists, and resolve methods')
   }
   return normalized
+}
+
+function directorySource(
+  input: LiquidOptions,
+  key: 'root' | 'partials' | 'layouts',
+  hasTemplates: boolean
+): string | string[] | undefined {
+  if (hasTemplates) return ['.']
+  if (key in input) return input[key]
+  if ('root' in input) return input.root
+  return defaultOptions[key]
 }
 
 function validateOptions(input: LiquidOptions) {

@@ -40,11 +40,10 @@ export class MapFS {
   resolve(dir: string, file: string, ext: string) {
     const basename = file.split(this.sep).pop()!
     if (basename !== '..' && basename.lastIndexOf('.') <= 0) file += ext
-    const segments = file.startsWith(this.sep)
-      ? ['']
-      : dir === '.' || !dir
-        ? []
-        : dir.split(/\/+/).filter((segment, index) => segment || index === 0)
+    let segments: string[]
+    if (file.startsWith(this.sep)) segments = ['']
+    else if (dir === '.' || !dir) segments = []
+    else segments = dir.split(/\/+/).filter((segment, index) => segment || index === 0)
     for (const segment of file.split(this.sep)) {
       if (segment === '.' || segment === '') continue
       else if (segment === '..') {

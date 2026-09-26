@@ -131,8 +131,10 @@ interface ItemQuery {
 
 function expectedMatcher(this: FilterImpl, expected: any): (v: any) => boolean {
   if (this.context.opts.jekyllWhere) {
-    return (v: any) =>
-      EmptyDrop.is(expected) ? equals(v, expected) : isArray(v) ? arrayIncludes(v, expected) : equals(v, expected)
+    return (value: any) => {
+      if (!EmptyDrop.is(expected) && isArray(value)) return arrayIncludes(value, expected)
+      return equals(value, expected)
+    }
   }
   if (expected === undefined) return (v: any) => isTruthy(v, this.context)
   return (v: any) => equals(v, expected)

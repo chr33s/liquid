@@ -89,12 +89,12 @@ const padWidths: Record<string, number> = {
 const padSpaceChars = new Set('aAbBceklpP')
 
 function getTimezoneOffset(d: LiquidDate, opts: FormatOptions) {
-  const nOffset = Math.abs(d.getTimezoneOffset())
-  const h = Math.floor(nOffset / 60)
-  const m = nOffset % 60
-  return (
-    (d.getTimezoneOffset() > 0 ? '-' : '+') + padStart(h, 2, '0') + (opts.flags[':'] ? ':' : '') + padStart(m, 2, '0')
-  )
+  const absoluteOffset = Math.abs(d.getTimezoneOffset())
+  const hours = Math.floor(absoluteOffset / 60)
+  const minutes = absoluteOffset % 60
+  const sign = d.getTimezoneOffset() > 0 ? '-' : '+'
+  const separator = opts.flags[':'] ? ':' : ''
+  return `${sign}${padStart(hours, 2, '0')}${separator}${padStart(minutes, 2, '0')}`
 }
 type FormatCodeHandler = (d: LiquidDate, opts: FormatOptions) => unknown
 

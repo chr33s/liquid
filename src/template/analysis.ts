@@ -43,16 +43,7 @@ export class Variable {
 
   /** Return this variable's segments as an array, possibly with nested arrays for nested paths. */
   public toArray(): SegmentArray {
-    function* _visit(...segments: Array<string | number | Variable>): Generator<string | number | SegmentArray> {
-      for (const segment of segments) {
-        if (segment instanceof Variable) {
-          yield Array.from(_visit(...segment.segments))
-        } else {
-          yield segment
-        }
-      }
-    }
-    return Array.from(_visit(...this.segments))
+    return this.segments.map(segment => (segment instanceof Variable ? segment.toArray() : segment))
   }
 }
 
