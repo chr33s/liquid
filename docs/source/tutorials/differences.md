@@ -14,7 +14,7 @@ So "being compatible" means serving developers from Shopify and Jekyll well:
 In the meantime, it's now implemented in JavaScript, that means it has to be more powerful:
 
 * **Async as a first-class citizen**. Filters and tags can be implemented asynchronously by returning a `Promise`.
-* **Can also be synchronous**. For scenarios that are not I/O intensive, rendering synchronously can be much faster. You can call synchronous APIs like `.renderSync()` as long as all the filters and tags in the template can be rendered synchronously. All built-in filters/tags support both sync and async render.
+* **Synchronous in-memory parsing**. `parse()` returns templates immediately. Rendering, file loading, evaluation, and static analysis return Promises. See [Sync and Async](./sync-and-async.md).
 * **[Abstract file system][afs]**. Along with async feature, LiquidJS can be used to serve templates stored in Databases [#414][#414], on remote HTTP server [#485][#485], and so on.
 * **Additional tags and filters** like `layout` and `json`, `inspect`, `where_exp`, `group_by`, etc., see below for details.
 
@@ -38,6 +38,7 @@ Though we're trying to be compatible with the Ruby version, there are still some
 * Some tags/filters behave differently: [date][date] filter, malformed tags (like duplicated `else`, extra args for `endif`) throw errors in LiquidJS.
 
 [date]: https://liquidjs.com/filters/date.html
+[afs]: ./render-file.md
 [layout]: ../tags/layout.md
 [render]: ../tags/render.md
 [json]: https://liquidjs.com/filters/json.html

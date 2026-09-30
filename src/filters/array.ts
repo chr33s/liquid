@@ -1,5 +1,6 @@
 import {
   toArray,
+  toNumber,
   argumentsToValue,
   toValue,
   stringify,
@@ -116,6 +117,8 @@ export function slice<T>(this: FilterImpl, v: T[] | string, begin: number, lengt
   v = toValue(v)
   if (isNil(v)) return []
   if (!isArray(v)) v = stringify(v)
+  begin = Math.trunc(toNumber(begin))
+  length = Math.trunc(toNumber(length))
   begin = begin < 0 ? v.length + begin : begin
   if (begin < 0 || length < 0) return isArray(v) ? [] : ''
   return isArray(v)

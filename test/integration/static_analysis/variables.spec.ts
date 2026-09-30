@@ -656,6 +656,12 @@ describe('Variable analysis', () => {
     })
   })
 
+  it('should report loop variables used in the else branch as globals', async () => {
+    const engine = new Liquid()
+    const template = '{% for item in items %}{{item}}{%else%}{{item.name}}{{forloop.index}}{%endfor%}'
+    expect(await engine.globalFullVariables(template)).toEqual(['items', 'item.name', 'forloop.index'])
+  })
+
   it('should analyze included templates only once', async () => {
     const engine = new Liquid({ templates: { a: '{{ x }}' } })
     const template = engine.parse('{% include "a" %}{% include "a" %}')

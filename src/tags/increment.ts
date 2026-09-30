@@ -9,6 +9,7 @@ export default class extends Tag {
     super(token, remainTokens, liquid)
     this.identifier = this.tokenizer.readIdentifier()
     this.variable = this.identifier.content
+    this.tokenizer.assert(this.variable, 'expected variable name')
   }
   *render(context: Context, emitter: Emitter) {
     const scope = context.environments

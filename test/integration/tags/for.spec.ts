@@ -252,6 +252,11 @@ describe('tags/for', function () {
       const html = await liquid.parseAndRender(src, { arr: [1, 2, 3, 4, 5] })
       return expect(html).toBe('12-345')
     })
+    it('should continue after a string offset', async function () {
+      const src =
+        '{% for i in arr offset:"1" limit:"2" %}{{i}}{%endfor%}-{%for i in arr offset:continue%}{{i}}{%endfor%}'
+      expect(await liquid.parseAndRender(src, { arr: [1, 2, 3, 4, 5] })).toBe('23-45')
+    })
     it('should continue nothing for fully iterated loop', async function () {
       const src = '{%for i in arr%}{{i}}{%endfor%}-{%for i in arr offset:continue%}{{i}}{%endfor%}'
       const html = await liquid.parseAndRender(src, { arr: [1, 2, 3, 4, 5] })

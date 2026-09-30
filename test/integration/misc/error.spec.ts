@@ -68,6 +68,13 @@ describe('error', function () {
     })
   })
   describe('RenderError', function () {
+    it('should include the filename in undefined variable errors', async () => {
+      const engine = new Liquid({ strictVariables: true, templates: { page: '{{ user.name }}' } })
+      await expect(engine.renderFile('page')).rejects.toMatchObject({
+        name: 'UndefinedVariableError',
+        message: 'undefined variable: user, file:page, line:1, col:4'
+      })
+    })
     let engine: Liquid
     beforeEach(function () {
       engine = new Liquid({

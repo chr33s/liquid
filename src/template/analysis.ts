@@ -211,9 +211,12 @@ function* _analyze(
           partialScope.pop()
         }
       } else {
-        if (template.blockScope) scope.push(new Set(template.blockScope()))
-        yield walk(yield* childrenOf(template, partials), scope)
-        if (template.blockScope) scope.pop()
+        const children = yield* childrenOf(template, partials)
+        for (const child of children) {
+          if (template.blockScope) scope.push(new Set(template.blockScope(child)))
+          yield visit(child, scope)
+          if (template.blockScope) scope.pop()
+        }
       }
     }
 

@@ -1,5 +1,5 @@
 import { Hash, Liquid, Tag, evalToken, Emitter, TagToken, TopLevelToken, Context, Template } from '..'
-import { isValueToken, toEnumerable } from '../util'
+import { isValueToken, toEnumerable, toNumber } from '../util'
 import { ForloopDrop } from '../drop/forloop-drop'
 import { Parser } from '../parser'
 import { Arguments } from '../template'
@@ -47,6 +47,9 @@ export default class extends Tag {
     } finally {
       ctx.pop()
     }
+    for (const key of ['offset', 'limit']) {
+      if (hash[key] !== undefined) hash[key] = Math.trunc(toNumber(hash[key]))
+    }
 
     const modifiers = this.liquid.options.orderedFilterParameters
       ? Object.keys(hash).filter(key => MODIFIERS.includes(key))
@@ -92,7 +95,7 @@ export default class extends Tag {
     }
   }
 
-  public blockScope(): Iterable<string> {
-    return [this.variable, 'forloop']
+  public blockScope(child?: Template): Iterable<string> {
+    return child && this.elseTemplates.includes(child) ? [] : [this.variable, 'forloop']
   }
 }

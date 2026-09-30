@@ -98,6 +98,12 @@ describe('tags/tablerow', function () {
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe(dst)
   })
+  it('should convert string offset, limit and cols to numbers', async function () {
+    const src = '{% tablerow i in (1..5) offset:"1" limit:"2" cols:"2" %}{{i}}:{{tablerowloop.col_last}}{%endtablerow%}'
+    expect(await liquid.parseAndRender(src)).toBe(
+      '<tr class="row1"><td class="col1">2:false</td><td class="col2">3:true</td></tr>'
+    )
+  })
 
   it('should support index0, index, rindex0, rindex', async function () {
     const src =

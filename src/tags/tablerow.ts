@@ -1,4 +1,4 @@
-import { isValueToken, toEnumerable } from '../util'
+import { isValueToken, toEnumerable, toNumber } from '../util'
 import { Liquid, Tag, Emitter, Hash, TagToken, TopLevelToken, Context, Template, evalToken } from '..'
 import { TablerowloopDrop } from '../drop/tablerowloop-drop'
 import { Parser } from '../parser'
@@ -31,12 +31,12 @@ export default class extends Tag {
   *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     let collection = toEnumerable(yield evalToken(this.collection, ctx))
     const args = (yield this.args.render(ctx)) as Record<string, any>
-    const offset = args.offset || 0
-    const limit = args.limit === undefined ? collection.length : args.limit
+    const offset = Math.trunc(toNumber(args.offset))
+    const limit = args.limit === undefined ? collection.length : Math.trunc(toNumber(args.limit))
     collection = collection.slice(offset, offset + limit)
     if (!collection.length || !this.templates.length) return
 
-    const cols = args.cols || collection.length
+    const cols = Math.trunc(toNumber(args.cols)) || collection.length
     const tablerowloop = new TablerowloopDrop(collection.length, cols, this.collection.getText(), this.variable)
     const scope = ctx.push({ tablerowloop })
     let control: unknown

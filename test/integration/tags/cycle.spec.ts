@@ -27,11 +27,23 @@ describe('tags/cycle', function () {
     const html = await liquid.parseAndRender(src)
     return expect(html).toBe('112')
   })
+  it('should distinguish unnamed groups with the same number of arguments', async () => {
+    const src = '{% cycle "a", "b" %}{% cycle "x", "y" %}{% cycle "a", "b" %}'
+    expect(await liquid.parseAndRender(src)).toBe('axb')
+  })
   it('should support cycle group', async function () {
     const src = "{% cycle one: '1', '2', '3'%}" + "{% cycle 1: '1', '2', '3'%}" + "{% cycle 2: '1', '2', '3'%}"
     const ctx = { one: 1 }
     const html = await liquid.parseAndRender(src, ctx)
     return expect(html).toBe('121')
+  })
+  it('should share a named group across different candidates', async () => {
+    expect(await liquid.parseAndRender('{% cycle "g": 1, 2 %}{% cycle "g": "a", "b" %}')).toBe('1b')
+  })
+  it('should reset a named group when a shorter candidate list is exhausted', async () => {
+    const src =
+      '{% cycle "g": 1, 2, 3 %}{% cycle "g": 1, 2, 3 %}{% cycle "g": "a", "b" %}{% cycle "g": "x", "y", "z" %}'
+    expect(await liquid.parseAndRender(src)).toBe('12x')
   })
   it('should support Promise rendering', async function () {
     const src = "{% cycle '1', '2', '3' %}"

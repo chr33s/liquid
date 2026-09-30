@@ -102,7 +102,7 @@ engine.variableSegments(template).then(console.log)
 
 Notice, in the examples above, that `title` and `email` are included in the results. Often you'll want to exclude names that are in scope from `{% assign %}` tags, and temporary variables like those introduced by a `{% for %}` tag.
 
-To get names that are expected to be _global_, that is, provided by application developers rather than template authors, use the `globalVariables`, `globalFullVariables` or `globalVariableSegments` methods (or their synchronous equivalents) of a `Liquid` class instance.
+To get names that are expected to be _global_, that is, provided by application developers rather than template authors, use the `globalVariables`, `globalFullVariables` or `globalVariableSegments` methods of a `Liquid` class instance.
 
 ```javascript
 // continued from above
@@ -236,9 +236,11 @@ This is an example of an object returned from `Liquid.analyze()`, passing it the
 
 For static analysis to include results from custom tags, those tags must implement some additional methods defined on the {@link Template | Template interface}. LiquidJS will use the information returned from these methods to traverse the template and report variable usage.
 
-Not all methods are required, depending on the kind of tag. If it's a block with a start tag, end tag and any amount of Liquid markup in between, it will need to implement the {@link Template.children | `children()`} method. `children()` is defined as a generator, so that we can use it in synchronous and asynchronous contexts, just like `render()`. It should return HTML content, output statements and tags that are child nodes of the current tag.
+Not all methods are required, depending on the kind of tag. If it's a block with a start tag, end tag and any amount of Liquid markup in between, it will need to implement the {@link Template.children | `children()`} method. `children()` is defined as a generator so analysis can resolve asynchronous partial loads. It should return HTML content, output statements and tags that are child nodes of the current tag.
 
 The {@link Template.blockScope | `blockScope()`} method is responsible for telling LiquidJS which names will be in scope for the duration of the tag's block. Some of these names could depend on the tag's arguments, and some will be fixed, like `forloop` from the `{% for %}` tag.
+
+Analysis passes the child template to `blockScope(child)`, so tags can return different names for each branch. For example, a `for` tag's loop variable and `forloop` are in scope for its body, but not its `else` branch. Tags with the same scope for every child can ignore the argument.
 
 Whether a tag is an inline tag or a block tag, if it accepts arguments it should implement {@link Template.arguments | `arguments()`}, which is responsible for returning the tag's arguments as a sequence of {@link Value | `Value`} instances or tokens of type {@link ValueToken | `ValueToken`}.
 

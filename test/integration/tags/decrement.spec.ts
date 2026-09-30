@@ -2,6 +2,9 @@ import { Liquid } from '../../../src/liquid'
 
 describe('tags/decrement', function () {
   const liquid = new Liquid()
+  it('should reject a missing variable name', () => {
+    expect(() => liquid.parse('{% decrement %}')).toThrow('expected variable name')
+  })
 
   it('should decrement undefined variable', async function () {
     const src = '{% decrement var %}{% decrement var %}{% decrement var %}'

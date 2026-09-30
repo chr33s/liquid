@@ -2,6 +2,9 @@ import { Liquid } from '../../../src/liquid'
 
 describe('tags/increment', function () {
   const liquid = new Liquid()
+  it('should reject a missing variable name', () => {
+    expect(() => liquid.parse('{% increment %}')).toThrow('expected variable name')
+  })
 
   it('should increment undefined variable', async function () {
     const src = '{% increment one %}{% increment one %}{% increment one %}'

@@ -1,6 +1,18 @@
 import { LRU } from './lru'
 
 describe('LRU', () => {
+  it('should cache keys that match Object prototype properties before and after clearing', () => {
+    const lru = new LRU<string>(3)
+    for (let pass = 0; pass < 2; pass++) {
+      for (const key of ['constructor', '__proto__', 'toString']) {
+        expect(lru.read(key)).toBeUndefined()
+        lru.write(key, key)
+        expect(lru.read(key)).toBe(key)
+      }
+      expect(lru.size).toBe(3)
+      lru.clear()
+    }
+  })
   it('should perform read()/write()', () => {
     const lru = new LRU(2)
     expect(lru.limit).toEqual(2)
@@ -63,5 +75,16 @@ describe('LRU', () => {
     lru.write('foo', 'BAR')
     expect(lru.size).toEqual(1)
     expect(lru.read('foo')).toEqual('BAR')
+  })
+  it('should keep an overwritten entry when evicting the least recently used entry', () => {
+    const lru = new LRU(2)
+    lru.write('foo', 'FOO')
+    lru.write('bar', 'BAR')
+    lru.write('foo', 'UPDATED')
+    lru.write('coo', 'COO')
+    expect(lru.read('foo')).toBe('UPDATED')
+    expect(lru.read('bar')).toBeUndefined()
+    expect(lru.read('coo')).toBe('COO')
+    expect(lru.size).toBe(2)
   })
 })

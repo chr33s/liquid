@@ -1,11 +1,26 @@
 import { strftime as t } from './strftime'
 import { DateWithTimezone, TestDate } from '../../test/stub/date'
+import { LiquidDate } from './liquid-date'
 
 describe('util/strftime', function () {
   const now = new TestDate('2016-01-04 13:15:23')
   const then = new TestDate('2016-03-06 03:05:03')
 
   describe('Date (Year, Month, Day)', () => {
+    it.each([
+      ['0000-03-01', '0000 0000 00 00 061 00 09'],
+      ['0001-01-01', '0001 0001 00 01 001 01 01'],
+      ['0099-01-01', '0099 0099 00 99 001 99 01'],
+      ['0099-12-31', '0099 0099 00 99 365 99 53'],
+      ['0100-01-01', '0100 0099 01 00 001 99 53'],
+      ['0999-12-31', '0999 1000 09 99 365 00 01']
+    ])('should format early Gregorian years for %s', (date, expected) => {
+      expect(t(new LiquidDate(date + 'T12:00:00Z', 'en-US', 0), '%Y %G %C %y %j %g %V')).toBe(expected)
+    })
+    it('should preserve the sign and width of negative years', () => {
+      const date = new LiquidDate('-000001-01-01T12:00:00Z', 'en-US', 0)
+      expect(t(date, '%Y %G %4Y %-Y %6Y %g %C %y')).toBe('-0001 -0002 -001 -1 -00001 98 -1 99')
+    })
     it('should format %C as century', function () {
       expect(t(now, '%C')).toBe('20')
     })
@@ -134,6 +149,16 @@ describe('util/strftime', function () {
   })
 
   describe('Week number', () => {
+    it.each([
+      ['2023-01-01', '01 00'],
+      ['2023-01-02', '01 01'],
+      ['2023-12-31', '53 52'],
+      ['2024-01-01', '00 01'],
+      ['2024-01-07', '01 01'],
+      ['2024-12-31', '52 53']
+    ])('should format Sunday and Monday weeks for %s', (date, expected) => {
+      expect(t(new TestDate(date + ' 12:00:00'), '%U %W')).toBe(expected)
+    })
     it('should format %U as week of year, starts with 0', function () {
       expect(t(now, '%U')).toBe('01')
     })

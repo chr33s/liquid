@@ -253,6 +253,10 @@ describe('filters/array', function () {
     it('should work for string', () => test('{{ "foo" | last }}', {}, 'o'))
   })
   describe('slice', function () {
+    it('should convert string indices and lengths to numbers', () =>
+      test('{{ "abcdef" | slice: "1", "2" }}|{{ "abcdef" | slice: "-3", "2" }}', 'bc|de'))
+    it('should convert string indices and lengths for arrays', () =>
+      test('{{ "a,b,c,d" | split: "," | slice: "1", "2" | join: "," }}', 'b,c'))
     it('should slice first char by 0', () => test('{{ "Liquid" | slice: 0 }}', 'L'))
     it('should slice third char by 2', () => test('{{ "Liquid" | slice: 2 }}', 'q'))
     it('should slice substr by 2,5', () => test('{{ "Liquid" | slice: 2, 5 }}', 'quid'))

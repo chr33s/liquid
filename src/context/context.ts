@@ -29,7 +29,7 @@ export class Context {
    * for tags like `{% capture %}` `{% assign %}` to operate
    */
   private scopes: Scope[] = [createScope()]
-  private registers: Record<string, any> = {}
+  private registers: Record<string, any> = Object.create(null)
   /**
    * user passed in scope
    * `{% increment %}`, `{% decrement %}` changes this scope,
@@ -101,7 +101,7 @@ export class Context {
     this.depthLimit = depthLimit ?? new Limiter('template depth', opts.maxDepth)
   }
   public getRegister<T>(key: string, defaultValue: T = undefined as T): T {
-    return (this.registers[key] = this.registers[key] || defaultValue)
+    return (this.registers[key] = this.registers[key] === undefined ? defaultValue : this.registers[key])
   }
   public setRegister(key: string, value: any) {
     return (this.registers[key] = value)

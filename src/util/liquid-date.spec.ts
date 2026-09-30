@@ -3,6 +3,11 @@ import { disableIntl } from '../../test/stub/no-intl'
 
 describe('LiquidDate', () => {
   describe('timezone', () => {
+    it('should preserve a lowercase UTC timezone designator', () => {
+      const date = LiquidDate.createDateFixedToTimezone('2021-10-06T14:26:00.000z', 'en-US')
+      expect(date.getTimezoneOffset()).toBe(0)
+      expect(date.getHours()).toBe(14)
+    })
     it('should respect timezone set to 00:00', () => {
       const date = new LiquidDate('2021-10-06T14:26:00.000+08:00', 'en-US', 0)
       expect(date.getTimezoneOffset()).toBe(0)
