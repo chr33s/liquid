@@ -10,7 +10,7 @@ fi
 
 for demo in $(ls demo); do
   cd demo/$demo
-  npm install
+  npm install --ignore-scripts
 
   if npm test; then
     echo "[success] demo/$demo"
