@@ -7,7 +7,7 @@ import { Tokenizer } from '../parser'
 import { Liquid } from '../liquid'
 import { Filter } from './filter'
 import { FilterToken } from '../tokens'
-import { toValue } from '../util'
+import { resolveDrop } from '../util'
 
 export class Output extends TemplateImpl<OutputToken> implements Template {
   value: Value
@@ -29,7 +29,7 @@ export class Output extends TemplateImpl<OutputToken> implements Template {
     }
   }
   public *render(ctx: Context, emitter: Emitter): IterableIterator<unknown> {
-    const val = yield toValue(yield this.value.value(ctx, false))
+    const val = yield resolveDrop(yield this.value.value(ctx, false))
     yield emitter.write(val)
   }
 

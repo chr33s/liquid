@@ -21,7 +21,7 @@ import {
   range,
   isOperatorToken,
   assert,
-  toValue
+  resolveDrop
 } from '../util'
 import type { Context } from '../context'
 import type { UnaryOperatorHandler } from '../render'
@@ -73,7 +73,7 @@ function* evalFilteredValueToken(token: FilteredValueToken, ctx: Context, lenien
 }
 
 export function* evalTokenValue(token: Token | undefined, ctx: Context, lenient = false): IterableIterator<unknown> {
-  return yield toValue(yield evalToken(token, ctx, lenient))
+  return yield resolveDrop(yield evalToken(token, ctx, lenient))
 }
 
 function* evalPropertyAccessToken(

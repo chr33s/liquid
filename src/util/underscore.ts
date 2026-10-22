@@ -71,6 +71,12 @@ export function toValue(value: any): any {
   return value instanceof Drop && isFunction(value.valueOf) ? value.valueOf() : value
 }
 
+/** Keeps a Drop intact unless its `valueOf()` is a promise, in which case the resolved value is returned. */
+export function* resolveDrop(value: any): Generator<unknown, any, any> {
+  const resolved = toValue(value)
+  return isPromise(resolved) ? yield resolved : value
+}
+
 export function toNumber(value: any): number {
   return +toValue(value) || 0
 }
