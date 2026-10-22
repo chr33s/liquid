@@ -32,14 +32,29 @@ export function prepend(this: FilterImpl, v: string, arg: string) {
   return rhs + lhs
 }
 
+function getTrimStart(str: string, chars: Set<string>): number {
+  let start = 0
+  for (const char of str) {
+    if (!chars.has(char)) break
+    start += char.length
+  }
+  return start
+}
+
+function getTrimEnd(str: string, chars: Set<string>, start = 0): number {
+  let end = str.length
+  while (end > start) {
+    const size = end - start >= 2 && str.codePointAt(end - 2)! > 0xffff ? 2 : 1
+    if (!chars.has(str.slice(end - size, end))) break
+    end -= size
+  }
+  return end
+}
+
 export function lstrip(this: FilterImpl, v: string, chars?: string) {
   const str = stringify(v)
   if (chars) {
-    chars = stringify(chars)
-    for (let i = 0, set = new Set(chars); i < str.length; i++) {
-      if (!set.has(str[i])) return str.slice(i)
-    }
-    return ''
+    return str.slice(getTrimStart(str, new Set(stringify(chars))))
   }
   return str.trimStart()
 }
@@ -77,11 +92,7 @@ export function remove_last(this: FilterImpl, v: string, l: string) {
 export function rstrip(this: FilterImpl, str: string, chars?: string) {
   str = stringify(str)
   if (chars) {
-    chars = stringify(chars)
-    for (let i = str.length - 1, set = new Set(chars); i >= 0; i--) {
-      if (!set.has(str[i])) return str.slice(0, i + 1)
-    }
-    return ''
+    return str.slice(0, getTrimEnd(str, new Set(stringify(chars))))
   }
   return str.trimEnd()
 }
@@ -99,11 +110,8 @@ export function strip(this: FilterImpl, v: string, chars?: string) {
   const str = stringify(v)
   if (chars) {
     const set = new Set(stringify(chars))
-    let i = 0
-    let j = str.length - 1
-    while (set.has(str[i])) i++
-    while (j >= i && set.has(str[j])) j--
-    return str.slice(i, j + 1)
+    const start = getTrimStart(str, set)
+    return str.slice(start, getTrimEnd(str, set, start))
   }
   return str.trim()
 }

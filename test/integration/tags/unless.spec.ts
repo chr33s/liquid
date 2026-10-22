@@ -83,4 +83,21 @@ describe('tags/unless', function () {
       expect(html).toBe('yes')
     })
   })
+  describe('parenthesized filter chains', function () {
+    describe('when enabled', function () {
+      const ge = new Liquid({ groupedExpressions: true })
+      it('should support grouped expression in unless condition', async function () {
+        const src = '{% unless (content | size) == 0 %}has content{% else %}empty{% endunless %}'
+        const html = await ge.parseAndRender(src, { content: 'hello' })
+        expect(html).toBe('has content')
+      })
+    })
+    describe('when disabled', function () {
+      const ge = new Liquid({ groupedExpressions: false })
+      it('should throw for grouped expression in unless condition', async function () {
+        const src = '{% unless (content | size) == 0 %}has content{% else %}empty{% endunless %}'
+        await expect(ge.parseAndRender(src, { content: 'hello' })).rejects.toThrow('invalid range syntax')
+      })
+    })
+  })
 })

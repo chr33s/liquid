@@ -7,12 +7,19 @@ import { Tokenizer } from '../parser'
 import { Liquid } from '../liquid'
 import { Filter } from './filter'
 import { FilterToken } from '../tokens'
+import { toValue } from '../util'
 
 export class Output extends TemplateImpl<OutputToken> implements Template {
   value: Value
   public constructor(token: OutputToken, liquid: Liquid) {
     super(token)
-    const tokenizer = new Tokenizer(token.input, liquid.options.operators, token.file, token.contentRange)
+    const tokenizer = new Tokenizer(
+      token.input,
+      liquid.options.operators,
+      token.file,
+      token.contentRange,
+      liquid.options.groupedExpressions
+    )
     this.value = new Value(tokenizer.readFilteredValue(), liquid)
     const filters = this.value.filters
     const outputEscape = liquid.options.outputEscape
@@ -22,7 +29,7 @@ export class Output extends TemplateImpl<OutputToken> implements Template {
     }
   }
   public *render(ctx: Context, emitter: Emitter): IterableIterator<unknown> {
-    const val = yield this.value.value(ctx, false)
+    const val = yield toValue(yield this.value.value(ctx, false))
     yield emitter.write(val)
   }
 

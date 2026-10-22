@@ -1,6 +1,7 @@
 import { Liquid, Tag, Value, Emitter, isTruthy, TagToken, TopLevelToken, Context, Template } from '..'
 import { Parser } from '../parser'
 import { Arguments } from '../template'
+import { toValue } from '../util'
 import { parseClauses } from '../parser/clauses'
 import { isControl } from '../render/control'
 
@@ -40,7 +41,7 @@ export default class extends Tag {
 
   *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
     for (const { value, templates } of this.branches) {
-      const v = yield value.value(ctx, ctx.opts.lenientIf)
+      const v = yield toValue(yield value.value(ctx, ctx.opts.lenientIf))
       if (isTruthy(v, ctx)) return yield this.renderBranch(templates, ctx, emitter)
     }
     return yield this.renderBranch(this.elseTemplates || [], ctx, emitter)

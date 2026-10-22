@@ -55,12 +55,12 @@ export default class extends Tag {
   }
 
   *render(ctx: Context, emitter: Emitter): Generator<unknown, unknown, unknown> {
-    const target = toValue(yield this.value.value(ctx, ctx.opts.lenientIf))
+    const target = yield toValue(yield this.value.value(ctx, ctx.opts.lenientIf))
     let branchHit = false
     for (const branch of this.branches) {
       for (const valueToken of branch.values) {
         const value = yield evalToken(valueToken, ctx, ctx.opts.lenientIf)
-        if (equals(target, value)) {
+        if (yield equals(target, value)) {
           const control = yield this.renderBranch(branch.templates, ctx, emitter)
           if (isControl(control)) return control
           branchHit = true

@@ -28,9 +28,18 @@ export {
   AssertionError
 } from './util'
 export { Drop } from './drop'
-export type { Comparable } from './drop'
+export type { Comparable, ComparableResult } from './drop'
 export type { Emitter } from './emitters'
-export { defaultOperators, type Operators, evalToken, evalQuotedToken, Expression, isFalsy, isTruthy } from './render'
+export {
+  defaultOperators,
+  type Operators,
+  evalToken,
+  evalTokenValue,
+  evalQuotedToken,
+  Expression,
+  isFalsy,
+  isTruthy
+} from './render'
 export { Context, type Scope } from './context'
 export {
   Value,
@@ -52,7 +61,14 @@ export {
 } from './template'
 export type { TagRenderReturn } from './template'
 export { Token, type TopLevelToken, TagToken, type ValueToken } from './tokens'
-export type { RangeToken, LiteralToken, QuotedToken, PropertyAccessToken, NumberToken } from './tokens'
+export type {
+  RangeToken,
+  LiteralToken,
+  QuotedToken,
+  PropertyAccessToken,
+  NumberToken,
+  FilteredValueToken
+} from './tokens'
 export { TokenKind, Tokenizer, ParseStream, Parser } from './parser'
 export { filters } from './filters'
 export * from './tags'

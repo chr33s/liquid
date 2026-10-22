@@ -5,11 +5,13 @@ import {
   Token,
   PropertyAccessToken,
   OperatorType,
-  operatorTypes
+  operatorTypes,
+  FilteredValueToken
 } from '../tokens'
 import {
   isRangeToken,
   isPropertyAccessToken,
+  isFilteredValueToken,
   isQuotedToken,
   isNumberToken,
   isLiteralToken,
@@ -18,16 +20,18 @@ import {
   InternalUndefinedVariableError,
   range,
   isOperatorToken,
-  assert
+  assert,
+  toValue
 } from '../util'
 import type { Context } from '../context'
 import type { UnaryOperatorHandler } from '../render'
 import { Drop } from '../drop'
+import { Value } from '../template/value'
 
 export class Expression {
   readonly postfix: Token[]
 
-  public constructor(tokens: IterableIterator<Token>) {
+  public constructor(tokens: Iterable<Token>) {
     this.postfix = [...toPostfix(tokens)]
   }
   public *evaluate(ctx: Context, lenient?: boolean): Generator<unknown, unknown, unknown> {
@@ -60,6 +64,16 @@ export function* evalToken(token: Token | undefined, ctx: Context, lenient = fal
   if (isWordToken(token) || isQuotedToken(token) || isNumberToken(token) || isLiteralToken(token)) return token.content
   if (isPropertyAccessToken(token)) return yield evalPropertyAccessToken(token, ctx, lenient)
   if (isRangeToken(token)) return yield evalRangeToken(token, ctx)
+  if (isFilteredValueToken(token)) return yield evalFilteredValueToken(token, ctx, lenient)
+}
+
+function* evalFilteredValueToken(token: FilteredValueToken, ctx: Context, lenient: boolean): IterableIterator<unknown> {
+  assert(ctx.liquid, 'FilteredValueToken evaluation requires liquid instance in context')
+  return yield new Value(token, ctx.liquid!).value(ctx, lenient)
+}
+
+export function* evalTokenValue(token: Token | undefined, ctx: Context, lenient = false): IterableIterator<unknown> {
+  return yield toValue(yield evalToken(token, ctx, lenient))
 }
 
 function* evalPropertyAccessToken(
@@ -69,7 +83,7 @@ function* evalPropertyAccessToken(
 ): IterableIterator<unknown> {
   const props: (string | number | Drop)[] = []
   for (const prop of token.props) {
-    props.push((yield evalToken(prop, ctx, false)) as unknown as string | number | Drop)
+    props.push((yield evalTokenValue(prop, ctx, false)) as unknown as string | number | Drop)
   }
   try {
     if (token.variable) {
@@ -89,8 +103,8 @@ export function evalQuotedToken(token: QuotedToken) {
 }
 
 function* evalRangeToken(token: RangeToken, ctx: Context) {
-  const low: number = yield evalToken(token.lhs, ctx)
-  const high: number = yield evalToken(token.rhs, ctx)
+  const low: number = yield evalTokenValue(token.lhs, ctx)
+  const high: number = yield evalTokenValue(token.rhs, ctx)
   const start = +low
   const end = +high
   assert(
@@ -100,7 +114,7 @@ function* evalRangeToken(token: RangeToken, ctx: Context) {
   return range(start, end + 1)
 }
 
-function* toPostfix(tokens: IterableIterator<Token>): IterableIterator<Token> {
+function* toPostfix(tokens: Iterable<Token>): IterableIterator<Token> {
   const ops: OperatorToken[] = []
   for (const token of tokens) {
     if (isOperatorToken(token)) {

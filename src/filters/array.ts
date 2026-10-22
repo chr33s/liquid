@@ -132,22 +132,20 @@ interface ItemQuery {
   exp?: string
 }
 
-function expectedMatcher(this: FilterImpl, expected: any): (v: any) => boolean {
+function* matches(this: FilterImpl, value: unknown, expected: unknown): Generator<unknown, boolean, any> {
   if (this.context.opts.jekyllWhere) {
-    return (value: any) => {
-      if (!EmptyDrop.is(expected) && isArray(value)) return arrayIncludes(value, expected)
-      return equals(value, expected)
-    }
+    if (!EmptyDrop.is(expected) && isArray(value)) return yield arrayIncludes(value, expected)
+    return yield equals(value, expected)
   }
-  if (expected === undefined) return (v: any) => isTruthy(v, this.context)
-  return (v: any) => equals(v, expected)
+  if (expected === undefined) return isTruthy(value, this.context)
+  return yield equals(value, expected)
 }
 
 function* project(
   this: FilterImpl,
   items: Iterable<unknown>,
   query: ItemQuery,
-  until?: (value: unknown) => boolean
+  until?: (value: unknown) => unknown
 ): Generator<unknown, unknown[], unknown> {
   const values: unknown[] = []
   const token = query.property != null ? new Tokenizer(stringify(query.property)).readScopeValue() : undefined
@@ -165,7 +163,7 @@ function* project(
       value = yield evalToken(token, this.context.spawn(item as object))
     }
     values.push(value)
-    if (until?.(value)) break
+    if (yield until?.(value)) break
   }
   return values
 }
@@ -179,8 +177,11 @@ function* filter<T extends object>(
 ): IterableIterator<unknown> {
   const items = toArray(arr)
   const values = (yield* project.call(this, items, { property })) as unknown[]
-  const matcher = expectedMatcher.call(this, expected)
-  return items.filter((_, index) => matcher(values[index]) === include)
+  const result: T[] = []
+  for (let index = 0; index < items.length; index++) {
+    if ((yield matches.call(this, values[index], expected)) === include) result.push(items[index])
+  }
+  return result
 }
 
 function* filter_exp<T extends object>(
@@ -269,9 +270,10 @@ function* search<T extends object>(
   expected: string
 ): IterableIterator<unknown> {
   const items = toArray(arr)
-  const matcher = expectedMatcher.call(this, expected)
-  const values = (yield* project.call(this, items, { property }, value => matcher(value))) as unknown[]
-  const index = firstHit(values, values.length > 0 && matcher(values[values.length - 1]))
+  const values = (yield* project.call(this, items, { property }, value =>
+    matches.call(this, value, expected)
+  )) as unknown[]
+  const index = firstHit(values, values.length > 0 && (yield matches.call(this, values[values.length - 1], expected)))
   if (index >= 0) return [index, items[index]]
 }
 

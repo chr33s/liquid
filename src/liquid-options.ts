@@ -86,6 +86,8 @@ export interface LiquidOptions {
   operators?: Operators
   /** Respect parameter order when using filters like "for ... reversed limit", Defaults to `false`. */
   orderedFilterParameters?: boolean
+  /** Allow parenthesized expressions as operands in conditions and loops, e.g. `{% if (foo | upcase) == "BAR" %}`. This is a non-standard extension to Liquid. Defaults to `false`. */
+  groupedExpressions?: boolean
   /** For DoS handling, limit total length of templates parsed in one `parse()` call. A typical PC can handle 1e8 (100M) characters without issues. */
   parseLimit?: number
   /** For DoS handling, limit total renders of tag/HTML/output in one `render()` call. */
@@ -156,6 +158,7 @@ export interface NormalizedFullOptions extends NormalizedOptions {
   greedy: boolean
   globals: object
   operators: Operators
+  groupedExpressions: boolean
   parseLimit: number
   templateLimit: number
   outputLengthLimit: number
@@ -191,6 +194,7 @@ const booleanOptionKeys = [
   'preserveTimezones',
   'greedy',
   'orderedFilterParameters',
+  'groupedExpressions',
   'catchAllErrors'
 ] as const satisfies readonly (keyof LiquidOptions)[]
 
@@ -265,6 +269,7 @@ export const defaultOptions: NormalizedFullOptions = {
   lenientIf: false,
   globals: {},
   operators: defaultOperators,
+  groupedExpressions: false,
   parseLimit: Infinity,
   templateLimit: Infinity,
   outputLengthLimit: Infinity,

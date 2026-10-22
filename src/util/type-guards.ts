@@ -10,7 +10,8 @@ import {
   IdentifierToken,
   DelimitedToken,
   OperatorToken,
-  ValueToken
+  ValueToken,
+  FilteredValueToken
 } from '../tokens'
 import { TokenKind } from '../parser'
 
@@ -58,9 +59,13 @@ export function isRangeToken(val: any): val is RangeToken {
   return getKind(val) === TokenKind.Range
 }
 
+export function isFilteredValueToken(val: any): val is FilteredValueToken {
+  return getKind(val) === TokenKind.FilteredValue
+}
+
 export function isValueToken(val: any): val is ValueToken {
-  // valueTokenBitMask = TokenKind.Number | TokenKind.Literal | TokenKind.Quoted | TokenKind.PropertyAccess | TokenKind.Range
-  return (getKind(val) & 1667) > 0
+  // valueTokenBitMask = TokenKind.Number | TokenKind.Literal | TokenKind.Quoted | TokenKind.PropertyAccess | TokenKind.Range | TokenKind.FilteredValue
+  return (getKind(val) & 5763) > 0
 }
 
 function getKind(val: any) {

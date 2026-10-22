@@ -382,4 +382,21 @@ describe('tags/for', function () {
       return expect(html).toBe('i-someDrop i-someDrop i-someDrop ')
     })
   })
+  describe('parenthesized filter chains', function () {
+    describe('when enabled', function () {
+      const ge = new Liquid({ groupedExpressions: true })
+      it('should support range with filtered RHS', async function () {
+        const src = '{% for i in (1..(items | size)) %}{{i}} {% endfor %}'
+        const html = await ge.parseAndRender(src, { items: ['a', 'b', 'c'] })
+        expect(html).toBe('1 2 3 ')
+      })
+    })
+    describe('when disabled', function () {
+      const ge = new Liquid({ groupedExpressions: false })
+      it('should throw for range with filtered RHS', async function () {
+        const src = '{% for i in (1..(items | size)) %}{{i}} {% endfor %}'
+        await expect(ge.parseAndRender(src, { items: ['a', 'b', 'c'] })).rejects.toThrow('invalid range syntax')
+      })
+    })
+  })
 })

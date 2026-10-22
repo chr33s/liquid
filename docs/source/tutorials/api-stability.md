@@ -38,4 +38,4 @@ Re-register a built-in filter from the exported `filters` object. That object is
 
 ## Unstable exports
 
-Tokenizer, token classes other than the tag and top-level types above, `evalToken`, `assert`, `toPromise`, `createTrie`, `TypeGuards`, `pendingLoads`, and `renderer` are not a supported API. Importing them from the package root still works. Do not depend on their shape.
+Tokenizer, token classes other than the tag and top-level types above, `evalToken`, `evalTokenValue`, `assert`, `toPromise`, `createTrie`, `TypeGuards`, `pendingLoads`, and `renderer` are not a supported API. Importing them from the package root still works. Do not depend on their shape.

@@ -1,5 +1,6 @@
 import { Operation, drive, driving, toPromise, type OperationOptions } from '../util'
 import { Drop } from '../drop/drop'
+import type { Liquid } from '../liquid'
 import { NormalizedFullOptions, defaultOptions, RenderOptions } from '../liquid-options'
 import { createScope, Scope } from './scope'
 import {
@@ -79,6 +80,8 @@ export class Context {
   public templateLimit: Limiter
   public outputLengthLimit: Limiter
   public depthLimit: Limiter
+  /** Used to resolve filters of parenthesized expressions at render time. */
+  public liquid?: Liquid
   public constructor(
     env: object = {},
     opts: NormalizedFullOptions = defaultOptions,
@@ -86,8 +89,9 @@ export class Context {
     {
       templateLimit,
       outputLengthLimit,
-      depthLimit
-    }: { templateLimit?: Limiter; outputLengthLimit?: Limiter; depthLimit?: Limiter } = {}
+      depthLimit,
+      liquid
+    }: { templateLimit?: Limiter; outputLengthLimit?: Limiter; depthLimit?: Limiter; liquid?: Liquid } = {}
   ) {
     this.lookupSignal = renderOptions.signal
     this.opts = opts
@@ -99,6 +103,7 @@ export class Context {
     this.outputLengthLimit =
       outputLengthLimit ?? new Limiter('output length', renderOptions.outputLengthLimit ?? opts.outputLengthLimit)
     this.depthLimit = depthLimit ?? new Limiter('template depth', opts.maxDepth)
+    this.liquid = liquid
   }
   public getRegister<T>(key: string, defaultValue: T = undefined as T): T {
     return (this.registers[key] = this.registers[key] === undefined ? defaultValue : this.registers[key])
@@ -167,7 +172,8 @@ export class Context {
       {
         templateLimit: this.templateLimit,
         outputLengthLimit: this.outputLengthLimit,
-        depthLimit: this.depthLimit
+        depthLimit: this.depthLimit,
+        liquid: this.liquid
       }
     )
     child.bindings = this.bindings

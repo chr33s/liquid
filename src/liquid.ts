@@ -69,7 +69,7 @@ export class Liquid {
     renderOptions: RenderOptions = {},
     emitter?: Emitter
   ): IterableIterator<any> {
-    const ctx = scope instanceof Context ? scope : new Context(scope, this.options, renderOptions)
+    const ctx = scope instanceof Context ? scope : new Context(scope, this.options, renderOptions, { liquid: this })
     const owner = driving()
     if (!owner?.covers(renderOptions.signal)) {
       return yield operate(renderOptions, () => this._render(tpl, ctx, renderOptions, emitter), owner)
@@ -133,7 +133,7 @@ export class Liquid {
 
   /** Extension protocol. Generator form of `evalValue`. */
   public *_evalValue(str: string, scope?: object | Context, options: OperationOptions = {}): IterableIterator<any> {
-    const ctx = scope instanceof Context ? scope : new Context(scope, this.options)
+    const ctx = scope instanceof Context ? scope : new Context(scope, this.options, {}, { liquid: this })
     const owner = driving()
     if (!owner?.covers(options.signal)) return yield operate(options, () => this._evalValue(str, ctx, options), owner)
     return yield ctx.bind(owner, new Value(str, this).value(ctx))

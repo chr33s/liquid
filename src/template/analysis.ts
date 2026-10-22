@@ -1,11 +1,12 @@
 import type { OperationOptions } from '../util/operation'
 import { Argument, Template, Value } from '.'
 import { isKeyValuePair } from '../parser/filter-arg'
-import { PropertyAccessToken, ValueToken } from '../tokens'
+import { FilteredValueToken, PropertyAccessToken, ValueToken } from '../tokens'
 import {
   isNumberToken,
   isPropertyAccessToken,
   isQuotedToken,
+  isFilteredValueToken,
   isRangeToken,
   isString,
   isTagToken,
@@ -330,7 +331,7 @@ function* extractVariables(value: Argument): Generator<Variable> {
   }
 }
 
-function* extractFilteredValueVariables(value: Value): Generator<Variable> {
+function* extractFilteredValueVariables(value: Value | FilteredValueToken): Generator<Variable> {
   for (const token of value.initial.postfix) {
     if (isValueToken(token)) {
       yield* extractValueTokenVariables(token)
@@ -352,6 +353,8 @@ function* extractValueTokenVariables(token: ValueToken): Generator<Variable> {
   if (isRangeToken(token)) {
     yield* extractValueTokenVariables(token.lhs)
     yield* extractValueTokenVariables(token.rhs)
+  } else if (isFilteredValueToken(token)) {
+    yield* extractFilteredValueVariables(token)
   } else if (isPropertyAccessToken(token)) {
     if (token.variable) {
       yield* extractValueTokenVariables(token.variable)

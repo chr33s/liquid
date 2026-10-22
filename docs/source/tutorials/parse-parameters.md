@@ -41,7 +41,7 @@ The following modified template also contains 3 values to random from, but they'
 It can be tricky to parse all these cases manually, but there's a {@link Tokenizer | Tokenizer} class in LiquidJS you can make use of.
 
 ```javascript
-import { Liquid, Tag, Tokenizer, evalToken } from '@chr33s/liquid'
+import { Liquid, Tag, Tokenizer, evalTokenValue } from '@chr33s/liquid'
 engine.registerTag('random', class extends Tag {
   constructor(tagToken, remainTokens, liquid) {
     super(tagToken, remainTokens, liquid)
@@ -56,7 +56,7 @@ engine.registerTag('random', class extends Tag {
     const index = Math.floor(this.items.length * Math.random())
     const token = this.items[index]
     // in LiquidJS, we use yield to wait for async call
-    const value = yield evalToken(token, context)
+    const value = yield evalTokenValue(token, context)
     yield emitter.write(value)
   }
 })
