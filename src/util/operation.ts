@@ -20,6 +20,7 @@ export function associate<T extends OperationOptions>(options: T, owner: Operati
 export class Operation {
   readonly controller = new AbortController()
   readonly signal = this.controller.signal
+  private readonly sources = new Set<AbortSignal>()
   private detach?: () => void
   private ticks = 0
   private started = Date.now()
@@ -28,13 +29,25 @@ export class Operation {
   private readonly pending = new Set<Promise<unknown>>()
   readonly secondary: unknown[] = []
 
-  constructor(signal?: AbortSignal) {
-    if (signal) {
+  constructor(...signals: (AbortSignal | undefined)[]) {
+    const detach: (() => void)[] = []
+    for (const signal of signals) {
+      if (!signal) continue
+      this.sources.add(signal)
       const abort = () => this.abort(signal.reason)
       signal.addEventListener('abort', abort, { once: true })
-      this.detach = () => signal.removeEventListener('abort', abort)
+      detach.push(() => signal.removeEventListener('abort', abort))
       if (signal.aborted) abort()
     }
+    if (detach.length) this.detach = () => detach.forEach(remove => remove())
+  }
+
+  covers(signal?: AbortSignal) {
+    return !signal || signal === this.signal || this.sources.has(signal)
+  }
+
+  get finished() {
+    return this.settled
   }
 
   abort(reason?: unknown) {

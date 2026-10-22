@@ -248,16 +248,10 @@ function* _analyze(
 
         partialScope.pop()
       } else {
-        if (template.blockScope) {
-          scope.push(new Set(template.blockScope()))
-        }
-
         for (const child of (yield template.children(partials, options)) as Template[]) {
+          if (template.blockScope) scope.push(new Set(template.blockScope(child)))
           yield visit(child, scope)
-        }
-
-        if (template.blockScope) {
-          scope.pop()
+          if (template.blockScope) scope.pop()
         }
       }
     }

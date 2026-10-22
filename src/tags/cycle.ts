@@ -56,7 +56,7 @@ export default class extends Tag {
     }
 
     const candidate = this.candidates[idx]
-    idx = (idx + 1) % this.candidates.length
+    idx = idx + 1 >= this.candidates.length ? 0 : idx + 1
     groups[fingerprint] = idx
     // rendered as text, so `false` and nil print as the reference prints them
     const value = yield evalToken(candidate, ctx)

@@ -1,5 +1,5 @@
 import { Operation, associate, existingOperation, operationFor, type OperationOptions } from './util/operation'
-import { drive as execute } from './util/async'
+import { drive as execute, driving } from './util/async'
 import { StreamedEmitter, type Emitter } from './emitters'
 import { Context } from './context'
 import { forOwn, isString, strictUniq, LiquidError, inlineErrorMessage } from './util'
@@ -28,6 +28,15 @@ import {
   RenderOptions,
   RenderFileOptions
 } from './liquid-options'
+
+/** The operation a direct generator call runs under: its own, else the one driving it, else a new one linked to both. */
+function ownerOf(options: OperationOptions): { owner: Operation; created: boolean } {
+  const existing = existingOperation(options)
+  if (existing) return { owner: existing, created: false }
+  const parent = driving()
+  if (parent?.covers(options.signal)) return { owner: parent, created: false }
+  return { owner: new Operation(options.signal, parent?.signal), created: true }
+}
 
 export class Liquid {
   /** @internal */
@@ -68,11 +77,12 @@ export class Liquid {
     emitter?: Emitter
   ): IterableIterator<any> {
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options, renderOptions)
-    const joined = ctx.operationActive && ctx.operation === existingOperation(renderOptions)
+    const { owner, created } = ownerOf(renderOptions)
+    const joined = ctx.operationActive && ctx.operation === owner
     const previous = ctx.operation
     const wasActive = ctx.operationActive
     ctx.operationActive = true
-    ctx.operation = operationFor(renderOptions)
+    ctx.operation = owner
     try {
       if (emitter instanceof StreamedEmitter) emitter.outputLengthLimit = ctx.outputLengthLimit
       return yield renderThemeTemplates(this, tpl, ctx, emitter)
@@ -84,9 +94,10 @@ export class Liquid {
       if (emitter) yield emitter.write(message)
       return message
     } finally {
-      if (!joined) {
-        ctx.operation = previous
-        ctx.operationActive = wasActive
+      if (!joined) ctx.release(owner, previous, wasActive)
+      if (created) {
+        yield owner.drain()
+        owner.finish()
       }
     }
   }
@@ -150,16 +161,20 @@ export class Liquid {
   public *_evalValue(str: string, scope?: object | Context, options: OperationOptions = {}): IterableIterator<any> {
     const value = new Value(str, this)
     const ctx = scope instanceof Context ? scope : new Context(scope, this.options)
-    if (ctx.operationActive && ctx.operation === existingOperation(options)) return yield value.value(ctx)
+    const { owner, created } = ownerOf(options)
+    if (ctx.operationActive && ctx.operation === owner) return yield value.value(ctx)
     const previous = ctx.operation
     const wasActive = ctx.operationActive
     ctx.operationActive = true
-    ctx.operation = operationFor(options)
+    ctx.operation = owner
     try {
       return yield value.value(ctx)
     } finally {
-      ctx.operation = previous
-      ctx.operationActive = wasActive
+      ctx.release(owner, previous, wasActive)
+      if (created) {
+        yield owner.drain()
+        owner.finish()
+      }
     }
   }
   public async evalValue(str: string, scope?: object | Context, options?: OperationOptions): Promise<any> {
@@ -268,6 +283,9 @@ export class Liquid {
   }
   public registerTag(name: string, tag: TagClass) {
     this.tags[name] = tag
+  }
+  public unregisterTag(name: string) {
+    delete this.tags[name]
   }
   public plugin(plugin: (this: Liquid, L: typeof Liquid) => void) {
     return plugin.call(this, Liquid)

@@ -17,7 +17,8 @@ import {
   isNumberToken,
   toValue,
   toNumber,
-  assert
+  assert,
+  resolveDrop
 } from '../util'
 import type { Context } from '../context'
 import { defaultOperators, isTruthy, type UnaryOperatorHandler } from '../render'
@@ -74,8 +75,8 @@ function* evalNode(node: ExpressionNode, ctx: Context, lenient?: boolean): Gener
   // the left one does not already decide the result. A replaced operator keeps
   // the eager contract of its two-operand signature.
   if (handler === defaultOperators[operator.operator]) {
-    if (operator.operator === 'and' && !isTruthy(toValue(l), ctx)) return false
-    if (operator.operator === 'or' && isTruthy(toValue(l), ctx)) return true
+    if (operator.operator === 'and' && !isTruthy(yield toValue(l), ctx)) return false
+    if (operator.operator === 'or' && isTruthy(yield toValue(l), ctx)) return true
   }
   return yield handler(l, yield evalNode(rhs, ctx, lenient), ctx)
 }
@@ -112,6 +113,10 @@ export function* evalToken(token: Token | undefined, ctx: Context, lenient = fal
   if (isRangeToken(token)) return yield evalRangeToken(token, ctx)
 }
 
+export function* evalTokenValue(token: Token | undefined, ctx: Context, lenient = false): IterableIterator<unknown> {
+  return yield resolveDrop(yield evalToken(token, ctx, lenient))
+}
+
 function* evalPropertyAccessToken(
   token: PropertyAccessToken,
   ctx: Context,
@@ -121,7 +126,7 @@ function* evalPropertyAccessToken(
   // `a.first` asks for a command, `a["first"]` only for a key
   const bracketed: boolean[] = []
   for (const prop of token.props) {
-    props.push((yield evalToken(prop, ctx, false)) as unknown as string | number | Drop)
+    props.push((yield evalTokenValue(prop, ctx, false)) as unknown as string | number | Drop)
     bracketed.push(!(prop instanceof IdentifierToken))
   }
   try {
@@ -143,8 +148,8 @@ export function evalQuotedToken(token: QuotedToken) {
 }
 
 function* evalRangeToken(token: RangeToken, ctx: Context) {
-  const low = rangeBound(yield evalToken(token.lhs, ctx))
-  const high = rangeBound(yield evalToken(token.rhs, ctx))
+  const low = rangeBound(yield evalTokenValue(token.lhs, ctx))
+  const high = rangeBound(yield evalTokenValue(token.rhs, ctx))
   assert(!(Math.abs(low) > Number.MAX_SAFE_INTEGER || Math.abs(high) > Number.MAX_SAFE_INTEGER), 'invalid range bounds')
   return LiquidRange.fromBounds(low, high)
 }

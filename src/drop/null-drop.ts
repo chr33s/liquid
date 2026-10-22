@@ -4,8 +4,8 @@ import { Comparable } from './comparable'
 import { isNil, toValue } from '../util'
 
 export class NullDrop extends Drop implements Comparable {
-  public equals(value: any) {
-    return value instanceof BlankDrop || isNil(toValue(value))
+  public *equals(value: any): Generator<unknown, boolean, any> {
+    return value instanceof BlankDrop || isNil(yield toValue(value))
   }
   public gt() {
     return false

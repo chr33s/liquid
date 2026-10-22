@@ -58,6 +58,6 @@ export function createFS(baseUrl?: string): FS {
 }
 
 function extend(result: URL, ext: string): string {
-  if (!/\.\w+$/.test(result.pathname.split('/').pop()!)) result.pathname += ext
+  if (!/\.[^/]+$/.test(result.pathname.split('/').pop()!)) result.pathname += ext
   return result.href
 }

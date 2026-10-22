@@ -142,7 +142,7 @@ export class LiquidDate {
   static createDateFixedToTimezone(dateString: string, locale: string): LiquidDate {
     const m = dateString.match(TIMEZONE_PATTERN)
     // representing a UTC timestamp
-    if (m && m[1] === 'Z') {
+    if (m && m[1].toUpperCase() === 'Z') {
       return new LiquidDate(+new Date(dateString), locale, 0)
     }
     // has a timezone specified

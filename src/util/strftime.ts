@@ -25,29 +25,28 @@ function getDayOfYear(d: LiquidDate) {
   return num + d.getDate()
 }
 function getWeekOfYear(d: LiquidDate, startDay: number) {
-  // Skip to startDay of this week
-  const now = getDayOfYear(d) + (startDay - d.getDay())
-  // Find the first startDay of the year
-  const jan1 = new Date(d.getFullYear(), 0, 1)
-  const then = 7 - jan1.getDay() + startDay
-  return String(Math.floor((now - then) / 7) + 1)
+  const weekday = (d.getDay() - startDay + 7) % 7
+  return String(Math.floor((getDayOfYear(d) + 6 - weekday) / 7))
 }
 /** ISO 8601: weeks start on Monday, and week 1 holds the year's first Thursday. */
 function isoThursday(d: LiquidDate) {
   const day = (d.getDay() + 6) % 7
-  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate() - day + 3))
+  const thursday = new Date(0)
+  thursday.setUTCFullYear(d.getFullYear(), d.getMonth(), d.getDate() - day + 3)
+  return thursday
 }
 function isoWeekYear(d: LiquidDate) {
   return isoThursday(d).getUTCFullYear()
 }
 function isoWeek(d: LiquidDate) {
   const thursday = isoThursday(d)
-  const jan1 = Date.UTC(thursday.getUTCFullYear(), 0, 1)
-  return Math.floor((thursday.getTime() - jan1) / 864e5 / 7) + 1
+  const jan1 = new Date(0)
+  jan1.setUTCFullYear(thursday.getUTCFullYear(), 0, 1)
+  return Math.floor((thursday.getTime() - jan1.getTime()) / 864e5 / 7) + 1
 }
 function isLeapYear(d: LiquidDate) {
   const year = d.getFullYear()
-  return !!((year & 3) === 0 && (year % 100 || (year % 400 === 0 && year)))
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
 }
 function ordinal(d: LiquidDate) {
   const date = d.getDate()
@@ -65,11 +64,14 @@ function ordinal(d: LiquidDate) {
   }
 }
 function century(d: LiquidDate) {
-  return parseInt(d.getFullYear().toString().substring(0, 2), 10)
+  return Math.floor(d.getFullYear() / 100)
 }
 
 // default to 0
 const padWidths: Record<string, number> = {
+  C: 2,
+  G: 4,
+  g: 2,
   d: 2,
   e: 2,
   H: 2,
@@ -79,6 +81,8 @@ const padWidths: Record<string, number> = {
   l: 2,
   L: 3,
   m: 2,
+  y: 2,
+  Y: 4,
   V: 2,
   M: 2,
   S: 2,
@@ -89,12 +93,12 @@ const padWidths: Record<string, number> = {
 const padSpaceChars = new Set('aAbBceklpP')
 
 function getTimezoneOffset(d: LiquidDate, opts: FormatOptions) {
-  const nOffset = Math.abs(d.getTimezoneOffset())
-  const h = Math.floor(nOffset / 60)
-  const m = nOffset % 60
-  return (
-    (d.getTimezoneOffset() > 0 ? '-' : '+') + padStart(h, 2, '0') + (opts.flags[':'] ? ':' : '') + padStart(m, 2, '0')
-  )
+  const absoluteOffset = Math.abs(d.getTimezoneOffset())
+  const hours = Math.floor(absoluteOffset / 60)
+  const minutes = absoluteOffset % 60
+  const sign = d.getTimezoneOffset() > 0 ? '-' : '+'
+  const separator = opts.flags[':'] ? ':' : ''
+  return `${sign}${padStart(hours, 2, '0')}${separator}${padStart(minutes, 2, '0')}`
 }
 type FormatCodeHandler = (d: LiquidDate, opts: FormatOptions) => unknown
 
@@ -107,7 +111,7 @@ const formatCodes: Record<string, FormatCodeHandler> = {
   C: (d: LiquidDate) => century(d),
   D: (d: LiquidDate) => strftime(d, '%m/%d/%y'),
   F: (d: LiquidDate) => strftime(d, '%Y-%m-%d'),
-  g: (d: LiquidDate) => padStart(isoWeekYear(d) % 100, 2, '0'),
+  g: (d: LiquidDate) => ((isoWeekYear(d) % 100) + 100) % 100,
   G: (d: LiquidDate) => isoWeekYear(d),
   d: (d: LiquidDate) => d.getDate(),
   e: (d: LiquidDate) => d.getDate(),
@@ -141,7 +145,7 @@ const formatCodes: Record<string, FormatCodeHandler> = {
   W: (d: LiquidDate) => getWeekOfYear(d, 1),
   x: (d: LiquidDate) => strftime(d, '%m/%d/%y'),
   X: (d: LiquidDate) => strftime(d, '%H:%M:%S'),
-  y: (d: LiquidDate) => d.getFullYear().toString().slice(2, 4),
+  y: (d: LiquidDate) => ((d.getFullYear() % 100) + 100) % 100,
   Y: (d: LiquidDate) => d.getFullYear(),
   z: getTimezoneOffset,
   Z: (d: LiquidDate, opts: FormatOptions) => d.getTimeZoneName() || getTimezoneOffset(d, opts),
@@ -176,11 +180,14 @@ function format(d: LiquidDate, match: RegExpExecArray) {
   let ret = String(convert(d, { flags, width, modifier }))
   let padChar = padSpaceChars.has(conversion) ? ' ' : '0'
   let padWidth = Number(width) || padWidths[conversion] || 0
+  if (!width && (conversion === 'Y' || conversion === 'G') && ret.startsWith('-')) padWidth++
   if (flags['^']) ret = ret.toUpperCase()
   else if (flags['#']) ret = changeCase(ret)
   if (flags['_']) padChar = ' '
   else if (flags['0']) padChar = '0'
   if (flags['-']) padWidth = 0
   else assertPadWidth(padWidth)
-  return padStart(ret, padWidth, padChar)
+  return ret.startsWith('-') && padChar === '0'
+    ? '-' + padStart(ret.slice(1), Math.max(0, padWidth - 1), padChar)
+    : padStart(ret, padWidth, padChar)
 }

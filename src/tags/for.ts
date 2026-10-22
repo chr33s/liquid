@@ -174,7 +174,7 @@ export default class extends Tag {
     }
   }
 
-  public blockScope(): Iterable<string> {
-    return [this.variable, 'forloop']
+  public blockScope(child?: Template): Iterable<string> {
+    return child && this.elseTemplates.includes(child) ? [] : [this.variable, 'forloop']
   }
 }

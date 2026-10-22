@@ -1,0 +1,14 @@
+{
+  "name": "liquidjs-demo-srvx",
+  "private": true,
+  "type": "module",
+  "description": "srvx demo for liquidjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "./test.sh"
+  },
+  "dependencies": {
+    "@chr33s/liquid": "file:../..",
+    "srvx": "^1.0.5"
+  }
+}

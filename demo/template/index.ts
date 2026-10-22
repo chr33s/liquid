@@ -10,7 +10,7 @@ engine.registerTag('layout', LayoutTag)
 
 const templates = await engine.parseFile('todolist')
 
-for (const output of getOutputs(templates)) {
+for await (const output of getOutputs(templates)) {
   const token = output.token
   const [line, col] = token.getPosition()
   const text = token.getText()

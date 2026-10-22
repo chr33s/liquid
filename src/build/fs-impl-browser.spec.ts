@@ -13,6 +13,9 @@ describe('fs/browser', function () {
     delete (global as any).document
   })
   describe('#resolve()', function () {
+    it('should preserve extensions containing hyphens', () => {
+      expect(fs.createFS().resolve('.', 'page.en-US', '.html')).toBe('https://example.com/foo/bar/page.en-US')
+    })
     it('should support relative root', function () {
       expect(fs.createFS().resolve('./views/', 'foo', '')).toBe('https://example.com/foo/bar/views/foo')
     })

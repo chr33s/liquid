@@ -36,7 +36,7 @@ export interface Template {
   render(ctx: Context, emitter: Emitter): any
   children?(partials: boolean, options?: OperationOptions): Generator<unknown, Template[]>
   arguments?(): Arguments
-  blockScope?(): Iterable<string>
+  blockScope?(child?: Template): Iterable<string>
   localScope?(): Iterable<IdentifierToken | QuotedToken>
   partialScope?(): PartialScope | undefined
 }

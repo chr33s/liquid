@@ -1,4 +1,4 @@
-import { Operation, associate, drive, operationFor, existingOperation } from '../util'
+import { Operation, associate, drive } from '../util'
 import { Drop } from '../drop/drop'
 import { SelfDrop } from '../drop/self-drop'
 import { FloatDrop, isDecimal } from '../drop/float-drop'
@@ -34,7 +34,7 @@ export class Context {
    * for tags like `{% capture %}` `{% assign %}` to operate
    */
   private scopes: Scope[] = [createScope()]
-  private registers: Record<string, any> = {}
+  private registers: Record<string, any> = Object.create(null)
   /**
    * user passed in scope
    * `{% increment %}`, `{% decrement %}` changes this scope,
@@ -115,9 +115,8 @@ export class Context {
       capabilities?: CapabilityLog
     } = {}
   ) {
-    this.operationActive = !!existingOperation(renderOptions)
     this.lookupSignal = renderOptions.signal
-    this.operation = this.operationActive ? operationFor(renderOptions) : new Operation()
+    this.operation = new Operation()
     this.opts = opts
     this.globals = renderOptions.globals ?? opts.globals
     this.environments = isObject(env) ? env : Object(env)
@@ -160,7 +159,7 @@ export class Context {
     return this.filters[name]
   }
   public getRegister<T>(key: string, defaultValue: T = undefined as T): T {
-    return (this.registers[key] = this.registers[key] || defaultValue)
+    return (this.registers[key] = this.registers[key] === undefined ? defaultValue : this.registers[key])
   }
   public setRegister(key: string, value: any) {
     return (this.registers[key] = value)
@@ -179,6 +178,13 @@ export class Context {
   }
   public get(paths: PropertyKey[]): Promise<unknown> {
     return this.lookup(this._get(paths))
+  }
+  /** @internal Hands the context back from `owner` to the operation it had, unless another has taken it over or that one is finished. */
+  public release(owner: Operation, previous: Operation, wasActive: boolean) {
+    if (this.operation !== owner) return
+    const active = wasActive && !previous.finished
+    this.operation = active ? previous : new Operation()
+    this.operationActive = active
   }
   private async lookup(value: IterableIterator<unknown>): Promise<unknown> {
     if (this.operationActive && !this.lookupLifetime) return this.operation.join(drive(value, this.operation))
@@ -282,12 +288,10 @@ export class Context {
   private findScope(key: string | number) {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       const candidate = this.scopes[i]
-      if (this.ownPropertyOnly ? hasOwnProperty.call(candidate, key) : key in candidate) return candidate
+      if (this.defines(candidate, key)) return candidate
     }
-    if (this.ownPropertyOnly ? hasOwnProperty.call(this.environments, key) : key in this.environments)
-      return this.environments
-    if (this.globals && (this.ownPropertyOnly ? hasOwnProperty.call(this.globals, key) : key in this.globals))
-      return this.globals
+    if (this.defines(this.environments, key)) return this.environments
+    if (this.globals && this.defines(this.globals, key)) return this.globals
     if (hasOwnProperty.call(this.themeGlobals, key)) return this.themeGlobals
     if (key === 'self') return this.selfScope()
     return this.globals
@@ -300,6 +304,9 @@ export class Context {
   private selfScope(): Scope {
     if (!this.selfDrop) this.selfDrop = { self: new SelfDrop(this) }
     return this.selfDrop
+  }
+  private defines(scope: Scope, key: string | number) {
+    return this.ownPropertyOnly && !(scope instanceof Drop) ? hasOwnProperty.call(scope, key) : key in scope
   }
   /** `command`: read `size`, `first` and `last` as the reference's commands, as `a.first` does and `a["first"]` does not. */
   readProperty(obj: Scope, key: PropertyKey | Drop, command = true) {

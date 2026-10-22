@@ -1,6 +1,13 @@
 import { isPromise, isIterator } from './underscore'
 import { Operation, existingOperation, operationFor, type OperationOptions } from './operation'
 
+let current: Operation | undefined
+
+/** @internal The operation whose driver is stepping the running generator, if any. */
+export function driving(): Operation | undefined {
+  return current
+}
+
 export async function toPromise<T>(
   value: Generator<unknown, T, unknown> | Promise<T> | T,
   options: OperationOptions = {}
@@ -53,6 +60,8 @@ export async function drive<T>(
         return input as T
       }
       const iterator = stack[stack.length - 1]
+      const previous = current
+      current = owner
       try {
         const state = iterator[method]!(input)
         input = state.value
@@ -62,6 +71,8 @@ export async function drive<T>(
         stack.pop()
         method = 'throw'
         input = error
+      } finally {
+        current = previous
       }
     }
   } catch (error) {

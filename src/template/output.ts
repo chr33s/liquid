@@ -9,6 +9,7 @@ import { variable } from '../parser/strict2'
 import { Liquid } from '../liquid'
 import { Filter } from './filter'
 import { FilterToken, FilteredValueToken } from '../tokens'
+import { resolveDrop } from '../util'
 
 export class Output extends TemplateImpl<OutputToken> implements Template {
   value: Value
@@ -32,7 +33,7 @@ export class Output extends TemplateImpl<OutputToken> implements Template {
     }
   }
   public *render(ctx: Context, emitter: Emitter): IterableIterator<unknown> {
-    const val = yield this.value.value(ctx, false, this.outputEscape)
+    const val = yield resolveDrop(yield this.value.value(ctx, false, this.outputEscape))
     yield emitter.write(val)
   }
 

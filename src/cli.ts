@@ -1,5 +1,5 @@
 import fs from 'fs/promises'
-import { program } from 'commander'
+import { InvalidArgumentError, program } from 'commander'
 import { Liquid } from './index'
 
 render().catch(err => {
@@ -14,7 +14,7 @@ async function render() {
     .argument('<template>', 'liquid template to render (inline, @path, or @- for stdin)')
     .option('-c, --context <json | @path>', 'input context in JSON format (inline, @path, or @- for stdin)')
     .option('-o, --output <path>', 'write rendered output to file (omit to write to stdout)')
-    .option('--cache [size]', 'cache previously parsed template structures (default cache size: 1024)')
+    .option('--cache [size]', 'cache previously parsed template structures (default cache size: 1024)', toInteger)
     .option('--extname <string>', 'use a default filename extension when resolving partials and layouts')
     .option('--jekyll-include', 'use jekyll-style include (pass parameters to include variable of current scope)')
     .option('--js-truthy', 'use JavaScript-style truthiness')
@@ -38,7 +38,8 @@ async function render() {
     .option('--tag-delimiter-right <string>', 'right delimiter to use for liquid tags')
     .option(
       '--timezone-offset <value>',
-      'JavaScript timezone name or timezoneOffset value to use in date filter (defaults to local timezone)'
+      'JavaScript timezone name or timezoneOffset value to use in date filter (defaults to local timezone)',
+      value => (/^[+-]?\d+$/.test(value) ? Number(value) : value)
     )
     .option('--trim-output-left', 'trim whitespace from left of liquid outputs')
     .option('--trim-output-right', 'trim whitespace from right of liquid outputs')
@@ -65,6 +66,11 @@ async function render() {
   } else {
     process.stdout.write(output)
   }
+}
+
+function toInteger(value: string) {
+  if (!/^\d+$/.test(value)) throw new InvalidArgumentError('Not a non-negative integer.')
+  return Number(value)
 }
 
 async function resolveContext(contextOption?: string) {

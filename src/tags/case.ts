@@ -15,7 +15,7 @@ import {
 import { Parser } from '../parser'
 import { markupOf, tagMarkup, type ParsedMarkup } from '../parser/strict2'
 import { equals } from '../render'
-import { ParseError } from '../util'
+import { ParseError, resolveDrop } from '../util'
 import { Arguments, blankBodies } from '../template'
 
 export default class extends Tag {
@@ -75,7 +75,7 @@ export default class extends Tag {
 
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     const r = this.liquid.renderer
-    const target = toValue(yield this.value.value(ctx, ctx.opts.lenientIf))
+    const target = toValue(yield resolveDrop(yield this.value.value(ctx, ctx.opts.lenientIf)))
     // as in the reference, every matching `when` renders, and an `else` renders
     // when no `when` before it has matched
     let branchHit = false
@@ -87,7 +87,7 @@ export default class extends Tag {
       for (const valueToken of branch.values) {
         const value = yield evalToken(valueToken, ctx, ctx.opts.lenientIf)
         // each matching value renders the body, as in the reference
-        if (equals(target, value)) {
+        if (yield equals(target, value)) {
           yield r.renderTemplates(branch.templates, ctx, emitter)
           branchHit = true
         }

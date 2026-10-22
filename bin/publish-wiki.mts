@@ -36,7 +36,11 @@ const owned: string[] = fs.existsSync(path.join(checkout, manifestName))
   ? JSON.parse(fs.readFileSync(path.join(checkout, manifestName), 'utf8'))
   : []
 
-const collisions = generated.filter(name => !owned.includes(name) && fs.existsSync(path.join(checkout, name)))
+const placeholder = /^Welcome to the [^\n]+ wiki!\s*$/
+const collisions = generated.filter(name => {
+  const file = path.join(checkout, name)
+  return !owned.includes(name) && fs.existsSync(file) && !placeholder.test(fs.readFileSync(file, 'utf8'))
+})
 if (collisions.length) {
   console.error(`error: the wiki already holds pages this build does not own: ${collisions.join(', ')}`)
   console.error('error: import or rename them before publishing')

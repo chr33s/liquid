@@ -16,7 +16,7 @@ app.set('view engine', 'liquid');       // set liquid to default
 
 > **Working Demo**
 >
-> Here's a working demo for LiquidJS usage in Express.js: <a href="https://github.com/chr33s/liquid/tree/main/demo/express/" target="_blank">demo/express/</a>.
+> The runnable server demo uses <a href="https://srvx.h3.dev" target="_blank">srvx</a>: <a href="https://github.com/chr33s/liquid/tree/main/demo/srvx/" target="_blank">demo/srvx/</a>. `engine.express()` remains the Express view-engine adapter and is shown above.
 
 ## Template Lookup
 

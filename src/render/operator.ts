@@ -1,53 +1,61 @@
 import { isComparable } from '../drop/comparable'
 import { Context } from '../context'
-import { toValue, LiquidRange } from '../util'
+import { toValue, resolveDrop, LiquidRange } from '../util'
 import { isDecimal } from '../drop/float-drop'
-import { isFalsy, isTruthy } from '../render/boolean'
+import { isTruthy } from '../render/boolean'
 import { hasOwnProperty, inspect, isArray, isFunction } from '../util/underscore'
 
-export type UnaryOperatorHandler = (operand: any, ctx: Context) => boolean
-export type BinaryOperatorHandler = (lhs: any, rhs: any, ctx: Context) => boolean
+export type OperatorGenerator = Generator<unknown, boolean, any>
+export type OperatorResult = boolean | Promise<boolean> | OperatorGenerator
+export type UnaryOperatorHandler = (operand: any, ctx: Context) => OperatorResult
+export type BinaryOperatorHandler = (lhs: any, rhs: any, ctx: Context) => OperatorResult
 export type OperatorHandler = UnaryOperatorHandler | BinaryOperatorHandler
 export type Operators = Record<string, OperatorHandler>
 
+function compare(
+  direct: 'gt' | 'lt' | 'geq' | 'leq',
+  inverse: 'lt' | 'gt' | 'leq' | 'geq',
+  test: (lhs: any, rhs: any) => boolean
+) {
+  return function* (lhs: any, rhs: any): OperatorGenerator {
+    if (isComparable(lhs)) return yield lhs[direct](rhs)
+    if (isComparable(rhs)) return yield rhs[inverse](lhs)
+    lhs = yield resolveDrop(lhs)
+    rhs = yield resolveDrop(rhs)
+    return ordered(lhs, rhs) && test(toValue(lhs), toValue(rhs))
+  }
+}
+
 export const defaultOperators: Operators = {
   '==': equals,
-  '!=': (l: any, r: any) => !equals(l, r),
-  '<>': (l: any, r: any) => !equals(l, r),
-  '>': (l: any, r: any) => {
-    if (isComparable(l)) return l.gt(r)
-    if (isComparable(r)) return r.lt(l)
-    return ordered(l, r) && toValue(l) > toValue(r)
+  '!=': function* (l: any, r: any): OperatorGenerator {
+    return !(yield equals(l, r))
   },
-  '<': (l: any, r: any) => {
-    if (isComparable(l)) return l.lt(r)
-    if (isComparable(r)) return r.gt(l)
-    return ordered(l, r) && toValue(l) < toValue(r)
+  '<>': function* (l: any, r: any): OperatorGenerator {
+    return !(yield equals(l, r))
   },
-  '>=': (l: any, r: any) => {
-    if (isComparable(l)) return l.geq(r)
-    if (isComparable(r)) return r.leq(l)
-    return ordered(l, r) && toValue(l) >= toValue(r)
-  },
-  '<=': (l: any, r: any) => {
-    if (isComparable(l)) return l.leq(r)
-    if (isComparable(r)) return r.geq(l)
-    return ordered(l, r) && toValue(l) <= toValue(r)
-  },
-  contains: (l: any, r: any) => {
-    l = toValue(l)
+  '>': compare('gt', 'lt', (l, r) => l > r),
+  '<': compare('lt', 'gt', (l, r) => l < r),
+  '>=': compare('geq', 'leq', (l, r) => l >= r),
+  '<=': compare('leq', 'geq', (l, r) => l <= r),
+  contains: function* (l: any, r: any): OperatorGenerator {
+    l = toValue(yield resolveDrop(l))
     // the reference never finds nil or false, not even in an array holding one
-    const needle = toValue(r)
+    const needle = toValue(yield resolveDrop(r))
     if (needle === null || needle === undefined || needle === false) return false
     // a hash contains its keys
     if (isPlainObject(l)) return typeof needle === 'string' && hasOwnProperty.call(l, needle)
-    if (l instanceof LiquidRange) return rangeIncludes(l, toValue(r))
-    if (isArray(l)) return l.some(i => equals(i, r))
-    if (isFunction(l?.indexOf)) return l.indexOf(toValue(r)) > -1
+    if (l instanceof LiquidRange) return rangeIncludes(l, needle)
+    if (isArray(l)) return yield arrayIncludes(l, r)
+    if (isFunction(l?.indexOf)) return l.indexOf(needle) > -1
     return false
   },
-  and: (l: any, r: any, ctx: Context) => isTruthy(toValue(l), ctx) && isTruthy(toValue(r), ctx),
-  or: (l: any, r: any, ctx: Context) => isTruthy(toValue(l), ctx) || isTruthy(toValue(r), ctx)
+  and: function* (l: any, r: any, ctx: Context): OperatorGenerator {
+    return isTruthy(yield toValue(l), ctx) && isTruthy(yield toValue(r), ctx)
+  },
+  or: function* (l: any, r: any, ctx: Context): OperatorGenerator {
+    return isTruthy(yield toValue(l), ctx) || isTruthy(yield toValue(r), ctx)
+  }
 }
 
 /** The reference's class name for a value `<` can order, if any. */
@@ -77,11 +85,15 @@ function ordered(lhs: unknown, rhs: unknown): boolean {
   return true
 }
 
-export function equals(lhs: any, rhs: any): boolean {
-  if (isComparable(lhs)) return lhs.equals(rhs)
-  if (isComparable(rhs)) return rhs.equals(lhs)
-  lhs = toValue(lhs)
-  rhs = toValue(rhs)
+export function* equals(lhs: any, rhs: any): OperatorGenerator {
+  return yield valueEquals(lhs, rhs, new Set())
+}
+
+function* valueEquals(lhs: any, rhs: any, comparing: Set<string>): OperatorGenerator {
+  if (isComparable(lhs)) return yield lhs.equals(rhs)
+  if (isComparable(rhs)) return yield rhs.equals(lhs)
+  lhs = yield toValue(lhs)
+  rhs = yield toValue(rhs)
   if (lhs === rhs) return true
   if (typeof lhs === 'bigint' && typeof rhs === 'number') return Number.isInteger(rhs) && lhs === BigInt(rhs)
   if (typeof rhs === 'bigint' && typeof lhs === 'number') return Number.isInteger(lhs) && rhs === BigInt(lhs)
@@ -91,10 +103,10 @@ export function equals(lhs: any, rhs: any): boolean {
     return rangeEquals(lhs, rhs)
   }
   if (isArray(lhs)) {
-    return isArray(rhs) && arrayEquals(lhs, rhs)
+    return isArray(rhs) && (yield arrayEquals(lhs, rhs, comparing))
   }
   if (isPlainObject(lhs) || isPlainObject(rhs)) {
-    return isPlainObject(lhs) && isPlainObject(rhs) && objectEquals(lhs, rhs)
+    return isPlainObject(lhs) && isPlainObject(rhs) && (yield objectEquals(lhs, rhs, comparing))
   }
   return lhs === rhs
 }
@@ -105,8 +117,6 @@ function isPlainObject(value: any): value is Record<string, unknown> {
   return proto === Object.prototype || proto === null
 }
 
-/** Pairs already being compared, so a self-referential value cannot recurse. */
-const comparing = new Set<string>()
 let pairId = 0
 const pairIds = new WeakMap<object, number>()
 
@@ -116,19 +126,34 @@ function identify(value: object): number {
   return id
 }
 
-function objectEquals(lhs: Record<string, unknown>, rhs: Record<string, unknown>): boolean {
+function* objectEquals(
+  lhs: Record<string, unknown>,
+  rhs: Record<string, unknown>,
+  comparing: Set<string>
+): OperatorGenerator {
   const keys = Object.keys(lhs)
   if (keys.length !== Object.keys(rhs).length) return false
-  return comparePair(lhs, rhs, () => keys.every(key => hasOwnProperty.call(rhs, key) && equals(lhs[key], rhs[key])))
+  return yield comparePair(lhs, rhs, comparing, function* () {
+    for (const key of keys) {
+      if (!hasOwnProperty.call(rhs, key) || !(yield valueEquals(lhs[key], rhs[key], comparing))) return false
+    }
+    return true
+  })
 }
 
-function comparePair(lhs: object, rhs: object, compare: () => boolean): boolean {
+/** `comparing` holds the pairs on the current walk, so a self-referential value cannot recurse. */
+function* comparePair(
+  lhs: object,
+  rhs: object,
+  comparing: Set<string>,
+  compare: () => OperatorGenerator
+): OperatorGenerator {
   const pair = `${identify(lhs)},${identify(rhs)}`
   // already on the stack: assume equal and let the rest of the walk decide
   if (comparing.has(pair)) return true
   comparing.add(pair)
   try {
-    return compare()
+    return yield compare()
   } finally {
     comparing.delete(pair)
   }
@@ -146,11 +171,19 @@ function rangeEquals(lhs: any, rhs: any): boolean {
   return lhs.first === rhs.first && lhs.last === rhs.last
 }
 
-function arrayEquals(lhs: any[], rhs: any[]): boolean {
+function* arrayEquals(lhs: any[], rhs: any[], comparing: Set<string>): OperatorGenerator {
   if (lhs.length !== rhs.length) return false
-  return comparePair(lhs, rhs, () => !lhs.some((value, i) => !equals(value, rhs[i])))
+  return yield comparePair(lhs, rhs, comparing, function* () {
+    for (let i = 0; i < lhs.length; i++) {
+      if (!(yield valueEquals(lhs[i], rhs[i], comparing))) return false
+    }
+    return true
+  })
 }
 
-export function arrayIncludes(arr: any[], item: any): boolean {
-  return arr.some(value => equals(value, item))
+export function* arrayIncludes(arr: any[], item: any): OperatorGenerator {
+  for (const value of arr) {
+    if (yield equals(value, item)) return true
+  }
+  return false
 }

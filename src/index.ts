@@ -19,7 +19,16 @@ export type { LiquidErrors } from './util/error'
 export { Drop, FloatDrop } from './drop'
 export type { Comparable } from './drop'
 export type { Emitter } from './emitters'
-export { defaultOperators, type Operators, evalToken, evalQuotedToken, Expression, isFalsy, isTruthy } from './render'
+export {
+  defaultOperators,
+  type Operators,
+  evalToken,
+  evalTokenValue,
+  evalQuotedToken,
+  Expression,
+  isFalsy,
+  isTruthy
+} from './render'
 export { Context, type Scope } from './context'
 export {
   Value,

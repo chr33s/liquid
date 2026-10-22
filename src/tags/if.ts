@@ -2,6 +2,7 @@ import { Liquid, Tag, Value, Emitter, isTruthy, TagToken, TopLevelToken, Context
 import { Parser, assertConsumed } from '../parser'
 import type { ParsedMarkup } from '../parser/strict2'
 import { Arguments, blankBodies, LaxCondition } from '../template'
+import { resolveDrop } from '../util'
 
 export default class extends Tag {
   branches: { value: Value; templates: Template[] }[] = []
@@ -43,7 +44,7 @@ export default class extends Tag {
     const r = this.liquid.renderer
 
     for (const { value, templates } of this.branches) {
-      const v = yield value.value(ctx, ctx.opts.lenientIf)
+      const v = yield resolveDrop(yield value.value(ctx, ctx.opts.lenientIf))
       if (isTruthy(v, ctx)) {
         yield r.renderTemplates(templates, ctx, emitter)
         return

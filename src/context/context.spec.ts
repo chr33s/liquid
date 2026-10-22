@@ -1,5 +1,6 @@
 import { Context } from './context'
 import { Scope } from './scope'
+import { Drop } from '../drop/drop'
 describe('Context', function () {
   let ctx: any, scope: Scope
   beforeEach(function () {
@@ -84,6 +85,29 @@ describe('Context', function () {
     it('should call function before read nested property', async function () {
       expect(await ctx.get(['objFunc', 'prop'])).toEqual('PROP')
     })
+  })
+  describe('registers', () => {
+    it.each([0, false, '', null])('should preserve the register value %j', value => {
+      ctx.setRegister('value', value)
+      expect(ctx.getRegister('value', 'fallback')).toBe(value)
+      const saved = ctx.saveRegister('value')
+      ctx.setRegister('value', 'changed')
+      ctx.restoreRegister(saved)
+      expect(ctx.getRegister('value', 'fallback')).toBe(value)
+    })
+    it.each(['constructor', '__proto__', 'toString'])('should support the register name %s', key => {
+      expect(ctx.getRegister(key, 'initial')).toBe('initial')
+      ctx.setRegister(key, 'changed')
+      expect(ctx.getRegister(key)).toBe('changed')
+    })
+  })
+  it('should read methods of a Drop environment', async function () {
+    class Root extends Drop {
+      name() {
+        return 'Ada'
+      }
+    }
+    expect(await new Context(new Root()).get(['name'])).toBe('Ada')
   })
   describe('#getFromScope()', function () {
     it('should support string', async () => {

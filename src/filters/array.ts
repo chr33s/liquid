@@ -14,11 +14,12 @@ import {
   inputIterator,
   toNumber,
   isPlainObject,
-  toInteger
+  toInteger,
+  resolveDrop
 } from '../util'
 import { plus } from './math'
 import { FloatDrop, isDecimal } from '../drop/float-drop'
-import { equals, isTruthy } from '../render'
+import { arrayIncludes, equals, isTruthy } from '../render'
 import { assert, isString, LiquidRange } from '../util'
 import { FilterImpl } from '../template'
 import type { Scope } from '../context'
@@ -175,9 +176,14 @@ function indexable(item: unknown): boolean {
   return !isNil(value) && typeof value !== 'boolean' && !(isNumber(value) && isDecimal(item))
 }
 
-function expectedMatcher(this: FilterImpl, expected: any): (v: any) => boolean {
+function expectedMatcher(this: FilterImpl, expected: any): (v: any) => Generator<unknown, boolean, any> {
   // as the reference, a nil target selects by truthiness, as an omitted one does
-  if (isNil(toValue(expected))) return (v: any) => isTruthy(v, this.context)
+  const context = this.context
+  if (isNil(toValue(expected))) {
+    return function* (v: any) {
+      return isTruthy(yield resolveDrop(v), context)
+    }
+  }
   return (v: any) => equals(v, expected)
 }
 
@@ -195,7 +201,11 @@ function* filter<T extends object>(
     values.push(yield* readProperty.call(this, item, property))
   }
   const matcher = expectedMatcher.call(this, expected)
-  return array.filter((_, i) => matcher(values[i]) === include)
+  const result: T[] = []
+  for (let i = 0; i < array.length; i++) {
+    if ((yield matcher(values[i])) === include) result.push(array[i])
+  }
+  return result
 }
 
 export function* where<T extends object>(
@@ -227,7 +237,7 @@ function* search<T extends object>(
   for (let index = 0; index < array.length; index++) {
     if (!indexable(array[index])) return undefined
     const value = yield* readProperty.call(this, array[index], property)
-    if (matcher(value)) return [index, array[index]]
+    if (yield matcher(value)) return [index, array[index]]
   }
 }
 
@@ -269,7 +279,7 @@ export function* uniq<T>(this: FilterImpl, arr: T[], property?: string): Iterabl
   for (const item of inputIterator<T>(arr)) {
     const key = toValue(isNil(toValue(property)) ? item : yield* readProperty.call(this, item, property))
     if (isObject(key)) {
-      if (structural.some(seen => equals(seen, key))) continue
+      if (yield arrayIncludes(structural, key)) continue
       structural.push(key)
     } else {
       const primitive = isNumber(key) && Number.isInteger(key) ? BigInt(key) : key

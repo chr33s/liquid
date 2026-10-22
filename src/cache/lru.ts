@@ -10,7 +10,7 @@ class Node<T> {
 }
 
 export class LRU<T> implements Cache<T> {
-  private cache: Record<string, Node<T>> = {}
+  private cache: Record<string, Node<T>> = Object.create(null)
   private head: Node<T>
   private tail: Node<T>
 
@@ -25,17 +25,14 @@ export class LRU<T> implements Cache<T> {
   }
 
   write(key: string, value: T) {
-    if (this.cache[key]) {
-      this.cache[key].value = value
-    } else {
-      const node = new Node(key, value, this.head.next, this.head)
-      this.head.next.prev = node
-      this.head.next = node
+    if (this.cache[key]) this.remove(key)
+    const node = new Node(key, value, this.head.next, this.head)
+    this.head.next.prev = node
+    this.head.next = node
 
-      this.cache[key] = node
-      this.size++
-      this.ensureLimit()
-    }
+    this.cache[key] = node
+    this.size++
+    this.ensureLimit()
   }
 
   read(key: string): T | undefined {
@@ -58,7 +55,7 @@ export class LRU<T> implements Cache<T> {
     this.head.next = this.tail
     this.tail.prev = this.head
     this.size = 0
-    this.cache = {}
+    this.cache = Object.create(null)
   }
 
   private ensureLimit() {

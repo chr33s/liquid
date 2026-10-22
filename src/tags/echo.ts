@@ -2,6 +2,7 @@ import { Liquid, TopLevelToken, Emitter, Value, TagToken, Context, Tag } from '.
 import { Arguments } from '../template'
 import { assertConsumed } from '../parser'
 import type { ParsedMarkup } from '../parser/strict2'
+import { resolveDrop } from '../util'
 
 export default class extends Tag {
   private value?: Value
@@ -21,7 +22,7 @@ export default class extends Tag {
   }
   *render(ctx: Context, emitter: Emitter): Generator<unknown, void, unknown> {
     if (!this.value) return
-    const val = yield this.value.value(ctx, false)
+    const val = yield resolveDrop(yield this.value.value(ctx, false))
     yield emitter.write(val)
   }
 
